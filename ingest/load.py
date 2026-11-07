@@ -59,7 +59,7 @@ RAW_MATCH_COLUMNS = [
 ]  # fmt: skip
 SACKMANN_PLAYER_COLUMNS = ["player_id", "name_first", "name_last", "hand", "dob", "ioc", "height", "wikidata_id"]
 TML_PLAYER_COLUMNS = ["id", "player", "atpname", "birthdate", "weight", "height", "turnedpro", "birthplace", "coaches", "hand", "backhand", "ioc"]
-PLAYER_COLUMNS = ["player_id", "full_name", "hand", "birth_date", "country", "height_cm"]
+PLAYER_COLUMNS = ["player_id", "full_name", "hand", "birth_date", "country", "height_cm", "search_name"]
 REJECT_FIELDS = ["source", "season", "row_num", "action", "reason", "tourney_id", "tourney_name", "round", "winner_name", "loser_name", "score"]
 
 
@@ -170,10 +170,11 @@ def main() -> int:
     for player_id in used_ids:
         if player_id in sackmann_by_id:
             p = sackmann_by_id[player_id]
-            players.append(player_row(player_id, player_files.full_name(p), p["hand"], p["dob"], p["ioc"], p["height"]))
+            row = player_row(player_id, player_files.full_name(p), p["hand"], p["dob"], p["ioc"], p["height"])
         else:
             p = tml_by_id[new_players[player_id]]
-            players.append(player_row(player_id, p["player"], p["hand"], p["birthdate"], p["ioc"], p["height"]))
+            row = player_row(player_id, p["player"], p["hand"], p["birthdate"], p["ioc"], p["height"])
+        players.append((*row, " ".join(player_files.name_tokens(row[1]))))  # search_name
 
     with psycopg.connect(database_url) as conn, conn.cursor() as cur:  # one transaction
         cur.execute(SCHEMA_PATH.read_text())

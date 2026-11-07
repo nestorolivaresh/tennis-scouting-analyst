@@ -4,6 +4,9 @@
 -- No CASCADE: if anything else (a view, another table) depends on these tables, the load
 -- fails with an error instead of silently deleting it. Add such objects to this file.
 
+-- Trigram similarity for player-name lookup with typos (api/stats.py, resolve_player).
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 DROP TABLE IF EXISTS player_matches, matches, players;
 DROP TABLE IF EXISTS raw.matches, raw.sackmann_players, raw.tml_players,
                      raw.player_merges, raw.player_crosswalk, raw.special_events;
@@ -131,7 +134,10 @@ CREATE TABLE players (
   hand        TEXT CHECK (hand IN ('R', 'L')),  -- NULL means unknown
   birth_date  DATE,
   country     TEXT,
-  height_cm   INTEGER
+  height_cm   INTEGER,
+  -- Lowercase ASCII words of full_name, from ingest.players.name_tokens; the API normalizes
+  -- search text with the same function, so both sides compare the same way.
+  search_name TEXT NOT NULL
 );
 
 CREATE TABLE matches (

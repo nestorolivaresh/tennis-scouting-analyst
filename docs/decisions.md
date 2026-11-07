@@ -340,15 +340,116 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
+- Milestone 3: give the API a SELECT-only database role. The stats connection is read-only
+  by setting, but the local role is a superuser that could switch that off (D-014).
 
-## Decisions needed in Milestone 2
+## D-014 Stats layer: which matches count, and what every answer carries
 
-- `recent_form` ordering: many matches share a player, tournament, date and round (round
-  robins, Davis Cup ties). Pick a fixed tiebreaker; TML has `match_date` for 2026, but whether
-  Sackmann's `match_num` follows match order is unverified.
-- `opponent_hand` filter: 13% of players have an unknown hand. Decide whether their matches
-  are excluded and report how many were left out.
-- Tennis Abstract disagreements: decide which source wins when Tennis Abstract differs from
-  the pinned data (it keeps updating; the pinned data doesn't).
-- Player bios: a TML player linked to a Sackmann ID keeps Sackmann's missing values even
-  when TML has them (for example Jia Hu's birth date). Decide whether to fill gaps from TML.
+*2026-11-07, Milestone 2. Revised the same day after an independent review (see the end).*
+
+**Chosen.** The seven tools in `api/stats.py` are plain functions over Postgres. They know
+nothing about the LLM and return JSON-ready dicts.
+- **One definition of "counts".** `SCOPE_SQL` applies the shared filters and labels why a
+  match doesn't count: an exhibition (unless `include_exhibitions`), a walkover, an `unknown`
+  result, and, only when filtering by surface or by opponent hand, a match where that value is
+  unknown. Completed, retired and defaulted matches count. Stats use only counted matches with
+  stats, and they always sum numerators and denominators (spec).
+- **Every stats response carries its sample:** the filters as applied (defaults included),
+  matches counted, matches with stats, the matches the opponent quit (retired or defaulted)
+  and the ones the player quit, the first and last tournament dates covered, the count
+  excluded for each reason, and the data window. `recent_form` describes the returned
+  matches, and its excluded counts cover the dates they span.
+- **Dates are named for what they are.** `tourney_date` is a tournament's start date in both
+  sources; `match_date` is the day a match was played, which only TML (2026) has, so it is
+  None for 2015-2025. `player_profile` returns the newest match with both dates, and the data
+  window gives the first and last tournament dates plus the last match date. An agent asked
+  "when did he last play?" reads `match_date`, and says when only the tournament is known.
+- **Values carry their counts and unit**: `{"value", "numerator", "denominator", "unit"}`, with
+  the value rounded to 4 decimals and None (never 0) when the denominator is 0. The unit is
+  `fraction` (0.616 means 61.6%) or `per_match` (aces per match). Records use `win_rate`. The
+  grounding check (Milestone 3) can point at a field such as `stats.first_serve_in.value`.
+- **Serve vs pressure.** `serve_return_stats` returns the point stats and aces per match;
+  `pressure_stats` returns break points saved and converted, so the two don't overlap.
+- **Filters**: surface, date_from, date_to (both inclusive, on the tournament date),
+  tourney_level, opponent_hand (spec), plus `season` (D-010) and `include_exhibitions`
+  (D-006).
+- **Outcomes stay distinct.** Bad arguments raise `ToolInputError` with a message safe to
+  return to the model, before any query runs: unknown filters, wrong types, numbers that
+  aren't plain ASCII digits or are out of range (a season outside 1900-2100, a player ID
+  beyond Postgres INTEGER), and names longer than 100 characters. A player ID that doesn't
+  exist raises `PlayerNotFound`, naming the argument (`player_id` or `opponent_id`). An empty
+  sample is a normal answer: counts of 0 and None values.
+- **Unknown opponent hand.** It affects 0.66% of player-match rows. When filtering by hand,
+  those matches are excluded and counted. TML's match rows could fill 116 of them; not worth
+  a second bio source for now.
+- **Unknown surface.** 53 Davis Cup 2023 play-off matches have no surface. Without a surface
+  filter they count, under "Unknown"; with one, they are excluded and counted.
+- **Match order** (`recent_form`, `head_to_head`): tournament date, then TML's match date where
+  it exists, then round, then match number, newest first. Within a round robin or a Davis Cup
+  tie, Sackmann's match numbers aren't guaranteed to follow match order; this only matters
+  when a player has several matches in one round of one event. In the pinned TML file, match
+  numbers already follow match dates in every round robin, so no test can tell whether
+  `match_date` is in the sort; it stays as a safeguard for later TML snapshots.
+- **Name lookup never guesses** (spec: "ask instead of guessing"). `players.search_name` is
+  built at load time by the same function that normalizes search text, so accents, hyphens,
+  apostrophes and word order all compare equally. A name resolves to one player only by the
+  exact name, or when it is the only name containing every typed word as the start of a word.
+  Several such names return `ambiguous`. When no name matches, close spellings (`pg_trgm`)
+  return `close_spellings` with candidates for the agent to confirm, even when there is only
+  one, because a close spelling can be a different player ("Sascha Zverev" is spelled closer
+  to Mischa than to Alexander). Candidate lists stop at 10 and say when there are more.
+- **Safe SQL.** Every query is fixed text: a shared constant scope plus a constant body,
+  joined once when the module loads. Values are always bound parameters; nothing from a caller
+  is ever pasted into SQL.
+- **Connections.** Read-only for the whole session (`default_transaction_read_only`), with a
+  5-second statement timeout, and autocommit. Each tool runs inside one REPEATABLE READ
+  transaction, so its queries see one consistent snapshot, and no transaction stays open
+  between calls (which would block the next load's DROP). These settings guard against
+  mistakes, not attacks: the database role is the local superuser and could switch them off.
+  Milestone 3 adds a SELECT-only role for the API (open item).
+
+**Review, 2026-11-07.** An independent review agent recomputed the tools for 160 players and
+15 filter combinations, and 300 head-to-heads, with no differences. It found eight problems,
+all reproduced and fixed: close spellings were accepted as the answer; the opponent-hand,
+date and level filters, unknown results and stat-less matches had no test (a wrong
+implementation still passed); tournament start dates were labelled as match dates; read-only
+applied only inside tool transactions; some bad inputs raised internal errors and names had
+no length cap; `retirements_counted` mixed up who quit, `win_pct` was a fraction and rates had
+no unit; a surface filter dropped matches with no surface without counting them; and two
+doc errors, plus database tests that skipped silently without `DATABASE_URL`. Each new test
+was then checked by putting the old bug back (docs/stat-checks.md).
+
+## D-015 How stats-layer test values are sourced
+
+*2026-11-07, Milestone 2.*
+
+**Chosen.** Every expected value in `api/tests/test_stats.py` comes from Tennis Abstract (7
+values for Sinner's 2024 season: the record and six rates, read on 2026-11-07) or from
+`api/tests/hand_checks.sh`, which computes them with `awk` from the raw CSV files and shares no
+code with the stats layer. `docs/stat-checks.md` lists each value, its source and the tool's
+result. All of them match.
+
+**Tests must be able to fail.** A test that passes is only evidence if it would fail when the
+rule it covers is broken. Each counting rule and validation check was verified by putting the
+bug back in a copy of the code and confirming a test fails; the results are in
+`docs/stat-checks.md`. Expected values come from samples chosen to exercise the rule (a
+season with stat-less matches, an opponent of unknown hand), not from the easiest example.
+
+**When Tennis Abstract disagrees.** The pinned data is the source of truth for tests, because
+Tennis Abstract keeps updating. A disagreement is investigated and recorded in
+`docs/stat-checks.md`, never "fixed" by editing the expected value. Tennis Abstract checks use
+frozen seasons (2024), where both sources should agree.
+
+## D-016 Indexes: none added
+
+*2026-11-07, Milestone 2.*
+
+**Evidence.** With the heaviest player (Alexander Zverev, 817 matches) and no filters,
+`EXPLAIN ANALYZE` shows the tool queries using the existing `idx_pm_player_opponent` for the
+player's rows and primary keys for the opponent and players, with one sequential scan of the
+33,334-row `matches` table joined by hash. Execution takes 10-17 ms; end to end, a tool call
+takes a median of 5-14 ms. Forcing index lookups on `matches` instead was slightly slower
+(10.2 ms against 9.5 ms), so no index was added.
+
+**Revisit** if the data grows by an order of magnitude (for example Challenger matches), or if
+the tool call latency becomes a meaningful share of an agent request.

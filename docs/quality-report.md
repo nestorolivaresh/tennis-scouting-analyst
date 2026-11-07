@@ -112,6 +112,6 @@ MD5 of each table's rows in sorted order. Two loads of the same files must give 
 | `raw.player_merges` | 10 | `7d8f86de5a920add2c19607230021ed4` |
 | `raw.player_crosswalk` | 405 | `42ac6d37a8f84e1edfef91190817561c` |
 | `raw.special_events` | 11 | `aa646a80c1e268eaf961400b76bdc839` |
-| `players` | 1,351 | `39bd0ebfb8c34c6e8405f073f4709983` |
+| `players` | 1,351 | `1155f6b01ce3915c71b6055d7938f9f2` |
 | `matches` | 33,334 | `8f3e03e2bffc16be40f2b42edeed3936` |
 | `player_matches` | 66,668 | `0c91114406c206a9141e942ffce24c14` |

@@ -16,4 +16,5 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["ingest"]
+testpaths = ["ingest", "api"]
+addopts = "-rs"  # list skipped tests and why, e.g. database tests without DATABASE_URL

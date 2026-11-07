@@ -4,10 +4,30 @@ An AI scouting analyst over public ATP match data. A coach picks a player, an op
 surface, and gets a scouting report where every number comes from tested code, not from the
 model's memory. Evals with independent ground truth check that the answers are correct.
 
-**Status:** Milestone 1 (ingestion and quality checks). See [SPEC.md](SPEC.md) for the plan,
+**Status:** Milestone 2 (stats tools). See [SPEC.md](SPEC.md) for the plan,
 [docs/data-audit.md](docs/data-audit.md) for what the raw data contains,
-[docs/quality-report.md](docs/quality-report.md) for what was loaded, and
+[docs/quality-report.md](docs/quality-report.md) for what was loaded,
+[docs/stat-checks.md](docs/stat-checks.md) for where every test number comes from, and
 [docs/decisions.md](docs/decisions.md) for the choices made so far.
+
+## Stats tools
+
+`api/stats.py` holds seven tools the agent will call: `resolve_player`, `player_profile`,
+`surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head` and `recent_form`.
+Each is a plain function over Postgres that returns JSON, with the sample it was computed
+from (matches counted, matches with stats, what was excluded and why, dates covered). Their
+results match Tennis Abstract and independent hand calculations from the raw CSV files, and
+each test was shown to fail when the rule it covers is broken. `resolve_player` never guesses:
+it returns one player only when the name identifies exactly one, and otherwise candidates for
+the agent to ask about.
+
+```python
+from api.db import connect
+from api import stats
+
+conn = connect()  # needs DATABASE_URL, e.g. uv run --env-file .env python
+stats.serve_return_stats(conn, 206173, {"season": 2024, "surface": "Clay"})
+```
 
 ## Run it locally
 

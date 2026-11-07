@@ -18,3 +18,7 @@
   data. Anything built on the core tables (views, indexes) belongs in `ingest/schema.sql`;
   the load refuses to drop objects it doesn't know about (D-011).
 - Questions that name a year use the `season` filter, not dates (D-010).
+- Which matches count is defined once, in `SCOPE_SQL` in `api/stats.py` (D-014). Change it
+  there, never per tool. Test values need a named source: Tennis Abstract or
+  `api/tests/hand_checks.sh`, recorded in `docs/stat-checks.md` (D-015). A new rule's test
+  must be shown to fail when the rule is broken, on a sample that exercises it.
