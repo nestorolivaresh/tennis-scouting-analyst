@@ -1,0 +1,20 @@
+# Licensed raw data and rejects stay out of git (see README, Data and licenses)
+data/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+.next/
+
+# OS
+.DS_Store
