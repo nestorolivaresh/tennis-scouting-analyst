@@ -1,0 +1,12 @@
+signal,player_ids,decision,note
+same birth date and country,106043 106044,different people,reviewed 2026-11-07: different names; shared birthday is a coincidence
+same birth date and country,106342 111781,different people,reviewed 2026-11-07: twin brothers
+same birth date and country,133430 200368,different people,reviewed 2026-11-07: different names; shared birthday is a coincidence
+same Wikidata ID + same birth date and country,208597 209409,same person,reviewed 2026-11-07: merged by hand in player_merges.csv
+same birth date and country,208819 209916,different people,reviewed 2026-11-07: different names; shared birthday is a coincidence
+same birth date and country,209870 211326,same person,reviewed 2026-11-07: merged automatically (same name and birth date)
+same birth date and country,211776 212021,same person,reviewed 2026-11-07: merged automatically (same name and birth date)
+new ID; Sackmann players born the same day,tml:800496619,new player,reviewed 2026-11-07: no birth date in TML and no Sackmann player with this name
+new ID; Sackmann players born the same day,tml:800569301,new player,reviewed 2026-11-07: no birth date in TML and no Sackmann player with this name
+new ID; Sackmann players born the same day,tml:800671248,new player,reviewed 2026-11-07: no birth date in TML and no Sackmann player with this name
+new ID; Sackmann players born the same day,tml:D0Q0,new player,reviewed 2026-11-07: no Sackmann player born the same day

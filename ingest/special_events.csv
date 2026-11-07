@@ -1,0 +1,12 @@
+tourney_name,level,is_exhibition,note
+ATP Finals,F,false,TML name for the season-ending Tour Finals (TML 2025 file)
+Atp Cup,A,false,Team event 2020-2022 with ranking points
+Laver Cup,A,true,Team exhibition without ranking points; the third set is a match tiebreak
+Next Gen ATP Finals,F,true,TML name for the NextGen Finals (TML 2025 file)
+Next Gen Finals,F,true,Under-21 event with short sets (first to 4 games)
+NextGen Finals,F,true,Under-21 event with short sets (first to 4 games); coded A in 2021-2022
+Paris Olympics,O,false,
+Rio Olympics,O,false,Coded A in the source file
+Tokyo Olympics,O,false,Coded A in the source file
+Tour Finals,F,false,Coded A in 2023
+United Cup,A,false,Team event from 2023 with ranking points

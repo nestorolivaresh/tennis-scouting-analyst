@@ -1,0 +1,11 @@
+duplicate_id,canonical_id,duplicate_matches,canonical_matches,reason
+209377,207736,0,1,same name and birth date
+206876,202297,0,1,same name and birth date
+209399,202297,0,1,same name and birth date
+209870,211326,2,3,same name and birth date
+210084,210150,0,104,same name and birth date
+210079,106227,0,7,same name and birth date
+211776,212021,1,15,same name and birth date
+209261,209263,0,13,same name and birth date
+214568,213733,0,1,same name and birth date
+208597,209409,1,30,"manual, reviewed 2026-11-07: same birth date, country (HKG) and Wikidata ID Q108498952"
