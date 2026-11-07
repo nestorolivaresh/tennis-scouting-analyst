@@ -1,0 +1,111 @@
+{
+  "sackmann": {
+    "description": "Jeff Sackmann tennis_atp, final commit before the repository was deleted",
+    "license": "CC BY-NC-SA 4.0",
+    "attribution": "Jeff Sackmann / Tennis Abstract",
+    "commit": "712be0c5ade693cdab9e69c23a71a0edf5a23c44",
+    "mirrors": [
+      "oli5679/tennis_atp",
+      "akshatagnihotri/tennis_atp",
+      "Kadantte/tennis_atp"
+    ],
+    "files": {
+      "atp_matches_2015.csv": {
+        "sha256": "20c1f723df86b367f3ec205bbda3d8a7163fa6d4e46dcfda15095e24965bc5ed",
+        "git_blob_sha1": "1a691f30ef5f37826ef0072967cfb700535c3912",
+        "bytes": 594438
+      },
+      "atp_matches_2016.csv": {
+        "sha256": "86dda3871cb79d3226a047774c8fc97b86267cfe96709dea832a347dfbf81684",
+        "git_blob_sha1": "7c86d730a550d7a3cad5d0a8b59387f7cd9f1a99",
+        "bytes": 617660
+      },
+      "atp_matches_2017.csv": {
+        "sha256": "4bb295788c37487b120cd39171d413cef0ebc6f4c2d9fa40b7261f5143f3719f",
+        "git_blob_sha1": "70015182e04c9a6a589cac127996b9d1d5b8a171",
+        "bytes": 611380
+      },
+      "atp_matches_2018.csv": {
+        "sha256": "0363dc6012190f337fcf34b4ca443634f192c4670cc6c14c94342a54b9adf7eb",
+        "git_blob_sha1": "0f4af87f7bc22ed525c1fd2634a0dbd79c8b5ac7",
+        "bytes": 608903
+      },
+      "atp_matches_2019.csv": {
+        "sha256": "7f1a21451ff622bb0c6a09690898db46d51e59dcdf08086d369753822e1d5478",
+        "git_blob_sha1": "cae0152824354b50ceede3d93f856cbfa2d94f38",
+        "bytes": 586071
+      },
+      "atp_matches_2020.csv": {
+        "sha256": "985a917b72d5efb7dd5ef9df8ecc58c637ed6b88561ccad364653af71ac12da0",
+        "git_blob_sha1": "33e6e0b0d9d29df4b7920943322dcb73b02e6fe7",
+        "bytes": 307277
+      },
+      "atp_matches_2021.csv": {
+        "sha256": "b9b1d31a4b0b9273b8f338cbb1347c5a847ad2361334ec760a286f5990fba347",
+        "git_blob_sha1": "d95f705c240efe6b535e943cc07125f6f2b367e9",
+        "bytes": 573056
+      },
+      "atp_matches_2022.csv": {
+        "sha256": "7190042565ab8400e74f44fda60700acb36ddf3c82d393f331a07589e05b5f52",
+        "git_blob_sha1": "f0d0ced1145a0585f24ca7d1bbdb95b57ee92308",
+        "bytes": 608789
+      },
+      "atp_matches_2023.csv": {
+        "sha256": "9b9671aa7c8156e74c2e4466675b7ed4e762bb8a58b7237a30daefd84ffceff5",
+        "git_blob_sha1": "f9cdafde0083793c943ecf0701bc5c51602ca215",
+        "bytes": 625341
+      },
+      "atp_matches_2024.csv": {
+        "sha256": "73aec32247a0db68d8aa8fd8003eefea132905177f1cb145502d9215b53311be",
+        "git_blob_sha1": "c401319bc1dec4633dd2c730aa5a7a7376e176f8",
+        "bytes": 650136
+      },
+      "atp_matches_2025.csv": {
+        "sha256": "78c356ef9328b89ae58a17564d61c02cdad2a3a007f6b8af5cfc17992b11bb2d",
+        "git_blob_sha1": "b9c0d84ee91691cc10fbe1d56212c39760dddcdb",
+        "bytes": 617154
+      },
+      "atp_matches_2026.csv": {
+        "sha256": "ceb157ae698f79f4148f7bb6253bbcf6a8c8eb9ff94670dd83aa0428802cfd59",
+        "git_blob_sha1": "e47ba9f9f2521ca96450001ac978da5161f18d6d",
+        "bytes": 300795
+      },
+      "atp_players.csv": {
+        "sha256": "89e81bb3a02561dee29afe53dbcdabe4ae22f725fb5d0303617366a57e3b7a83",
+        "git_blob_sha1": "095eee901ab84e6374aa4de39e8360eb12746eee",
+        "bytes": 2516538
+      },
+      "matches_data_dictionary.txt": {
+        "sha256": "b4b525ad8163f9ee2ffde3ab7108924ec1385ef7d2fddf828c1fc096fcaafee4",
+        "git_blob_sha1": "16f23d90e5cb362a3d804fe011568454b5b4c82d",
+        "bytes": 3758
+      },
+      "README.md": {
+        "sha256": "80fd5a50ba020fd306890d31142187bb737627ba468d3e36faabe92d48ab5083",
+        "git_blob_sha1": "f5ddffe10ee56eaaabc8c82504aad27598b50b0c",
+        "bytes": 4673
+      }
+    }
+  },
+  "tml": {
+    "description": "TennisMyLife ATP match database, yearly CSV files",
+    "terms": "Personal, educational and non-commercial research use only; no redistribution of the raw CSV files",
+    "terms_url": "https://stats.tennismylife.org/tennis-match-database",
+    "base_url": "https://stats.tennismylife.org/data/",
+    "retrieved_on": "2026-11-07",
+    "files": {
+      "2026.csv": {
+        "sha256": "4219d664cb7f4989b2529791ed60cbc6276b0b621708016799064163bda9efe8",
+        "bytes": 578416
+      },
+      "2025.csv": {
+        "sha256": "5630ff8ee5ff380b765b3f30f9cb85b646e219fab14a28b87edb8b67e2153226",
+        "bytes": 623878
+      },
+      "ATP_Database.csv": {
+        "sha256": "60e1bc865bb2d8662f07a5a17bcb2fe33afae61023617bf6b2d27d03505b945d",
+        "bytes": 881227
+      }
+    }
+  }
+}
