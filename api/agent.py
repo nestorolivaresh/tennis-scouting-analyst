@@ -35,8 +35,8 @@ class Settings:
 
     api_key: str | None
     model: str | None
-    effort: str = "medium"
-    token_budget: int = 250_000
+    effort: str = "low"  # D-022
+    token_budget: int = 120_000  # about 2x a measured report with its retry (D-022)
 
     @property
     def llm_configured(self) -> bool:
@@ -44,10 +44,10 @@ class Settings:
 
     @classmethod
     def from_env(cls, env: Any = os.environ) -> Settings:
-        effort = env.get("ANTHROPIC_EFFORT") or "medium"
+        effort = env.get("ANTHROPIC_EFFORT") or cls.effort
         if effort not in EFFORTS:
             raise ValueError(f"ANTHROPIC_EFFORT must be one of {', '.join(EFFORTS)}")
-        budget = env.get("AGENT_TOKEN_BUDGET") or "250000"
+        budget = env.get("AGENT_TOKEN_BUDGET") or str(cls.token_budget)
         if not budget.isdigit():
             raise ValueError("AGENT_TOKEN_BUDGET must be a whole number of tokens")
         return cls(env.get("ANTHROPIC_API_KEY") or None, env.get("ANTHROPIC_MODEL") or None, effort, int(budget))
@@ -68,12 +68,13 @@ class Limits:
     max_output_tokens: int = 16_000  # per model call, thinking included
 
 
-# US dollars per million tokens: input, output, cache write (5-minute), cache read. From the
-# Anthropic pricing table as of 2026-10-06; a cache write costs 1.25x input. A model missing
-# here gets a cost of None ("unknown"), never 0.
+# US dollars per million tokens: input, output, cache write (5-minute), cache read. From
+# platform.claude.com/docs/en/about-claude/pricing, checked 2026-11-08: a cache write costs
+# 1.25x input and a cache read 0.05x on these two models. A model missing here gets a cost of
+# None ("unknown"), never 0.
 PRICES_PER_MTOK = {
     "claude-opus-5-5": (4.00, 20.00, 5.00, 0.20),
-    "claude-sonnet-5-5": (2.00, 10.00, 2.50, 0.20),
+    "claude-sonnet-5-5": (2.00, 10.00, 2.50, 0.10),
 }
 
 # ---------- tools ----------

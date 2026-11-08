@@ -23,6 +23,6 @@
   `api/tests/hand_checks.sh`, recorded in `docs/stat-checks.md` (D-015). A new rule's test
   must be shown to fail when the rule is broken, on a sample that exercises it.
 - The agent and API are in `api/agent.py`, `api/report.py`, `api/chat.py` and `api/app.py`
-  (D-017 to D-021). Tests use the scripted fake model in `api/tests/fake_model.py`; calls to
+  (D-017 to D-022). Tests use the scripted fake model in `api/tests/fake_model.py`; calls to
   the real model need `ANTHROPIC_API_KEY` in `.env`, which Nestor adds (D-020). Live calls
   cost money: run them only when a change needs one.

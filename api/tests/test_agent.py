@@ -14,7 +14,7 @@ from api.agent import Limits, Run, Settings, run_loop
 from api.tests.fake_model import FakeClient, message, text, tool_use
 
 SINNER = 206173  # hand 9
-SETTINGS = Settings(api_key="test-key", model="claude-opus-5-5")
+SETTINGS = Settings(api_key="test-key", model="claude-sonnet-5-5")
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
 
 
@@ -57,7 +57,7 @@ def test_tool_results_go_back_to_the_model(conn):
     assert (overall["wins"], overall["losses"]) == (73, 6)  # TA, via the real tool
     assert [name for name, _ in events] == ["tool_call", "tool_result", "text"]
     request = client.requests[0]
-    assert request["model"] == "claude-opus-5-5" and request["output_config"] == {"effort": "medium"}
+    assert request["model"] == "claude-sonnet-5-5" and request["output_config"] == {"effort": "low"}
     assert request["cache_control"] == {"type": "ephemeral"} and len(request["tools"]) == 7
 
 
@@ -101,7 +101,7 @@ def test_tool_call_cap_per_request(conn):
 
 
 def test_token_budget_stops_the_loop(conn):
-    settings = Settings(api_key="k", model="claude-opus-5-5", token_budget=200)
+    settings = Settings(api_key="k", model="claude-sonnet-5-5", token_budget=200)
     script = [message(tool_use(f"t{i}", "player_profile", {"player_id": SINNER}), tokens=(100, 20)) for i in range(3)]
     run, _ = drive(FakeClient(script), conn, settings=settings)
     assert (run.outcome, run.model_calls, run.total_tokens) == ("token_limit", 2, 240)
@@ -192,15 +192,23 @@ def test_every_tool_call_is_logged(conn, log_lines):
 
 
 def test_cost_estimate():
-    run = Run(model="claude-opus-5-5", messages=[])
-    run.tokens.update(input_tokens=1_000_000, output_tokens=100_000, cache_read_input_tokens=1_000_000)
-    assert run.cost_usd == pytest.approx(4.00 + 2.00 + 0.20)  # the prices in PRICES_PER_MTOK
+    # Anthropic's pricing page, checked 2026-11-08 (D-021): per million tokens, input / output /
+    # 5-minute cache write / cache read are $4 / $20 / $5 / $0.20 on Opus 5.5 and
+    # $2 / $10 / $2.50 / $0.10 on Sonnet 5.5.
+    tokens = dict(input_tokens=1_000_000, output_tokens=100_000, cache_creation_input_tokens=1_000_000)
+    tokens["cache_read_input_tokens"] = 10_000_000
+    expected = {"claude-opus-5-5": 4.00 + 2.00 + 5.00 + 2.00, "claude-sonnet-5-5": 2.00 + 1.00 + 2.50 + 1.00}
+    for model, cost in expected.items():
+        run = Run(model=model, messages=[])
+        run.tokens.update(tokens)
+        assert run.cost_usd == pytest.approx(cost), model
     assert Run(model="claude-unknown", messages=[]).cost_usd is None  # unknown, never 0
 
 
 def test_settings_fail_closed():
     assert not Settings.from_env({}).llm_configured
-    assert Settings.from_env({"ANTHROPIC_API_KEY": "k", "ANTHROPIC_MODEL": "m"}).effort == "medium"
+    defaults = Settings.from_env({"ANTHROPIC_API_KEY": "k", "ANTHROPIC_MODEL": "m"})
+    assert (defaults.effort, defaults.token_budget) == ("low", 120_000)  # D-022
     with pytest.raises(ValueError, match="ANTHROPIC_EFFORT"):
         Settings.from_env({"ANTHROPIC_EFFORT": "extreme"})
     with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY is not set"):

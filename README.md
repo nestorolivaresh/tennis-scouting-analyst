@@ -38,7 +38,7 @@ and field they came from; `api/grounding.py` checks every one against that run's
 results, retries once with the errors, and otherwise marks the report unverified.
 `POST /chat` streams follow-up answers as server-sent events. Every request logs its tool
 calls, tokens and estimated cost as JSON lines. The design is in
-[D-017 to D-021](docs/decisions.md).
+[D-017 to D-022](docs/decisions.md).
 
 ```bash
 uv run --env-file .env uvicorn api.app:app --port 8000   # needs ANTHROPIC_API_KEY in .env

@@ -340,8 +340,9 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
-- After the first live reports: record real tokens, cost and latency per report (D-017), and
-  check that the token budget and time limit fit.
+- After the first live reports: record real tokens, cost and latency per report, compare
+  them with the estimates in D-022, and check that the token budget, time limit and `low`
+  effort fit.
 - Milestone 3: give the API a SELECT-only database role. The stats connection is read-only
   by setting, but the local role is a superuser that could switch that off (D-014).
 
@@ -458,7 +459,8 @@ the tool call latency becomes a meaningful share of an agent request.
 
 ## D-017 Agent loop, model and limits
 
-*2026-11-07, Milestone 3. Model, dependencies and refusal handling approved by Nestor.*
+*2026-11-07, Milestone 3. Model, dependencies and refusal handling approved by Nestor.
+D-022 replaced the model, effort and token budget on 2026-11-08.*
 
 **Chosen.** `api/agent.py` runs the tool-use loop by hand with the Anthropic SDK (spec: no
 agent framework). One loop serves `/report` and `/chat`: send the conversation, run any
@@ -590,6 +592,46 @@ with the request ID:
 - `request_end` (status or outcome, tokens, estimated cost, total latency).
 
 **Cost** is estimated from the token counts and a price table in `api/agent.py` (Anthropic's
-prices as of 2026-10-06; a cache write costs 1.25x input). A model missing from the table
-gets a cost of `null`, never 0. When a call is cut off at the time limit, its tokens are
-unknown, and `usage_complete` is false.
+pricing page, checked 2026-11-08; a cache write costs 1.25x input, a cache read 0.05x on Opus
+5.5 and Sonnet 5.5). A model missing from the table gets a cost of `null`, never 0. The first
+table, from 2026-10-06, had Sonnet 5.5's cache reads at $0.20 instead of $0.10; the cost test
+now checks both rows against the pricing page. When a call is cut off at the time limit, its
+tokens are unknown, and `usage_complete` is false.
+
+## D-022 Lower-cost model settings
+
+*2026-11-08, Milestone 3. Decided by Nestor; replaces the model, effort and token budget in
+D-017.*
+
+**Context.** The project's model budget is small, with the Console's monthly
+spend limit set to match. Opus 5.5 at medium effort, with three to five
+full eval runs, could have cost $50 or more.
+
+**Chosen.**
+- **Model: `claude-sonnet-5-5`.** $2 / $10 per million input / output tokens, half of Opus
+  5.5, and $0.10 for cache reads (pricing page, checked 2026-11-08). Anthropic's model guide
+  says it handles multistep tool use well; the Milestone 4 evals measure whether it is good
+  enough here.
+- **Effort: `low`.** Output, thinking included, is the expensive part, and low effort keeps
+  thinking short. Sonnet 5.5's API default is `high`, so the request always sends the level.
+  The guide suggests `medium` as a starting point for multistep tool use, and says at `low`
+  the model is more likely to stop before finishing a long task. The report asks for a fixed
+  list of tool calls, so `low` should do; if live reports come back incomplete or the evals
+  show weaker reports, raise `/report` to `medium` first.
+- **Token budget: 120,000 per request.** Measured from the real system prompt, tool schemas,
+  report prompt and tool results (Sinner vs Alcaraz on clay and on grass; Djokovic vs Gasquet
+  on grass, which needs the fallback call), a report processes about 28,000 to 68,000 tokens
+  including one grounding retry, at 3 to 4 characters per token. The largest single prompt is
+  under 18,000 tokens. 120,000 leaves about twice the room, and a report that needed more
+  would also be close to the 8-step limit.
+- **Eval runs:** two full runs (baseline and final), with only the failing questions rerun in
+  between.
+
+**Estimated cost**, until the first live runs replace it with logged numbers: about $0.05 to
+$0.15 per report and a few cents per chat question. The budget stops a runaway request at
+roughly $1.50 even if every token were output, which no real request comes near.
+
+**Alternative for later:** Claude Haiku 5.5 is $0.10 / $0.50 per million tokens for prompts
+up to 100,000 tokens (pricing page, 2026-11-08), 20 times cheaper than Sonnet 5.5. Its
+quality on these reports is unknown; the evals can compare it. Its price depends on prompt
+length, so it isn't in the cost table yet, and its cost logs as `null` until it is.
