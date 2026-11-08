@@ -4,7 +4,7 @@ An AI scouting analyst over public ATP match data. A coach picks a player, an op
 surface, and gets a scouting report where every number comes from tested code, not from the
 model's memory. Evals with independent ground truth check that the answers are correct.
 
-**Status:** Milestone 2 (stats tools). See [SPEC.md](SPEC.md) for the plan,
+**Status:** Milestone 3 (agent and API). See [SPEC.md](SPEC.md) for the plan,
 [docs/data-audit.md](docs/data-audit.md) for what the raw data contains,
 [docs/quality-report.md](docs/quality-report.md) for what was loaded,
 [docs/stat-checks.md](docs/stat-checks.md) for where every test number comes from, and
@@ -12,7 +12,7 @@ model's memory. Evals with independent ground truth check that the answers are c
 
 ## Stats tools
 
-`api/stats.py` holds seven tools the agent will call: `resolve_player`, `player_profile`,
+`api/stats.py` holds the seven tools the agent calls: `resolve_player`, `player_profile`,
 `surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head` and `recent_form`.
 Each is a plain function over Postgres that returns JSON, with the sample it was computed
 from (matches counted, matches with stats, what was excluded and why, dates covered). Their
@@ -29,12 +29,34 @@ conn = connect()  # needs DATABASE_URL, e.g. uv run --env-file .env python
 stats.serve_return_stats(conn, 206173, {"season": 2024, "surface": "Clay"})
 ```
 
+## Agent and API
+
+`api/agent.py` runs the tool-use loop by hand: the model asks for stats tools, the code runs
+them and sends the results back, within 8 tool steps, 60 seconds and a token budget per
+request. `POST /report` returns a structured report whose key stats each name the tool call
+and field they came from; `api/grounding.py` checks every one against that run's tool
+results, retries once with the errors, and otherwise marks the report unverified.
+`POST /chat` streams follow-up answers as server-sent events. Every request logs its tool
+calls, tokens and estimated cost as JSON lines. The design is in
+[D-017 to D-021](docs/decisions.md).
+
+```bash
+uv run --env-file .env uvicorn api.app:app --port 8000   # needs ANTHROPIC_API_KEY in .env
+curl -s 'localhost:8000/players/search?q=sinner'
+curl -s localhost:8000/report -H 'content-type: application/json' \
+  -d '{"player_id": 206173, "opponent_id": 207989, "surface": "Clay"}'
+curl -sN localhost:8000/chat -H 'content-type: application/json' \
+  -d '{"messages": [{"role": "user", "content": "How has Alcaraz served on clay in 2025?"}]}'
+```
+
+`GET /health` checks the app and the database without calling the model.
+
 ## Run it locally
 
 Requirements: [uv](https://docs.astral.sh/uv/), Docker, and Python 3.12 (uv can install it).
 
 ```bash
-cp .env.example .env                           # then set a local POSTGRES_PASSWORD (and the same in DATABASE_URL)
+cp .env.example .env                           # then set POSTGRES_PASSWORD (also in DATABASE_URL) and ANTHROPIC_API_KEY
 uv sync                                        # install Python dependencies
 docker compose up -d                           # local Postgres on 127.0.0.1:5433
 uv run python -m ingest.download               # fetch the pinned data files and verify their hashes

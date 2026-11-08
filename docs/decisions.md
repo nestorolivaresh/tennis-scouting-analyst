@@ -340,6 +340,8 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
+- After the first live reports: record real tokens, cost and latency per report (D-017), and
+  check that the token budget and time limit fit.
 - Milestone 3: give the API a SELECT-only database role. The stats connection is read-only
   by setting, but the local role is a superuser that could switch that off (D-014).
 
@@ -453,3 +455,141 @@ takes a median of 5-14 ms. Forcing index lookups on `matches` instead was slight
 
 **Revisit** if the data grows by an order of magnitude (for example Challenger matches), or if
 the tool call latency becomes a meaningful share of an agent request.
+
+## D-017 Agent loop, model and limits
+
+*2026-11-07, Milestone 3. Model, dependencies and refusal handling approved by Nestor.*
+
+**Chosen.** `api/agent.py` runs the tool-use loop by hand with the Anthropic SDK (spec: no
+agent framework). One loop serves `/report` and `/chat`: send the conversation, run any
+tools the model asks for, send the results back, and repeat until it answers or hits a
+limit. Each model call is streamed, which keeps long calls safe from HTTP timeouts and lets
+`/chat` show text as it arrives.
+- **Model and effort.** `ANTHROPIC_MODEL` is required; `.env.example` defaults to
+  `claude-opus-5-5` ($4 / $20 per million input / output tokens). `claude-sonnet-5-5` costs
+  half; the Milestone 4 evals will show whether its quality holds. `ANTHROPIC_EFFORT`
+  defaults to `medium`. Thinking can't be turned off on Opus 5.5, and effort is the control.
+- **Limits per request.** At most 8 tool steps (a step is one model turn that asks for
+  tools; parallel calls in that turn count once), 24 tool calls in all (to bound database
+  work), 60 seconds, and a budget of 250,000 tokens processed (input, cache reads and writes,
+  and output). Each SDK call's timeout is the time left, and a stream is cut off at the
+  deadline. 250,000 is a ceiling, not an expected cost; real usage is in the logs.
+- **Outcomes are distinct.** `completed`, `step_limit`, `time_limit`, `token_limit`,
+  `model_declined` (the model refused), `output_truncated` (hit the output limit) and
+  `unexpected_stop`. Errors from the Anthropic API (rate limit, overload, rejected key) are
+  separate again, and neither kind is ever turned into an empty answer.
+- **Tool errors go back to the model** as `is_error` tool results with the stats layer's
+  message, so it can fix the call or say what it couldn't find. An unexpected exception is
+  reported to the model as "internal error in this tool" and logged by type only.
+- **Refusals: a clear outcome, no automatic fallback** (Nestor). Anthropic recommends a
+  beta `fallbacks` option that retries a declined request on another model. Tennis
+  statistics are far from what the safety classifiers watch for, and the fallback adds a
+  beta parameter plus code for a mid-answer switch that would rarely run. Revisit if the
+  evals ever show a decline.
+- **Prompt caching** uses the automatic `cache_control` setting, so each round of the loop
+  reuses the conversation sent in the round before.
+- **Tool schemas are not `strict`.** Inputs are a few small fields, the stats layer
+  validates them, and a bad input comes back as an error the model can correct.
+- **Dependencies** (Nestor): `anthropic` (2.6.0) and `fastapi` from the spec, plus `uvicorn`
+  to serve the API and `httpx` (dev only) for FastAPI's test client.
+
+**Tests** use a scripted fake model (`api/tests/fake_model.py`) with the real database, so
+the loop, limits, outcomes and logging are tested without an API key. Each limit and rule
+was checked by putting the bug back and confirming a test fails (12 of 12 caught).
+
+## D-018 Grounding check
+
+*2026-11-07, Milestone 3.*
+
+**Chosen.** The report's schema (spec) is enforced with structured outputs, so the final
+answer is always valid JSON in that shape. Each key stat names its source: `tool_call_id`
+and `field`, a dotted path into that call's result (`stats.first_serve_in.value`,
+`surfaces.0.win_rate.value`, `record.wins`). `api/grounding.py` then checks, for each one:
+- the tool call exists in this run and didn't fail;
+- the path exists and holds a number (not a string, a boolean or an object);
+- the value equals that number (a tolerance of 1e-9: values are copied, not recomputed, so a
+  rounded 0.62 for 0.6159 fails);
+- `sample_matches` is a match count reported by that result: `sample.matches_counted`,
+  `sample.matches_with_stats`, or the `matches` of an object on the path (one surface's row,
+  a record). Win-loss records include `matches` for this reason.
+
+On failure the errors go back to the model once, with a request to correct the report. A
+second failure returns the report with status `unverified` and the errors listed (spec).
+
+**Not checked here:** numbers in the narrative text. That's the "invented numbers" score in
+the Milestone 4 evals (spec).
+
+## D-019 API contract
+
+*2026-11-07, Milestone 3.*
+
+| Endpoint | Request | Success | Errors |
+| --- | --- | --- | --- |
+| `GET /health` | none | 200 `{status, database, llm_configured, data_window}` | 503 when the database is down |
+| `GET /players/search?q=` | a name or part of one | 200 `{query, candidates, more_candidates}`, best first, at most 10 | 422 for text with no letters or over 100 characters |
+| `POST /report` | `{player_id, opponent_id, surface}` | 200 with status `verified` or `unverified` | 422 bad input, 404 unknown player, 502 `incomplete` (a limit or a decline), 503 model not configured or rate limited |
+| `POST /chat` | `{messages: [{role, content}, ...]}` | 200, server-sent events | 422 bad history (before the stream opens); errors after that arrive as an `error` event |
+
+- **A report response** carries the report, the grounding result (`passed`, `attempts`,
+  `errors`), the request with its date window, the evidence (every tool call with its
+  input and result, for the evidence view) and usage (tokens, estimated cost, latency).
+  The window is the two years up to the newest tournament in the data. Each report asks for
+  the same tool calls, which makes reports comparable and the evals repeatable.
+- **Reports take player IDs**, from `/players/search`, so a report never has to resolve a
+  name. Chat resolves names with `resolve_player` and asks when a name is ambiguous.
+- **Chat events:** `start` (request ID), `tool_call`, `tool_result`, `text` (deltas), then
+  `done` (outcome, usage, cost) or `error`.
+- **Chat is stateless and accepts only text** (spec: the client sends the history). Turns
+  must alternate from the user and end with the user, and are capped at 21 messages, 4,000
+  characters each and 30,000 in all. The client never sends tool calls or results, so it
+  can't hand the model fake "tool results". The model calls the tools again for each
+  question, and the prompt tells it to recompute any number it uses.
+- **Every response** has an `X-Request-ID` header, the same ID that is on that request's log
+  lines. Error bodies are `{error: {kind, message}, request_id}`, with messages safe to show.
+- **Simple by design:** endpoints are plain functions run in FastAPI's thread pool, with one
+  database connection per request (a few milliseconds locally). Revisit with a connection
+  pool if the deploy shows connection time matters.
+- **Deferred to Milestone 6:** the per-IP rate limit and the daily spend cap, which the spec
+  requires for public deploys. The per-request token budget already bounds a single request.
+
+## D-020 Where the Anthropic API key lives
+
+*2026-11-07, Milestone 3. Decided by Nestor, an extension of D-003.*
+
+**Chosen.** `ANTHROPIC_API_KEY` goes in the gitignored `.env`, like `DATABASE_URL`. This is
+an exception to Nestor's global rule that credentials are read only from 1Password: the
+master copy stays in 1Password, and `.env` holds the working copy for this local project.
+
+**Rules.**
+- Nestor adds the key. Claude never opens `.env` or prints, logs or commits the key; checks
+  only report whether it is set.
+- The code passes the key to the SDK explicitly. Without it the app refuses to call the
+  model (503 `llm_not_configured`); it never lets the SDK fall back to another credential on
+  the machine, such as a saved CLI login.
+- The logs never contain the key, the request headers or what users type in chat.
+- Spend control: Nestor sets a monthly limit in the Anthropic Console (spec), and each
+  request has a token budget (D-017). The daily spend cap comes with the deploy (M6).
+
+**Alternative considered:** keeping the key only in 1Password and running every live
+command through `op run` with Touch ID. Safer, but every test run against the model would
+need an approval. Revisit for the deployed app, which will read the key from AWS Secrets
+Manager (spec).
+
+## D-021 Logging and cost estimates
+
+*2026-11-07, Milestone 3.*
+
+**Chosen.** Structured JSON lines on stdout (`api/logs.py`, standard library only), each
+with the request ID:
+- `http_request` for every request (method, path, status, latency);
+- `report_start` or `chat_start` (player IDs and surface; for chat, only the message count
+  and length);
+- `model_call` for each call (latency, stop reason, input, output and cache tokens);
+- `tool_call` for each tool call (step, ID, tool, input, ok or error, latency);
+- `grounding` for each attempt (passed, errors);
+- `request_end` (status or outcome, tokens, estimated cost, total latency).
+
+**Cost** is estimated from the token counts and a price table in `api/agent.py` (Anthropic's
+prices as of 2026-10-06; a cache write costs 1.25x input). A model missing from the table
+gets a cost of `null`, never 0. When a call is cut off at the time limit, its tokens are
+unknown, and `usage_complete` is false.

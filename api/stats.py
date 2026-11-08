@@ -50,7 +50,7 @@ def _whole_number(value: Any, low: int, high: int, message: str) -> int:
     return int(text)
 
 
-def _player_id(value: Any, name: str = "player_id") -> int:
+def parse_player_id(value: Any, name: str = "player_id") -> int:
     return _whole_number(value, 1, MAX_PLAYER_ID, f"{name} must be a whole number; use resolve_player to find it")
 
 
@@ -329,6 +329,12 @@ LIMIT %(limit)s
 
 MIN_SIMILARITY = 0.45  # how close a spelling must be to be offered as a candidate
 
+DATA_WINDOW_SQL = """
+SELECT min(tourney_date) AS first_tourney_date, max(tourney_date) AS last_tourney_date,
+       max(match_date) AS last_match_date
+FROM matches
+"""
+
 
 # ---------- helpers ----------
 
@@ -403,10 +409,55 @@ def _match_entry(row: dict[str, Any]) -> dict[str, Any]:
 
 def _record(rows: list[dict[str, Any]]) -> dict[str, Any]:
     wins = sum(1 for row in rows if row["won"])
-    return {"wins": wins, "losses": len(rows) - wins, "win_rate": rate(wins, len(rows))}
+    return {"matches": len(rows), "wins": wins, "losses": len(rows) - wins, "win_rate": rate(wins, len(rows))}
 
 
 # ---------- tools ----------
+
+
+def _name_candidates(conn: psycopg.Connection, name: Any) -> list[dict[str, Any]]:
+    """Candidate rows for a typed name, best first, at most MAX_CANDIDATES + 1."""
+    if not isinstance(name, str):
+        raise ToolInputError("name must be text")
+    if len(name) > MAX_NAME_LENGTH:
+        raise ToolInputError(f"name must be at most {MAX_NAME_LENGTH} characters")
+    words = name_tokens(name)
+    if not words:
+        raise ToolInputError("name must contain letters")
+    with conn.transaction():
+        return conn.execute(
+            RESOLVE_SQL,
+            {"query": " ".join(words), "words": words, "min_similarity": MIN_SIMILARITY, "limit": MAX_CANDIDATES + 1},
+        ).fetchall()
+
+
+def _describe_candidate(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "player_id": row["player_id"],
+        "name": row["full_name"],
+        "country": row["country"],
+        "hand": row["hand"],
+        "matches_loaded": row["matches_loaded"],
+        "last_tourney_date": _iso(row["last_tourney_date"]),
+    }
+
+
+def data_window(conn: psycopg.Connection) -> dict[str, Any]:
+    """The dates the loaded data covers (the same fields as `data_window` in stats responses)."""
+    with conn.transaction():
+        row = conn.execute(DATA_WINDOW_SQL).fetchone()
+    return {key: _iso(value) for key, value in row.items()}
+
+
+def search_players(conn: psycopg.Connection, query: Any) -> dict[str, Any]:
+    """Autocomplete: every candidate for what was typed, best first. Unlike resolve_player,
+    this never picks one; the person typing does."""
+    rows = _name_candidates(conn, query)
+    return {
+        "query": query,
+        "candidates": [_describe_candidate(row) for row in rows[:MAX_CANDIDATES]],
+        "more_candidates": len(rows) > MAX_CANDIDATES,
+    }
 
 
 def resolve_player(conn: psycopg.Connection, name: str) -> dict[str, Any]:
@@ -419,29 +470,8 @@ def resolve_player(conn: psycopg.Connection, name: str) -> dict[str, Any]:
       "Sascha Zverev"); the agent should ask whether one of them is meant.
     status "not_found": nothing matches.
     """
-    if not isinstance(name, str):
-        raise ToolInputError("name must be text")
-    if len(name) > MAX_NAME_LENGTH:
-        raise ToolInputError(f"name must be at most {MAX_NAME_LENGTH} characters")
-    words = name_tokens(name)
-    if not words:
-        raise ToolInputError("name must contain letters")
-    query = " ".join(words)
-    with conn.transaction():
-        rows = conn.execute(
-            RESOLVE_SQL,
-            {"query": query, "words": words, "min_similarity": MIN_SIMILARITY, "limit": MAX_CANDIDATES + 1},
-        ).fetchall()
-
-    def describe(row):
-        return {
-            "player_id": row["player_id"],
-            "name": row["full_name"],
-            "country": row["country"],
-            "hand": row["hand"],
-            "matches_loaded": row["matches_loaded"],
-            "last_tourney_date": _iso(row["last_tourney_date"]),
-        }
+    rows = _name_candidates(conn, name)
+    describe = _describe_candidate
 
     def answer(status, message=None, group=()):
         result = {"tool": "resolve_player", "query": name, "status": status}
@@ -465,7 +495,7 @@ def resolve_player(conn: psycopg.Connection, name: str) -> dict[str, Any]:
 
 def player_profile(conn: psycopg.Connection, player_id: Any) -> dict[str, Any]:
     """Bio, the newest match loaded, and the latest ranking found in the match data."""
-    pid = _player_id(player_id)
+    pid = parse_player_id(player_id)
     with conn.transaction():
         player = _player(conn, pid)
         last = conn.execute(LAST_MATCH_SQL, {"player_id": pid}).fetchone()
@@ -506,7 +536,7 @@ def player_profile(conn: psycopg.Connection, player_id: Any) -> dict[str, Any]:
 
 def surface_splits(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:
     """Win-loss by surface."""
-    pid, parsed = _player_id(player_id), _filters(filters)
+    pid, parsed = parse_player_id(player_id), _filters(filters)
     with conn.transaction():
         player = _player(conn, pid)
         params = _scope_params(player, parsed)
@@ -533,7 +563,7 @@ def serve_return_stats(
     conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None
 ) -> dict[str, Any]:
     """Serve and return point stats, summed over matches with stats (never averaged)."""
-    pid, parsed = _player_id(player_id), _filters(filters)
+    pid, parsed = parse_player_id(player_id), _filters(filters)
     with conn.transaction():
         player = _player(conn, pid)
         params = _scope_params(player, parsed)
@@ -554,7 +584,7 @@ def serve_return_stats(
 
 def pressure_stats(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:
     """Break points saved (on serve) and converted (on return)."""
-    pid, parsed = _player_id(player_id), _filters(filters)
+    pid, parsed = parse_player_id(player_id), _filters(filters)
     with conn.transaction():
         player = _player(conn, pid)
         params = _scope_params(player, parsed)
@@ -571,7 +601,7 @@ def head_to_head(
     conn: psycopg.Connection, player_id: Any, opponent_id: Any, filters: Filters | Mapping | None = None
 ) -> dict[str, Any]:
     """Record between two players, by surface, and each match (newest first)."""
-    pid, oid, parsed = _player_id(player_id), _player_id(opponent_id, "opponent_id"), _filters(filters)
+    pid, oid, parsed = parse_player_id(player_id), parse_player_id(opponent_id, "opponent_id"), _filters(filters)
     if pid == oid:
         raise ToolInputError("player_id and opponent_id must be different players")
     with conn.transaction():
@@ -605,7 +635,7 @@ def recent_form(
     The sample describes the returned matches; the excluded counts cover the dates they span.
     """
     n = _whole_number(n, 1, MAX_RECENT_MATCHES, f"n must be a whole number from 1 to {MAX_RECENT_MATCHES}")
-    pid, parsed = _player_id(player_id), _filters(filters)
+    pid, parsed = parse_player_id(player_id), _filters(filters)
     with conn.transaction():
         player = _player(conn, pid)
         params = _scope_params(player, parsed)

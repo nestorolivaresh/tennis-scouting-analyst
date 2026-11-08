@@ -1,0 +1,186 @@
+"""The HTTP API (spec, API; docs/decisions.md D-019). Run it with:
+
+    uv run --env-file .env uvicorn api.app:app --port 8000
+
+Endpoints are plain `def`, so FastAPI runs them in its thread pool: the stats layer and the
+Anthropic client are synchronous, and that keeps the code easy to follow.
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+import uuid
+from collections.abc import Iterator
+from typing import Any
+
+import anthropic
+import psycopg
+from fastapi import Depends, FastAPI, Query, Request
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel
+
+from api import chat, report, stats
+from api.agent import Settings
+from api.db import connect
+from api.logs import configure, log_event
+
+configure()
+app = FastAPI(title="Tennis Scouting Analyst", version="0.3.0")
+SETTINGS = Settings.from_env()
+
+
+# ---------- dependencies (tests replace these) ----------
+
+
+def get_settings() -> Settings:
+    return SETTINGS
+
+
+def get_client(settings: Settings = Depends(get_settings)) -> anthropic.Anthropic:
+    if not settings.llm_configured:
+        raise LLMNotConfigured()
+    return settings.client()
+
+
+def get_connect():
+    return connect
+
+
+def get_conn(connect_db=Depends(get_connect)) -> Iterator[psycopg.Connection]:
+    conn = connect_db()
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+# ---------- errors ----------
+
+
+class LLMNotConfigured(Exception):
+    pass
+
+
+def error(status: int, kind: str, message: str, request: Request) -> JSONResponse:
+    body = {"error": {"kind": kind, "message": message}, "request_id": request.state.request_id}
+    return JSONResponse(body, status_code=status)
+
+
+@app.exception_handler(stats.ToolInputError)
+def bad_input(request: Request, e: stats.ToolInputError) -> JSONResponse:
+    return error(422, "invalid_input", str(e), request)
+
+
+@app.exception_handler(stats.PlayerNotFound)
+def player_not_found(request: Request, e: stats.PlayerNotFound) -> JSONResponse:
+    return error(404, "player_not_found", str(e), request)
+
+
+@app.exception_handler(LLMNotConfigured)
+def llm_not_configured(request: Request, e: LLMNotConfigured) -> JSONResponse:
+    return error(503, "llm_not_configured", "The model isn't configured on this server.", request)
+
+
+@app.exception_handler(psycopg.OperationalError)
+def database_unavailable(request: Request, e: psycopg.OperationalError) -> JSONResponse:
+    log_event("database_unavailable", logging.ERROR, request_id=request.state.request_id, error_type=type(e).__name__)
+    return error(503, "database_unavailable", "The database is unavailable.", request)
+
+
+API_ERROR_STATUS = {
+    "model_rate_limited": 503,
+    "model_unavailable": 503,
+    "model_unreachable": 502,
+    "model_misconfigured": 500,
+    "model_error": 502,
+}
+
+
+@app.exception_handler(anthropic.APIError)
+def model_api_error(request: Request, e: anthropic.APIError) -> JSONResponse:
+    kind, message = chat.api_error(e)
+    log_event("model_api_error", logging.ERROR, request_id=request.state.request_id, kind=kind, error_type=type(e).__name__)
+    return error(API_ERROR_STATUS[kind], kind, message, request)
+
+
+@app.middleware("http")
+async def request_log(request: Request, call_next):
+    """A request ID for every request, returned in X-Request-ID and on every log line."""
+    request.state.request_id = uuid.uuid4().hex
+    started = time.monotonic()
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request.state.request_id
+    log_event(
+        "http_request", request_id=request.state.request_id, method=request.method, path=request.url.path,
+        status=response.status_code, latency_ms=round((time.monotonic() - started) * 1000, 1),
+    )  # fmt: skip
+    return response
+
+
+# ---------- endpoints ----------
+
+
+@app.get("/health")
+def health(request: Request, settings: Settings = Depends(get_settings), connect_db=Depends(get_connect)) -> JSONResponse:
+    """The app is up; the database answers. Doesn't call the model."""
+    try:
+        conn = connect_db()
+        try:
+            window = stats.data_window(conn)
+        finally:
+            conn.close()
+    except psycopg.Error as e:
+        log_event("health_database_error", logging.ERROR, request_id=request.state.request_id, error_type=type(e).__name__)
+        return JSONResponse({"status": "degraded", "database": "unavailable", "llm_configured": settings.llm_configured}, 503)
+    return JSONResponse({"status": "ok", "database": "ok", "llm_configured": settings.llm_configured, "data_window": window})
+
+
+@app.get("/players/search")
+def players_search(q: str = Query(...), conn=Depends(get_conn)) -> dict[str, Any]:
+    """Autocomplete, with no model call."""
+    return stats.search_players(conn, q)
+
+
+class ReportRequest(BaseModel):
+    player_id: int
+    opponent_id: int
+    surface: str
+
+
+@app.post("/report")
+def post_report(
+    body: ReportRequest,
+    request: Request,
+    settings: Settings = Depends(get_settings),
+    client: anthropic.Anthropic = Depends(get_client),
+    conn=Depends(get_conn),
+) -> JSONResponse:
+    result = report.build_report(
+        client, conn, settings, body.player_id, body.opponent_id, body.surface, request_id=request.state.request_id
+    )
+    # A report that didn't finish within the limits is the model's failure to deliver, not the
+    # caller's: 502 with the reason and whatever evidence was gathered.
+    return JSONResponse(result, status_code=200 if result["status"] != "incomplete" else 502)
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+
+
+@app.post("/chat")
+def post_chat(
+    body: ChatRequest,
+    request: Request,
+    settings: Settings = Depends(get_settings),
+    client: anthropic.Anthropic = Depends(get_client),
+    connect_db=Depends(get_connect),
+) -> StreamingResponse:
+    history = chat.validate_history([m.model_dump() for m in body.messages])  # before the stream opens
+    events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id)
+    return StreamingResponse(events, media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
