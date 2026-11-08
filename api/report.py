@@ -14,7 +14,7 @@ import psycopg
 
 from api import stats
 from api.agent import OUTCOME_MESSAGES, Limits, Run, Settings, run_loop, system_prompt
-from api.grounding import check_report
+from api.grounding import MIN_KEY_STATS, check_report
 from api.logs import log_event
 
 WINDOW_YEARS = 2  # the report's "recent" window, ending at the newest tournament in the data
@@ -69,9 +69,10 @@ Write the report:
 - summary: two or three sentences on the matchup.
 - strengths and weaknesses: {o["name"]}'s, the opponent being scouted.
 - game_plan: three to five concrete points for {p["name"]}, each tied to the facts above.
-- key_stats: the four to eight numbers that matter most, from either player. For each:
+- key_stats: the {MIN_KEY_STATS} to 8 numbers that matter most, from either player. For each:
   - value: copied exactly from the tool result (fractions as fractions, no rounding),
-  - tool_call_id: the id of the tool call whose result contains it,
+  - tool_call_id: the tool_call_id written at the top of the tool result that contains it,
+    such as "c3",
   - field: the dotted path to it in that result, such as "stats.first_serve_in.value",
     "surfaces.0.win_rate.value" or "record.wins",
   - sample_matches: the matches it is based on (sample.matches_with_stats for serve and
@@ -148,8 +149,8 @@ def build_report(
             {
                 "role": "user",
                 "content": "The grounding check failed:\n- " + "\n- ".join(errors) + "\n\nFix key_stats so each "
-                "value is copied exactly from the named field of that tool call's result, and sample_matches "
-                "is a match count from that result. Call tools again only if you need a value you don't have. "
+                "value is copied exactly from the named field of that tool call's result, tool_call_id is "
+                "the one written at the top of that result, and sample_matches is a match count from it. Call tools again only if you need a value you don't have. "
                 "Return the full corrected report.",
             }
         )

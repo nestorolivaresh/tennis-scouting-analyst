@@ -1,10 +1,12 @@
 """Grounding check: every key stat in a report must match a value from a tool result in the
 same run (spec, Grounding check; docs/decisions.md D-018).
 
-A key stat names where its number came from: the tool call's ID and a dotted path into that
-call's result, such as "stats.break_points_saved.value" or "surfaces.0.win_rate.value". The
-check looks the path up and compares. It also checks the stated sample size against the
-match counts that result reported. Narrative text isn't checked here; the evals do that.
+A key stat names where its number came from: the tool call's ID ("c3", written at the top of
+each tool result the model sees) and a dotted path into that call's result, such as
+"stats.break_points_saved.value" or "surfaces.0.win_rate.value". The check looks the path up
+and compares. It also checks the stated sample size against the match counts that result
+reported, and that the report has enough key stats: an empty list would otherwise pass.
+Narrative text isn't checked here; the evals do that.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ from typing import Any
 from api.agent import ToolCall
 
 TOLERANCE = 1e-9  # values are copied, not recomputed, so they must match exactly
+MIN_KEY_STATS = 4  # the report prompt asks for four to eight
 
 
 def resolve_path(result: Any, path: str) -> tuple[bool, Any, list[Any]]:
@@ -72,6 +75,8 @@ def check_report(report: Any, tool_calls: dict[str, ToolCall]) -> list[str]:
                 f"{where}: sample_matches {stat.get('sample_matches')!r} is not a match count from that result "
                 f"({sorted(sizes)})"
             )
+    if len(report["key_stats"]) < MIN_KEY_STATS:
+        errors.append(f"the report has {len(report['key_stats'])} key stats; it needs at least {MIN_KEY_STATS}")
     return errors
 
 

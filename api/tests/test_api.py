@@ -47,27 +47,27 @@ def gather(_request):
 
 
 def write_report(nudge=0.0):
-    """A model that copies values from the tool results it was sent; `nudge` corrupts one."""
+    """A model that copies values from the tool results it was sent; `nudge` corrupts one. Like
+    the real model, it cites only what it can see in a result: the tool_call_id written there.
+    (The API's tool_use IDs, "t1" and "t2" here, are invisible to a real model.)"""
 
     def respond(request):
         results = tool_results(request)
         serve, h2h = results["t1"], results["t2"]
+
+        def cite(result, label, field, value, sample):
+            return {"label": label, "value": value, "tool_call_id": result["tool_call_id"], "field": field,
+                    "sample_matches": sample}  # fmt: skip
+
+        with_stats = serve["sample"]["matches_with_stats"]
         key_stats = [
-            {
-                "label": "Alcaraz: first serve in, clay",
-                "value": serve["stats"]["first_serve_in"]["value"] + nudge,
-                "tool_call_id": "t1",
-                "field": "stats.first_serve_in.value",
-                "sample_matches": serve["sample"]["matches_with_stats"],
-            },
-            {
-                "label": "Sinner's head-to-head wins against Alcaraz",
-                "value": h2h["record"]["wins"],
-                "tool_call_id": "t2",
-                "field": "record.wins",
-                "sample_matches": h2h["record"]["matches"],
-            },
-        ]
+            cite(serve, "Alcaraz: first serve in, clay", "stats.first_serve_in.value",
+                 serve["stats"]["first_serve_in"]["value"] + nudge, with_stats),
+            cite(serve, "Alcaraz: aces, clay", "stats.aces_per_match.numerator",
+                 serve["stats"]["aces_per_match"]["numerator"], with_stats),
+            cite(h2h, "Sinner's head-to-head wins", "record.wins", h2h["record"]["wins"], h2h["record"]["matches"]),
+            cite(h2h, "Sinner's head-to-head losses", "record.losses", h2h["record"]["losses"], h2h["record"]["matches"]),
+        ]  # fmt: skip
         report = {"summary": "s", "strengths": [], "weaknesses": [], "game_plan": [], "key_stats": key_stats, "data_caveats": []}
         return message(text(json.dumps(report)))
 
@@ -83,7 +83,8 @@ def test_report_verified(http, use_model):
     body = response.json()
     assert (response.status_code, body["status"], body["grounding"]) == (200, "verified", {"passed": True, "attempts": 1, "errors": []})
     assert response.headers["x-request-id"] == body["request_id"]
-    assert [e["tool"] for e in body["evidence"]] == ["serve_return_stats", "head_to_head"]
+    assert [(e["tool_call_id"], e["tool"]) for e in body["evidence"]] == [("c1", "serve_return_stats"), ("c2", "head_to_head")]
+    assert [s["tool_call_id"] for s in body["report"]["key_stats"]] == ["c1", "c1", "c2", "c2"]
     assert body["evidence"][1]["result"]["record"]["wins"] == 7  # hand 5
     assert body["request"]["date_to"] == "2026-10-26" and body["request"]["date_from"] == "2024-10-26"  # hand 17
     first = model.requests[0]
@@ -178,7 +179,7 @@ def test_chat_streams_tool_calls_and_text(http, use_model):
     assert response.status_code == 200 and response.headers["content-type"].startswith("text/event-stream")
     sequence = events(response)
     assert [name for name, _ in sequence] == ["start", "tool_call", "tool_result", "text", "text", "done"]
-    assert sequence[1][1] == {"id": "t1", "tool": "resolve_player", "input": {"name": "Sinner"}}
+    assert sequence[1][1] == {"id": "c1", "tool": "resolve_player", "input": {"name": "Sinner"}}
     assert sequence[2][1]["ok"] is True
     assert sequence[-1][1]["outcome"] == "completed"
     assert "Recompute every number" in model.requests[0]["system"]

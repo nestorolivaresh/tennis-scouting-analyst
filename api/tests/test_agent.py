@@ -53,8 +53,9 @@ def test_tool_results_go_back_to_the_model(conn):
     assert (run.outcome, run.final_text, run.steps, run.model_calls) == ("completed", "Sinner went 73-6.", 1, 2)
     sent = client.requests[1]["messages"][-1]
     assert sent["role"] == "user" and sent["content"][0]["tool_use_id"] == "t1"
-    overall = json.loads(sent["content"][0]["content"])["overall"]
-    assert (overall["wins"], overall["losses"]) == (73, 6)  # TA, via the real tool
+    seen = json.loads(sent["content"][0]["content"])
+    assert list(seen)[0] == "tool_call_id" and seen["tool_call_id"] == "c1"  # the ID a report can cite
+    assert (seen["overall"]["wins"], seen["overall"]["losses"]) == (73, 6)  # TA, via the real tool
     assert [name for name, _ in events] == ["tool_call", "tool_result", "text"]
     request = client.requests[0]
     assert request["model"] == "claude-sonnet-5-5" and request["output_config"] == {"effort": "low"}
@@ -183,9 +184,9 @@ def test_every_tool_call_is_logged(conn, log_lines):
     run, _ = drive(client, conn)
     lines = log_lines()
     tool_lines = [line for line in lines if line["event"] == "tool_call"]
-    assert [(line["tool_call_id"], line["ok"], line["request_id"]) for line in tool_lines] == [
-        ("t1", True, run.request_id),
-        ("t2", False, run.request_id),
+    assert [(line["tool_call_id"], line["tool_use_id"], line["ok"], line["request_id"]) for line in tool_lines] == [
+        ("c1", "t1", True, run.request_id),
+        ("c2", "t2", False, run.request_id),
     ]
     assert tool_lines[1]["input"] == {"player_id": SINNER, "filters": {"surface": "ice"}}
     assert [line["call"] for line in lines if line["event"] == "model_call"] == [1, 2]

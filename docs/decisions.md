@@ -340,9 +340,6 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
-- After the first live reports: record real tokens, cost and latency per report, compare
-  them with the estimates in D-022, and check that the token budget, time limit and `low`
-  effort fit.
 - Milestone 3: give the API a SELECT-only database role. The stats connection is read-only
   by setting, but the local role is a superuser that could switch that off (D-014).
 
@@ -501,12 +498,16 @@ was checked by putting the bug back and confirming a test fails (12 of 12 caught
 
 ## D-018 Grounding check
 
-*2026-11-07, Milestone 3.*
+*2026-11-07, Milestone 3. Citation IDs and the minimum count added 2026-11-09, after the first
+live report.*
 
 **Chosen.** The report's schema (spec) is enforced with structured outputs, so the final
 answer is always valid JSON in that shape. Each key stat names its source: `tool_call_id`
 and `field`, a dotted path into that call's result (`stats.first_serve_in.value`,
-`surfaces.0.win_rate.value`, `record.wins`). `api/grounding.py` then checks, for each one:
+`surfaces.0.win_rate.value`, `record.wins`). The `tool_call_id` is this run's short ID for
+the call (`c1`, `c2`, ...), written as the first field of every tool result the model sees.
+A report needs at least 4 key stats (the prompt asks for 4 to 8). `api/grounding.py` then
+checks, for each one:
 - the tool call exists in this run and didn't fail;
 - the path exists and holds a number (not a string, a boolean or an object);
 - the value equals that number (a tolerance of 1e-9: values are copied, not recomputed, so a
@@ -517,6 +518,15 @@ and `field`, a dotted path into that call's result (`stats.first_serve_in.value`
 
 On failure the errors go back to the model once, with a request to correct the report. A
 second failure returns the report with status `unverified` and the errors listed (spec).
+
+**Found in the first live report (2026-11-09).** The first version asked the model to cite
+the API's own tool_use IDs (`toolu_01...`). The model can't see those: it cited tool names
+(`surface_splits`) instead, failed the check, and on the retry returned no key stats at all,
+which passed because an empty list has nothing to fail. The report came back `verified` with
+no sources. The scripted fake model had hidden this, because its test script cited the IDs
+directly. Fixes: the short ID in every result, the minimum of 4 key stats, and a fake model
+that cites only what appears in a result. Each fix was checked by undoing it and seeing a test
+fail. The next live report passed on the first attempt with 8 key stats, all grounded.
 
 **Not checked here:** numbers in the narrative text. That's the "invented numbers" score in
 the Milestone 4 evals (spec).
@@ -534,13 +544,15 @@ the Milestone 4 evals (spec).
 
 - **A report response** carries the report, the grounding result (`passed`, `attempts`,
   `errors`), the request with its date window, the evidence (every tool call with its
-  input and result, for the evidence view) and usage (tokens, estimated cost, latency).
+  `tool_call_id`, input and result, for the evidence view; key stats point into it) and usage
+  (tokens, estimated cost, latency).
   The window is the two years up to the newest tournament in the data. Each report asks for
   the same tool calls, which makes reports comparable and the evals repeatable.
 - **Reports take player IDs**, from `/players/search`, so a report never has to resolve a
   name. Chat resolves names with `resolve_player` and asks when a name is ambiguous.
-- **Chat events:** `start` (request ID), `tool_call`, `tool_result`, `text` (deltas), then
-  `done` (outcome, usage, cost) or `error`.
+- **Chat events:** `start` (request ID), `tool_call` and `tool_result` (with the call's short
+  `id`, as in reports), `text` (deltas), then `done` (outcome, usage, cost) or `error`. Log
+  lines carry both the short `tool_call_id` and the API's `tool_use_id`.
 - **Chat is stateless and accepts only text** (spec: the client sends the history). Turns
   must alternate from the user and end with the user, and are capped at 21 messages, 4,000
   characters each and 30,000 in all. The client never sends tool calls or results, so it
@@ -627,9 +639,25 @@ full eval runs, could have cost $50 or more.
 - **Eval runs:** two full runs (baseline and final), with only the failing questions rerun in
   between.
 
-**Estimated cost**, until the first live runs replace it with logged numbers: about $0.05 to
-$0.15 per report and a few cents per chat question. The budget stops a runaway request at
-roughly $1.50 even if every token were output, which no real request comes near.
+**Estimated cost** before the live runs: about $0.05 to $0.15 per report and a few cents per
+chat question. The budget stops a runaway request at roughly $1.50 even if every token were
+output, which no real request comes near.
+
+**Measured** in the first live runs (2026-11-09, Sinner vs Alcaraz on clay; tokens processed
+are input, cache writes, cache reads and output; cost from the logs' price table):
+
+| Request | Model calls | Tool calls | Tokens processed | Cost | Latency |
+| --- | --- | --- | --- | --- | --- |
+| Report, before the citation fix (retried, 2 extra tool calls) | 4 | 11 | 67,642 | $0.111 | 36.7 s |
+| Report, after the fix (verified on the first attempt) | 2 | 9 | 23,536 | $0.065 | 16.5 s |
+| Chat: "How has Alcaraz served on clay in 2025?" | 3 | 2 | 12,935 | $0.017 | 4.9 s |
+
+Both are inside the estimates, the token budget and the 60-second limit; `low` effort
+completed the report. One report is not a sample: the Milestone 4 evals record cost and
+latency per question (spec). The chat answer's numbers were checked against
+`serve_return_stats` and all match. The narrative is not checked yet: the second report's
+summary garbles the clay head-to-head (2-3, Alcaraz ahead) as being in Sinner's favour, the
+kind of error the evals' narrative score exists for.
 
 **Alternative for later:** Claude Haiku 5.5 is $0.10 / $0.50 per million tokens for prompts
 up to 100,000 tokens (pricing page, 2026-11-08), 20 times cheaper than Sonnet 5.5. Its

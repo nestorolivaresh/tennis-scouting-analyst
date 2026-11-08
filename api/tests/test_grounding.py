@@ -7,7 +7,7 @@ import pytest
 
 from api import stats
 from api.agent import ToolCall
-from api.grounding import check_report, resolve_path
+from api.grounding import MIN_KEY_STATS, check_report, resolve_path
 
 SINNER, ALCARAZ = 206173, 207989  # hand 9
 
@@ -57,6 +57,12 @@ def report(*key_stats):
     return {"summary": "", "strengths": [], "weaknesses": [], "game_plan": [], "key_stats": list(key_stats), "data_caveats": []}
 
 
+def padded(calls, stat_under_test):
+    """A report with the stat under test first, plus enough grounded stats to reach the minimum."""
+    good = [stat(calls, "t2", "overall.wins", "overall.matches")] * (MIN_KEY_STATS - 1)
+    return report(stat_under_test, *good)
+
+
 @needs_db
 def test_grounded_stats_pass(calls):
     grass = next(i for i, s in enumerate(calls["t2"].result["surfaces"]) if s["surface"] == "Grass")
@@ -87,7 +93,7 @@ def test_grounded_stats_pass(calls):
 )
 def test_ungrounded_stats_fail(calls, change, error):
     bad = {**stat(calls, "t1", "stats.first_serve_in.value", "sample.matches_with_stats"), **change}
-    errors = check_report(report(bad), calls)
+    errors = check_report(padded(calls, bad), calls)
     assert len(errors) == 1 and error in errors[0], errors
 
 
@@ -96,7 +102,17 @@ def test_a_rounded_value_is_not_grounded(calls):
     good = stat(calls, "t1", "stats.first_serve_in.value", "sample.matches_with_stats")
     rounded = {**good, "value": round(good["value"], 2)}
     assert rounded["value"] != good["value"]
-    assert "does not match" in check_report(report(rounded), calls)[0]
+    assert "does not match" in check_report(padded(calls, rounded), calls)[0]
+
+
+@needs_db
+def test_too_few_key_stats_fail(calls):
+    """Found live: the model couldn't cite its tool calls, returned no key stats, and an empty
+    list passed. A report needs at least MIN_KEY_STATS grounded numbers."""
+    good = stat(calls, "t1", "stats.first_serve_in.value", "sample.matches_with_stats")
+    assert check_report(report(), calls) == ["the report has 0 key stats; it needs at least 4"]
+    assert check_report(report(*[good] * (MIN_KEY_STATS - 1)), calls) == ["the report has 3 key stats; it needs at least 4"]
+    assert check_report(report(*[good] * MIN_KEY_STATS), calls) == []
 
 
 def test_a_report_without_key_stats_fails():

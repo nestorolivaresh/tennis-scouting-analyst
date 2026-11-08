@@ -181,6 +181,10 @@ def execute_tool(conn: psycopg.Connection, name: str, args: Any) -> dict[str, An
 
 @dataclasses.dataclass
 class ToolCall:
+    """One tool call. `id` is this run's short ID ("c1", "c2", ...), written at the top of the
+    result the model sees, so a report can cite it (D-018). The model can't see the API's own
+    tool_use IDs, which are kept as `tool_use_id` to match results to calls."""
+
     id: str
     name: str
     input: Any
@@ -188,9 +192,15 @@ class ToolCall:
     result: dict[str, Any] | None = None
     error: str | None = None
     latency_ms: float = 0.0
+    tool_use_id: str = ""
 
     def evidence(self) -> dict[str, Any]:
-        return {"id": self.id, "tool": self.name, "input": self.input, "result": self.result, "error": self.error}
+        return {"tool_call_id": self.id, "tool": self.name, "input": self.input, "result": self.result, "error": self.error}
+
+    def content(self) -> str:
+        """The tool result as the model sees it, with the call's ID first."""
+        body = self.result if self.error is None else {"error": self.error}
+        return json.dumps({"tool_call_id": self.id, **body}, default=str)
 
 
 @dataclasses.dataclass
@@ -343,7 +353,7 @@ def run_loop(
 
         results = []
         for block in tool_uses:
-            call = ToolCall(block.id, block.name, block.input, run.steps)
+            call = ToolCall(f"c{len(run.tool_calls) + 1}", block.name, block.input, run.steps, tool_use_id=block.id)
             yield "tool_call", {"id": call.id, "tool": call.name, "input": call.input}
             if len(run.tool_calls) >= limits.max_tool_calls:
                 call.error = f"tool call limit of {limits.max_tool_calls} per request reached"
@@ -356,6 +366,7 @@ def run_loop(
                 request_id=run.request_id,
                 step=call.step,
                 tool_call_id=call.id,
+                tool_use_id=call.tool_use_id,
                 tool=call.name,
                 input=call.input,
                 ok=call.error is None,
@@ -363,9 +374,13 @@ def run_loop(
                 latency_ms=call.latency_ms,
             )
             yield "tool_result", {"id": call.id, "tool": call.name, "ok": call.error is None, "error": call.error}
-            content = json.dumps(call.result if call.error is None else {"error": call.error}, default=str)
             results.append(
-                {"type": "tool_result", "tool_use_id": call.id, "content": content, "is_error": call.error is not None}
+                {
+                    "type": "tool_result",
+                    "tool_use_id": call.tool_use_id,
+                    "content": call.content(),
+                    "is_error": call.error is not None,
+                }
             )
         run.messages.append({"role": "user", "content": results})
 
