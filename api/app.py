@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import anthropic
@@ -20,15 +20,32 @@ from fastapi import Depends, FastAPI, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from api import chat, report, stats
+from api import chat, report, spend, stats
 from api.agent import Settings
-from api.db import connect
+from api.db import connect, connect_usage
 from api.logs import configure, log_event
 from api.streaming import closing as close_on_disconnect
 
 configure()
-app = FastAPI(title="Tennis Scouting Analyst", version="0.5.0")
+app = FastAPI(title="Tennis Scouting Analyst", version="0.6.0")
 SETTINGS = Settings.from_env()
+
+
+class StripApiPrefix:
+    """On Vercel the API is served under /api and receives the full path (/api/chat), so the
+    prefix comes off here and the same routes work locally and deployed (D-025)."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"].startswith("/api/"):
+            path = scope["path"][len("/api") :]
+            scope = {**scope, "path": path, "raw_path": path.encode()}
+        await self.inner(scope, receive, send)
+
+
+app.add_middleware(StripApiPrefix)
 
 
 # ---------- dependencies (tests replace these) ----------
@@ -46,6 +63,10 @@ def get_client(settings: Settings = Depends(get_settings)) -> anthropic.Anthropi
 
 def get_connect():
     return connect
+
+
+def get_usage_connect():
+    return connect_usage
 
 
 def get_conn(connect_db=Depends(get_connect)) -> Iterator[psycopg.Connection]:
@@ -76,6 +97,21 @@ def bad_input(request: Request, e: stats.ToolInputError) -> JSONResponse:
 @app.exception_handler(stats.PlayerNotFound)
 def player_not_found(request: Request, e: stats.PlayerNotFound) -> JSONResponse:
     return error(404, "player_not_found", str(e), request)
+
+
+@app.exception_handler(spend.DailyLimitReached)
+def daily_limit_reached(request: Request, e: spend.DailyLimitReached) -> JSONResponse:
+    return error(429, "daily_limit_reached", "Today's budget for this demo has been used. Try again tomorrow (UTC).", request)
+
+
+@app.exception_handler(spend.SpendTrackingUnavailable)
+def spend_tracking_unavailable(request: Request, e: spend.SpendTrackingUnavailable) -> JSONResponse:
+    return error(503, "spend_tracking_unavailable", "The service can't check today's budget right now. Try again soon.", request)
+
+
+@app.exception_handler(spend.SpendCapNotConfigured)
+def spend_cap_not_configured(request: Request, e: spend.SpendCapNotConfigured) -> JSONResponse:
+    return error(503, "spend_cap_not_configured", "The model isn't available: no daily budget is set on this server.", request)
 
 
 @app.exception_handler(LLMNotConfigured)
@@ -140,13 +176,29 @@ def health(request: Request, settings: Settings = Depends(get_settings), connect
     except psycopg.Error as e:
         log_event("health_database_error", logging.ERROR, request_id=request.state.request_id, error_type=type(e).__name__)
         return JSONResponse({"status": "degraded", "database": "unavailable", "llm_configured": settings.llm_configured}, 503)
-    return JSONResponse({"status": "ok", "database": "ok", "llm_configured": settings.llm_configured, "data_window": window})
+    return JSONResponse({
+        "status": "ok", "database": "ok", "llm_configured": settings.llm_configured,
+        "spend_cap_active": settings.daily_spend_cap_usd is not None, "data_window": window,
+    })  # fmt: skip
 
 
 @app.get("/players/search")
 def players_search(q: str = Query(...), conn=Depends(get_conn)) -> dict[str, Any]:
     """Autocomplete, with no model call."""
     return stats.search_players(conn, q)
+
+
+def reserve_budget(endpoint: str, request: Request, settings: Settings, connect_log) -> Callable[[str, dict[str, Any]], None]:
+    """Reserve this request's estimated cost before any model call, and return the function
+    that records how it ended. No cap means no model calls, unless local development has
+    explicitly opted out with ALLOW_NO_SPEND_CAP (D-025)."""
+    if settings.daily_spend_cap_usd is None:
+        if not settings.allow_no_spend_cap:
+            raise spend.SpendCapNotConfigured
+        return lambda status, summary: None
+    request_id = request.state.request_id
+    spend.reserve(connect_log, request_id, endpoint, settings.daily_spend_cap_usd)
+    return lambda status, summary: spend.settle(connect_log, request_id, status, summary)
 
 
 class ReportRequest(BaseModel):
@@ -162,10 +214,11 @@ def post_report(
     settings: Settings = Depends(get_settings),
     client: anthropic.Anthropic = Depends(get_client),
     conn=Depends(get_conn),
+    connect_log=Depends(get_usage_connect),
 ) -> JSONResponse:
-    result = report.build_report(
-        client, conn, settings, body.player_id, body.opponent_id, body.surface, request_id=request.state.request_id
-    )
+    req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface)  # bad input costs nothing
+    on_end = reserve_budget("/report", request, settings, connect_log)
+    result = report.run_report(client, conn, settings, req, request_id=request.state.request_id, on_end=on_end)
     # A report that didn't finish within the limits is the model's failure to deliver, not the
     # caller's: 502 with the reason and whatever evidence was gathered.
     return JSONResponse(result, status_code=200 if result["status"] != "incomplete" else 502)
@@ -178,15 +231,17 @@ def post_report_stream(
     settings: Settings = Depends(get_settings),
     client: anthropic.Anthropic = Depends(get_client),
     connect_db=Depends(get_connect),
+    connect_log=Depends(get_usage_connect),
 ) -> StreamingResponse:
-    """The same report, with progress as server-sent events (D-019). Bad input gets its 4xx
-    before the stream opens."""
+    """The same report, with progress as server-sent events (D-019). Bad input and a spent
+    budget get their status before the stream opens."""
     conn = connect_db()
     try:
         req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface)
     finally:
         conn.close()
-    events = report.report_stream(client, connect_db, settings, req, request_id=request.state.request_id)
+    on_end = reserve_budget("/report/stream", request, settings, connect_log)
+    events = report.report_stream(client, connect_db, settings, req, request_id=request.state.request_id, on_end=on_end)
     return StreamingResponse(close_on_disconnect(events), media_type="text/event-stream", headers=STREAM_HEADERS)
 
 
@@ -206,7 +261,9 @@ def post_chat(
     settings: Settings = Depends(get_settings),
     client: anthropic.Anthropic = Depends(get_client),
     connect_db=Depends(get_connect),
+    connect_log=Depends(get_usage_connect),
 ) -> StreamingResponse:
     history = chat.validate_history([m.model_dump() for m in body.messages])  # before the stream opens
-    events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id)
+    on_end = reserve_budget("/chat", request, settings, connect_log)
+    events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id, on_end=on_end)
     return StreamingResponse(close_on_disconnect(events), media_type="text/event-stream", headers=STREAM_HEADERS)

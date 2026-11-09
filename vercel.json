@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": { "root": "web/", "framework": "nextjs" },
+    "backend": { "root": "./", "framework": "fastapi", "entrypoint": "api.app:app" }
+  },
+  "rewrites": [
+    { "source": "/api/health", "destination": { "service": "backend" } },
+    { "source": "/api/players/search", "destination": { "service": "backend" } },
+    { "source": "/api/report/stream", "destination": { "service": "backend" } },
+    { "source": "/api/chat", "destination": { "service": "backend" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ]
+}

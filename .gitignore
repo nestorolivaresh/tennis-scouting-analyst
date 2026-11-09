@@ -20,5 +20,8 @@ next-env.d.ts
 # Written by `next dev` for coding agents; the repo's agent rules are in CLAUDE.md
 web/AGENTS.md
 
+# Vercel CLI
+.vercel/
+
 # OS
 .DS_Store

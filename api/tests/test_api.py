@@ -15,7 +15,7 @@ from api.agent import Settings
 from api.tests.fake_model import FakeClient, message, text, tool_results, tool_use
 
 SINNER, ALCARAZ = 206173, 207989  # hand 9
-SETTINGS = Settings(api_key="test-key", model="claude-sonnet-5-5")
+SETTINGS = Settings(api_key="test-key", model="claude-sonnet-5-5", allow_no_spend_cap=True)
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
 REPORT = {"player_id": SINNER, "opponent_id": ALCARAZ, "surface": "Clay"}
 
@@ -220,7 +220,7 @@ def test_chat_reports_model_errors_in_the_stream(http, use_model):
 
 def test_health(http):
     body = http.get("/health").json()
-    assert (body["status"], body["database"]) == ("ok", "ok")
+    assert (body["status"], body["database"], body["spend_cap_active"]) == ("ok", "ok", False)
     assert body["data_window"]["last_match_date"] == "2026-11-01"  # hand 17
 
 

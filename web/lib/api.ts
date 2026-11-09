@@ -21,6 +21,10 @@ async function failure(response: Response): Promise<ApiFailure> {
   } catch {
     // not JSON: the proxy couldn't reach the API, for example
   }
+  if (response.status === 429) {
+    // From the firewall's per-IP limit; the app's own 429 (the daily budget) has a JSON message above.
+    return new ApiFailure("rate_limited", "Too many requests from this connection. Wait a few minutes and try again.", 429);
+  }
   if (response.status >= 500) {
     return new ApiFailure("api_unreachable", "The scouting service isn't responding. Check that the API is running.", response.status);
   }

@@ -4,7 +4,7 @@ An AI scouting analyst over public ATP match data. A coach picks a player, an op
 surface, and gets a scouting report where every number comes from tested code, not from the
 model's memory. Evals with independent ground truth check that the answers are correct.
 
-**Status:** Milestone 5 (web app). See [SPEC.md](SPEC.md) for the plan,
+**Status:** Milestone 6 (deploy), set up but not yet deployed. Steps: [docs/deploy.md](docs/deploy.md). See [SPEC.md](SPEC.md) for the plan,
 [docs/data-audit.md](docs/data-audit.md) for what the raw data contains,
 [docs/quality-report.md](docs/quality-report.md) for what was loaded,
 [docs/stat-checks.md](docs/stat-checks.md) for where every test number comes from, and
@@ -41,7 +41,7 @@ calls, tokens and estimated cost as JSON lines. The design is in
 [D-017 to D-022](docs/decisions.md).
 
 ```bash
-uv run --env-file .env uvicorn api.app:app --port 8000   # needs ANTHROPIC_API_KEY in .env
+ALLOW_NO_SPEND_CAP=1 uv run --env-file .env uvicorn api.app:app --port 8000   # needs ANTHROPIC_API_KEY in .env
 curl -s 'localhost:8000/players/search?q=sinner'
 curl -s localhost:8000/report -H 'content-type: application/json' \
   -d '{"player_id": 206173, "opponent_id": 207989, "surface": "Clay"}'
@@ -81,7 +81,7 @@ own server, so the Anthropic key never reaches the browser. Design and checks:
 [D-024](docs/decisions.md).
 
 ```bash
-uv run --env-file .env uvicorn api.app:app --port 8000   # the API, in one terminal
+ALLOW_NO_SPEND_CAP=1 uv run --env-file .env uvicorn api.app:app --port 8000   # the API, in one terminal
 npm --prefix web install
 npm --prefix web run dev                                  # then open http://localhost:3000
 npm --prefix web test                                     # logic tests, no server needed

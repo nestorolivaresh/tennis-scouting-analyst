@@ -49,6 +49,10 @@ test("streamReport turns an error event, a cut stream and a 4xx into ApiFailure"
   await assert.rejects(streamReport(body, () => {}), (e: unknown) => e instanceof ApiFailure && e.kind === "stream_cut");
   t.mock.method(globalThis, "fetch", fakeFetch(JSON.stringify({ error: { kind: "player_not_found", message: "no player" } }), 404));
   await assert.rejects(streamReport(body, () => {}), (e: unknown) => e instanceof ApiFailure && e.message === "no player");
+  t.mock.method(globalThis, "fetch", async () => new Response("Too Many Requests", { status: 429 })); // the firewall's plain reply
+  await assert.rejects(streamReport(body, () => {}), (e: unknown) => e instanceof ApiFailure && e.kind === "rate_limited");
+  t.mock.method(globalThis, "fetch", fakeFetch(JSON.stringify({ error: { kind: "daily_limit_reached", message: "Budget used." } }), 429));
+  await assert.rejects(streamReport(body, () => {}), (e: unknown) => e instanceof ApiFailure && e.message === "Budget used.");
 });
 
 test("progress: each real step, the newest one in progress, failures marked", () => {

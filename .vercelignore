@@ -1,0 +1,17 @@
+# Never uploaded: secrets and local state.
+.env
+.env.*
+.claude/
+.vercel/
+.venv/
+.git/
+
+# Not needed by the deployed app, and the raw data can't be redistributed.
+data/
+docs/
+evals/
+ingest/tests/
+infra/
+api/tests/
+web/node_modules/
+web/.next/

@@ -340,14 +340,11 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
-- Milestone 6: the per-IP rate limit must read the client address from the proxy's
-  `X-Forwarded-For` (the API sees the Next.js server as the client), and any proxy in front of
-  the API must allow at least 90 seconds of idle time on the two streams (D-024).
 - Evals: H04 varies between runs (D-023). Options: return each head-to-head score from the
   asked player's side as well as the winner's, so the model never rewrites one; run each
   question several times and report a pass rate. Decide before Milestone 7's case study.
-- Milestone 3: give the API a SELECT-only database role. The stats connection is read-only
-  by setting, but the local role is a superuser that could switch that off (D-014).
+- The local database role is still a superuser (read-only by setting, D-014). Production uses
+  the restricted `tennis_app` role (D-025).
 
 ## D-014 Stats layer: which matches count, and what every answer carries
 
@@ -895,3 +892,56 @@ are fixed:
 **Not done.** No automated browser test (Playwright would be a new dependency; ask first). No
 dark mode. Keep-alives depend on the model API sending events while it thinks; the 90-second
 proxy timeout covers the case where it doesn't.
+
+## D-025 Deployment: Vercel and Neon instead of AWS
+
+*2026-11-09, Milestone 6. Decided by Nestor; replaces the spec's Docker image, AWS App Runner
+and Secrets Manager, and D-020's plan for the deployed key.*
+
+**Chosen.** One Vercel project on the free Hobby plan runs the site and the API as two
+[Services](https://vercel.com/docs/services), and a free Neon database holds the data. Hosting
+costs $0, and on both free plans a hit limit pauses the service instead of charging. Checked
+against both companies' docs on 2026-11-09: Hobby is for non-commercial personal use (this
+project is), functions may run 300 seconds (our limit is 60), Python streaming is supported, and
+Python bundles may be 500 MB (ours is 47 MB). Neon's free plan has 1 GB of storage (we use 21 MB
+for the stats tables, 39 MB with the raw tables) and sleeps after 5 minutes idle.
+
+**Trade-offs.** No Docker image. Vercel Services is in beta; the
+fallback is two separate Vercel projects. Hobby keeps logs for 1 hour, so `api_requests` is the
+lasting record of requests (no user text and no IP addresses).
+
+**Routing.** `vercel.json` lists the four public API routes (health, player search, report
+stream, chat); anything else goes to the site and 404s. Vercel passes the full path, so a small
+middleware removes the `/api` prefix and the same routes work locally. In production these
+requests don't go through the Next.js proxy (D-024).
+
+**Daily spend cap** (`api/spend.py`). Each model endpoint reserves an estimated cost before
+calling the model, in one transaction under an advisory lock, so simultaneous requests can't
+all fit under the cap; the row gets the real cost when the request ends. Serverless copies share
+no memory, so the total is in the database. A request that dies keeps its estimate. If the total
+can't be read, the model isn't called. With no cap set, the app refuses model calls; only local
+development can opt out, with `ALLOW_NO_SPEND_CAP`. A first version relied on Vercel's `VERCEL`
+variable to spot production, but that can be turned off in project settings, which would have
+silently removed the cap. `/api/health` reports `spend_cap_active` so the go-live check can
+confirm it. The cap can be passed by one request's excess over its estimate, so the Anthropic
+Console's monthly limit stays as the hard stop.
+
+**Per-IP limit.** Vercel's firewall, at the edge: 6 report or chat requests per 10 minutes per
+IP, the one rate-limit rule Hobby allows. It's configured in the dashboard, so the go-live
+checklist tests it. It keeps IP addresses out of our own database.
+
+**Database role.** The API connects as `tennis_app` (`infra/neon_setup.sql`), which can read the
+stats tables and write only `api_requests`. A test applies the script in a rolled-back
+transaction and confirms what the role can and can't do. This closes the Milestone 3 item.
+
+**Credentials.** `ANTHROPIC_API_KEY` and `DATABASE_URL` live in Vercel's environment variables,
+with master copies in 1Password. Nestor enters them and runs the production data load: under his
+rules assistants don't connect to production databases.
+
+**Checks.** Vercel's own local dev server ran both services from `vercel.json`: the routes
+resolved, unlisted API routes returned 404, and a live chat answer streamed in 33 pieces over 3.6
+seconds. A simulated upload (only the files `.vercelignore` allows, only runtime dependencies)
+imports the app. That simulation found that excluding `ingest/` would have crashed production,
+since `api/stats.py` imports from it; a test now guards this. Each spend and role rule was broken
+on purpose and a test failed. **Not yet checked:** anything on Vercel or Neon themselves, since
+nothing has been deployed.

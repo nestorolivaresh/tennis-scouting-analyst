@@ -142,13 +142,15 @@ def report_events(
     clock: Callable[[], float] = time.monotonic,
     endpoint: str = "/report",
     heartbeat_s: float | None = None,
+    on_end: Callable[[str, dict[str, Any]], None] = lambda status, summary: None,
 ) -> Iterator[tuple[str, dict[str, Any]]]:
     """The report as it happens: ("start", request), then ("model_call", ...), ("tool_call",
     ...) and ("tool_result", ...) from the agent loop, ("checking", {"key_stats"}) before each
     grounding check, ("correcting", {"errors"}) before the one retry, and last ("report",
     result), the same body POST /report returns. Anthropic API errors propagate, after a
     request_end log line with the tokens used so far. The report's text is never sent before it
-    has been checked."""
+    has been checked. `on_end(status, summary)` is called once when the request ends, however
+    it ends (api/spend.py)."""
     run = Run(model=settings.model, messages=[{"role": "user", "content": report_prompt(
         req.player, req.opponent, req.surface, req.date_from, req.date_to)}], started=clock())  # fmt: skip
     if request_id:
@@ -159,20 +161,22 @@ def report_events(
     )  # fmt: skip
     try:
         yield "start", {"request_id": run.request_id, "request": req.public()}
-        yield from _checked_report(client, conn, settings, req, run, limits, clock, endpoint, heartbeat_s)
+        yield from _checked_report(client, conn, settings, req, run, limits, clock, endpoint, heartbeat_s, on_end)
     except GeneratorExit:  # the client went away
         log_event("request_end", logging.WARNING, request_id=run.request_id, endpoint=endpoint,
                   status="client_disconnected", **run.summary())  # fmt: skip
+        on_end("client_disconnected", {**run.summary(), "usage_complete": False})  # a call may be in flight
         raise
     except anthropic.APIError as e:
         from api.chat import api_error
 
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint=endpoint,
                   status=api_error(e)[0], **run.summary())  # fmt: skip
+        on_end(api_error(e)[0], run.summary())
         raise
 
 
-def _checked_report(client, conn, settings, req, run, limits, clock, endpoint, heartbeat_s):
+def _checked_report(client, conn, settings, req, run, limits, clock, endpoint, heartbeat_s, on_end):
     report, errors, attempts = None, [], 0
     while attempts < MAX_ATTEMPTS:
         attempts += 1
@@ -224,6 +228,7 @@ def _checked_report(client, conn, settings, req, run, limits, clock, endpoint, h
         "request_end", logging.INFO if status == "verified" else logging.WARNING,
         request_id=run.request_id, endpoint=endpoint, status=status, **run.summary(),
     )  # fmt: skip
+    on_end(status, run.summary())
     yield "report", result
 
 
@@ -237,14 +242,20 @@ def build_report(
     request_id: str | None = None,
     limits: Limits = Limits(),
     clock: Callable[[], float] = time.monotonic,
+    on_end: Callable[[str, dict[str, Any]], None] = lambda status, summary: None,
 ) -> dict[str, Any]:
     """POST /report: the same report, returned once it's done. Bad input raises
     ToolInputError, an unknown player raises PlayerNotFound, and Anthropic API errors
     propagate; everything else comes back in the result, with status "verified",
     "unverified" or "incomplete"."""
     req = prepare_report(conn, player_id, opponent_id, surface)
+    return run_report(client, conn, settings, req, request_id, limits, clock, on_end)
+
+
+def run_report(client, conn, settings, req, request_id=None, limits=Limits(), clock=time.monotonic, on_end=lambda status, summary: None):
+    """Run a checked request to the end and return the last event's body."""
     result: dict[str, Any] = {}
-    for event, data in report_events(client, conn, settings, req, request_id, limits, clock):
+    for event, data in report_events(client, conn, settings, req, request_id, limits, clock, on_end=on_end):
         if event == "report":
             result = data
     return result
@@ -256,6 +267,7 @@ def report_stream(
     settings: Settings,
     req: CheckedRequest,
     request_id: str | None = None,
+    on_end: Callable[[str, dict[str, Any]], None] = lambda status, summary: None,
 ) -> Iterator[str]:
     """POST /report/stream: report_events as server-sent events, with a keep-alive comment
     during long model calls. The request was checked before the stream opened; any failure
@@ -267,9 +279,10 @@ def report_stream(
         conn = connect()
     except psycopg.OperationalError:
         log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream", status="database_unavailable")
+        on_end("database_unavailable", {"cost_usd": 0.0, "usage_complete": True})
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
-    events = report_events(client, conn, settings, req, request_id, endpoint="/report/stream", heartbeat_s=HEARTBEAT_S)
+    events = report_events(client, conn, settings, req, request_id, endpoint="/report/stream", heartbeat_s=HEARTBEAT_S, on_end=on_end)
     try:
         with closing(events):
             for event, data in events:
@@ -280,6 +293,7 @@ def report_stream(
     except Exception as e:  # noqa: BLE001 - reported to the client and logged by type, never hidden
         log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream",
                   status="internal_error", error_type=type(e).__name__)  # fmt: skip
+        on_end("internal_error", {"cost_usd": None, "usage_complete": False})  # the reservation stands
         yield sse("error", {"kind": "internal_error", "message": "The report failed on the server. Try again."})
     finally:
         conn.close()

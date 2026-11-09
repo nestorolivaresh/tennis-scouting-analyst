@@ -71,10 +71,12 @@ def chat_events(
     request_id: str | None = None,
     limits: Limits = Limits(),
     clock: Callable[[], float] = time.monotonic,
+    on_end: Callable[[str, dict[str, Any]], None] = lambda status, summary: None,
 ) -> Iterator[str]:
     """Server-sent events: start, then text / tool_call / tool_result as they happen, then
     done (outcome, usage and cost) or error. The connection opens and closes inside the
-    stream, because the response outlives the request handler."""
+    stream, because the response outlives the request handler. `on_end(status, summary)` is
+    called once when the request ends, however it ends (api/spend.py)."""
     run = Run(model=settings.model, messages=list(history), started=clock())
     if request_id:
         run.request_id = request_id
@@ -84,6 +86,7 @@ def chat_events(
         conn = connect()
     except psycopg.OperationalError:
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status="database_unavailable")
+        on_end("database_unavailable", {"cost_usd": 0.0, "usage_complete": True})
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
     try:
@@ -94,15 +97,18 @@ def chat_events(
     except GeneratorExit:  # the client went away; the model stream closes with the loop
         log_event("request_end", logging.WARNING, request_id=run.request_id, endpoint="/chat",
                   status="client_disconnected", **run.summary())  # fmt: skip
+        on_end("client_disconnected", {**run.summary(), "usage_complete": False})  # a call may be in flight
         raise
     except anthropic.APIError as e:
         kind, message = api_error(e)
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status=kind, **run.summary())
+        on_end(kind, run.summary())
         yield sse("error", {"kind": kind, "message": message})
         return
     except Exception as e:  # noqa: BLE001 - reported to the client and logged by type, never hidden
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status="internal_error",
                   error_type=type(e).__name__, **run.summary())  # fmt: skip
+        on_end("internal_error", {**run.summary(), "usage_complete": False})
         yield sse("error", {"kind": "internal_error", "message": "The answer failed on the server. Try again."})
         return
     finally:
@@ -111,6 +117,7 @@ def chat_events(
         "request_end", logging.INFO if run.outcome == "completed" else logging.WARNING,
         request_id=run.request_id, endpoint="/chat", status=run.outcome, **run.summary(),
     )  # fmt: skip
+    on_end(run.outcome, run.summary())
     yield sse("done", {"outcome": run.outcome, "message": OUTCOME_MESSAGES.get(run.outcome), "usage": run.summary()})
 
 

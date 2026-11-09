@@ -37,6 +37,8 @@ class Settings:
     model: str | None
     effort: str = "low"  # D-022
     token_budget: int = 120_000  # about 2x a measured report with its retry (D-022)
+    daily_spend_cap_usd: float | None = None
+    allow_no_spend_cap: bool = False  # local development only; without it, no cap means no model calls (D-025)
 
     @property
     def llm_configured(self) -> bool:
@@ -50,7 +52,17 @@ class Settings:
         budget = env.get("AGENT_TOKEN_BUDGET") or str(cls.token_budget)
         if not budget.isdigit():
             raise ValueError("AGENT_TOKEN_BUDGET must be a whole number of tokens")
-        return cls(env.get("ANTHROPIC_API_KEY") or None, env.get("ANTHROPIC_MODEL") or None, effort, int(budget))
+        cap_text = env.get("DAILY_SPEND_CAP_USD") or None
+        try:
+            cap = float(cap_text) if cap_text else None
+        except ValueError:
+            raise ValueError("DAILY_SPEND_CAP_USD must be a number of US dollars") from None
+        if cap is not None and not 0 < cap < float("inf"):
+            raise ValueError("DAILY_SPEND_CAP_USD must be above 0")
+        return cls(
+            env.get("ANTHROPIC_API_KEY") or None, env.get("ANTHROPIC_MODEL") or None, effort, int(budget), cap,
+            env.get("ALLOW_NO_SPEND_CAP") == "1",
+        )  # fmt: skip
 
     def client(self) -> anthropic.Anthropic:
         if not self.api_key:
