@@ -147,8 +147,9 @@ def test_refusals_from_review():
 H2H = {"record": {"matches": 17, "wins": 7, "losses": 10},  # hand 5
        "by_surface": [{"surface": "Clay", "matches": 5, "wins": 2, "losses": 3}],
        "matches": [{"score": "6-2 6-3"}, {"score": "7-6(4) 7-5"}, {"score": "5-0 RET"}]}  # fmt: skip
-SINNER_2024 = {"sample": {"matches_counted": 79, "matches_with_stats": 79, "opponent_retired_or_defaulted": 1,
-               "excluded": {"walkovers": 2, "exhibitions": 0}}}  # TA 73-6; hand 2 and hand 18  # fmt: skip
+# The shape of a real stats result: `excluded` is next to `sample`, not inside it.
+SINNER_2024 = {"sample": {"matches_counted": 79, "matches_with_stats": 79, "opponent_retired_or_defaulted": 1},
+               "excluded": {"walkovers": 2, "exhibitions": 0}}  # TA 73-6; hand 2 and hand 18  # fmt: skip
 
 
 def test_review_pairs_that_used_to_pass():

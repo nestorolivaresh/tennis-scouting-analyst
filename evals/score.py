@@ -150,14 +150,16 @@ def pairs_in(data: Any) -> Pairs:
                     counts.update({(wins, matches), (losses, matches)})
             if ints(node.get("numerator"), node.get("denominator")):
                 counts.add((node["numerator"], node["denominator"]))
-            if ints(node.get("matches_counted")):
-                # A sample's other counts as parts of the matches counted, or of every match
-                # looked at (counted plus excluded): "1 of the 79", "2 of his 81 were walkovers".
-                parts = {k: v for k, v in node.items() if ints(v) and k != "matches_counted"}
-                excluded = node.get("excluded") if isinstance(node.get("excluded"), dict) else {}
-                total = node["matches_counted"] + sum(v for v in excluded.values() if ints(v))
-                for part in [*parts.values(), *(v for v in excluded.values() if ints(v))]:
-                    counts.update({(part, node["matches_counted"]), (part, total)})
+            sample, excluded = node.get("sample"), node.get("excluded")
+            if isinstance(sample, dict) and ints(sample.get("matches_counted")):
+                # A tool result's sample and excluded counts (siblings in every stats result) as
+                # parts of the matches counted, or of every match looked at (counted plus
+                # excluded): "1 of the 79", "2 of his 81 matches were walkovers".
+                counted = sample["matches_counted"]
+                left_out = [v for v in (excluded or {}).values() if ints(v)] if isinstance(excluded, dict) else []
+                total = counted + sum(left_out)
+                for part in [*(v for k, v in sample.items() if ints(v) and k != "matches_counted"), *left_out]:
+                    counts.update({(part, counted), (part, total)})
             for k, value in node.items():
                 walk(value, k)
         elif isinstance(node, (list, tuple)):

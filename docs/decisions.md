@@ -669,7 +669,9 @@ length, so it isn't in the cost table yet, and its cost logs as `null` until it 
 
 ## D-023 Evals: ground truth, questions and scoring
 
-*2026-11-09, Milestone 4. Revised the same day after an independent review (below).*
+*2026-11-09, Milestone 4. Revised the same day after an independent review (below), and in
+Milestone 5 when building the frontend showed that `excluded` sits next to `sample` in a tool
+result, not inside it: counts like "2 of his 81 matches were walkovers" were never accepted.*
 
 **Ground truth.** `evals/truth.py` computes every expected number in SQL over the `raw` tables
 only, and never imports the stats layer or the loader (spec, independence rule; D-012). It
