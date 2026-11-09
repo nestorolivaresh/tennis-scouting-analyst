@@ -26,3 +26,7 @@
   (D-017 to D-022). Tests use the scripted fake model in `api/tests/fake_model.py`; calls to
   the real model need `ANTHROPIC_API_KEY` in `.env`, which Nestor adds (D-020). Live calls
   cost money: run them only when a change needs one.
+- Evals live in `evals/` (D-023). `evals/truth.py` must never import `api` or `ingest` and
+  reads only `raw` tables; a test enforces both. Expected numbers are never typed into
+  `evals/cases.py`; the truth SQL computes them. A full live run costs about $0.80: rerun only
+  the failing questions with `--only`, and use `--rescore` (free) after changing the scorer.

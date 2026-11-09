@@ -1,0 +1,4 @@
+category,questions,passed,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,cost_usd,mean_latency_s,tokens
+single_stat,1,1/1,1/1,1/1,1/1,,,0.0157,3.9,13338
+head_to_head,5,5/5,5/5,5/5,5/5,,1/1,0.1113,4.7,78511
+all,6,6/6,6/6,6/6,6/6,,1/1,0.127,4.6,91849

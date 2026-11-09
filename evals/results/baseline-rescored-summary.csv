@@ -1,0 +1,7 @@
+category,questions,passed,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,cost_usd,mean_latency_s,tokens
+single_stat,10,9/10,10/10,10/10,9/10,,,0.1493,3.4,127832
+filtered_stat,10,10/10,10/10,10/10,10/10,,,0.151,3.7,128077
+head_to_head,8,6/8,8/8,8/8,6/8,,8/8,0.1854,5.4,122743
+comparison,6,6/6,6/6,6/6,6/6,,6/6,0.1188,5.0,85455
+refuse_or_caveat,6,6/6,,3/3,6/6,6/6,,0.0854,3.2,52857
+all,40,37/40,34/34,37/37,37/40,6/6,14/14,0.6898,4.1,516964

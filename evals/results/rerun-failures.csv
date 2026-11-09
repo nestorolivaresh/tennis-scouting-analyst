@@ -1,0 +1,36 @@
+label,id,category,passed,outcome,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,missing_numbers,missing_tools,invented_numbers,expected,tool_calls,model,effort,model_calls,tokens,cost_usd,latency_s,question,answer
+rerun-failures,S06,single_stat,True,completed,True,True,True,,,[],[],[],"[{""stat"": ""second_serve_points_won"", ""player"": 100644, ""opponent"": null, ""value"": 0.44244806288601907, ""matches"": 67}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Alexander Zverev""}, ""ok"": true}, {""tool"": ""serve_return_stats"", ""input"": {""player_id"": 100644, ""filters"": {""season"": 2019}}, ""ok"": true}]",claude-sonnet-5-5,low,3,13338,0.015686,3.9,How often did Alexander Zverev win points behind his second serve in 2019?,"In 2019, Alexander Zverev won 44.2% of his second-serve points (788 of 1,781). That covers 67 matches, all with stats. The figure leaves out two exhibition matches. One of the 67 matches ended with his opponent retiring or defaulting.
+
+For comparison, he won 74.9% of his first-serve points that year, so his second serve was much less reliable."
+rerun-failures,H03,head_to_head,True,completed,True,True,True,,,[],[],[],"[{""stat"": ""wins"", ""player"": 106421, ""opponent"": 100644, ""value"": 11, ""matches"": 19}, {""stat"": ""losses"", ""player"": 106421, ""opponent"": 100644, ""value"": 8, ""matches"": 19}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Daniil Medvedev""}, ""ok"": true}, {""tool"": ""resolve_player"", ""input"": {""name"": ""Alexander Zverev""}, ""ok"": true}, {""tool"": ""head_to_head"", ""input"": {""player_id"": 106421, ""opponent_id"": 100644, ""filters"": {""surface"": ""Hard"", ""date_from"": ""2015-01-01"", ""date_to"": ""2025-12-31""}}, ""ok"": true}]",claude-sonnet-5-5,low,3,16616,0.024018,4.5,What is the head-to-head between Daniil Medvedev and Alexander Zverev on hard courts from 2015 through 2025?,"On hard courts from 2015 through 2025, Daniil Medvedev leads Alexander Zverev 11–8. That is 19 matches, with no walkovers or retirements. It's a moderate sample, and the first meeting in the data was in 2016.
+
+The tool also lists each match's score and round. I haven't added anything up from that list myself."
+rerun-failures,H04,head_to_head,True,completed,True,True,True,,,[],[],[],"[{""stat"": ""wins"", ""player"": 206173, ""opponent"": 207989, ""value"": 6, ""matches"": 16}, {""stat"": ""losses"", ""player"": 206173, ""opponent"": 207989, ""value"": 10, ""matches"": 16}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Jannik Sinner""}, ""ok"": true}, {""tool"": ""resolve_player"", ""input"": {""name"": ""Carlos Alcaraz""}, ""ok"": true}, {""tool"": ""head_to_head"", ""input"": {""player_id"": 206173, ""opponent_id"": 207989, ""filters"": {""date_to"": ""2025-12-31""}}, ""ok"": true}]",claude-sonnet-5-5,low,3,16493,0.024603,5.3,What was the head-to-head between Jannik Sinner and Carlos Alcaraz up to the end of 2025?,"Through the end of 2025, Carlos Alcaraz led the head-to-head 10–6 over Jannik Sinner. This covers 16 tour-level matches from November 2021 to November 2025. That is a modest sample, and none were walkovers.
+
+By surface, from Sinner's side:
+- **Hard:** Sinner won 3 and lost 7 (10 matches).
+- **Clay:** Sinner won 1 and lost 3 (4 matches).
+- **Grass:** Sinner won both (2 matches).
+
+One of the 16 matches ended in a retirement. Sinner retired from the 2025 Cincinnati final while trailing 5–0.
+
+The most recent meeting in this window was the 2025 Tour Finals final. Sinner won it 7-6(4) 7-5."
+rerun-failures,H09,head_to_head,True,completed,True,True,True,,True,[],[],[],"[{""stat"": ""wins"", ""player"": 206173, ""opponent"": 207989, ""value"": 1, ""matches"": 4}, {""stat"": ""losses"", ""player"": 206173, ""opponent"": 207989, ""value"": 3, ""matches"": 4}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Jannik Sinner""}, ""ok"": true}, {""tool"": ""resolve_player"", ""input"": {""name"": ""Carlos Alcaraz""}, ""ok"": true}, {""tool"": ""head_to_head"", ""input"": {""player_id"": 206173, ""opponent_id"": 207989, ""filters"": {""surface"": ""Clay"", ""date_to"": ""2025-12-31""}}, ""ok"": true}]",claude-sonnet-5-5,low,3,14526,0.018928,4.2,"Through the end of 2025, who led the clay head-to-head between Jannik Sinner and Carlos Alcaraz?","Carlos Alcaraz led the clay head-to-head through the end of 2025. He had 3 wins to Jannik Sinner's 1 in 4 matches. That is a small sample.
+
+- **2025 Roland Garros final:** Alcaraz won.
+- **2025 Rome Masters final:** Alcaraz won.
+- **2024 Roland Garros semifinal:** Alcaraz won.
+- **2022 Umag final:** Sinner won."
+rerun-failures,H10,head_to_head,True,completed,True,True,True,,,[],[],[],"[{""stat"": ""wins"", ""player"": 206173, ""opponent"": 207989, ""value"": 2, ""matches"": 6}, {""stat"": ""losses"", ""player"": 206173, ""opponent"": 207989, ""value"": 4, ""matches"": 6}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Jannik Sinner""}, ""ok"": true}, {""tool"": ""resolve_player"", ""input"": {""name"": ""Carlos Alcaraz""}, ""ok"": true}, {""tool"": ""head_to_head"", ""input"": {""player_id"": 206173, ""opponent_id"": 207989, ""filters"": {""season"": 2025}}, ""ok"": true}]",claude-sonnet-5-5,low,3,15074,0.021562,5.4,What was the head-to-head between Jannik Sinner and Carlos Alcaraz in 2025?,"In 2025, Alcaraz led the head-to-head 4–2 over Sinner. This is six matches, so it's a small sample. All six were finals.
+
+- **Rome Masters (clay):** Alcaraz won, 7-6(5) 6-1.
+- **Roland Garros (clay):** Alcaraz won, 4-6 6-7(4) 6-4 7-6(3) 7-6(2).
+- **Wimbledon (grass):** Sinner won, 4-6 6-4 6-4 6-4.
+- **Cincinnati Masters (hard):** Alcaraz won when Sinner retired at 5-0. That match didn't finish.
+- **US Open (hard):** Alcaraz won, 6-2 3-6 6-1 6-4.
+- **Tour Finals (hard):** Sinner won, 7-6(4) 7-5.
+
+By surface, Sinner went 0–2 on clay, 1–0 on grass and 1–2 on hard. Each surface sample is very small."
+rerun-failures,H11,head_to_head,True,completed,True,True,True,,,[],[],[],"[{""stat"": ""wins"", ""player"": 106421, ""opponent"": 100644, ""value"": 10, ""matches"": 13}, {""stat"": ""losses"", ""player"": 106421, ""opponent"": 100644, ""value"": 3, ""matches"": 13}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Daniil Medvedev""}, ""ok"": true}, {""tool"": ""resolve_player"", ""input"": {""name"": ""Alexander Zverev""}, ""ok"": true}, {""tool"": ""head_to_head"", ""input"": {""player_id"": 106421, ""opponent_id"": 100644, ""filters"": {""surface"": ""Hard"", ""date_from"": ""2019-01-01"", ""date_to"": ""2024-12-31""}}, ""ok"": true}]",claude-sonnet-5-5,low,3,15802,0.022208,4.3,What was the head-to-head between Daniil Medvedev and Alexander Zverev on hard courts from 2019 through 2024?,"On hard courts from 2019 through 2024, Medvedev leads the head-to-head with Zverev 10–3. That is 13 matches, which is a small sample. No walkovers or retirements were excluded.
+
+Zverev's three wins came at the 2019 Tour Finals, the 2023 Cincinnati Masters and the 2021 Tour Finals final. Medvedev won the most recent meeting, the 2024 Australian Open semifinal, in five sets."

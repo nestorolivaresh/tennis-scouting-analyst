@@ -69,6 +69,37 @@ below was broken on purpose in a copy of `api/`, and the test suite was run agai
 | Session not read-only; no statement timeout | `test_connection_is_read_only_outside_tool_transactions` |
 | `match_date` dropped from the match order | **Not caught.** In the pinned TML file, match numbers already follow match dates in every round robin, so the order is the same either way (D-014). |
 
+## Can the eval checks fail?
+
+The same test for the evals (D-023), on 2026-11-09: each rule below was broken in
+`evals/truth.py`, `evals/score.py` or `evals/run.py`, and `pytest evals` was run.
+
+| Bug put back | Caught by |
+| --- | --- |
+| Exhibitions counted | `test_records_match_named_sources` (Zverev 2024, hand 8) |
+| Retirements not counted | `test_records_match_named_sources` and others |
+| Unknown results counted | `test_rules_agree_with_the_loader_on_every_match` |
+| Serve points not checked against service games | `test_rules_agree_with_the_loader_on_every_match` |
+| Opponents of unknown hand counted | `test_records_match_named_sources` (Djokovic 2024, hand 20) |
+| Special-event levels ignored | `test_rules_agree_with_the_loader_on_every_match` |
+| Merged player IDs ignored | `test_rules_agree_with_the_loader_on_every_match`. **Not caught at first**: the comparison didn't include the players until this was found. |
+| Return points won not inverted | `test_serve_and_pressure_stats_match_named_sources` (TA) |
+| Matches with no surface counted under a surface filter | `test_rules_the_cases_never_exercise` (hand 15). Not caught before the review. |
+| Aces per match divided by all matches | `test_rules_the_cases_never_exercise` (hand 13). Not caught before the review. |
+| Win rate divided by matches with stats | `test_rules_the_cases_never_exercise` (hand 13). Not caught before the review. |
+| Each match's rows duplicated | `test_rules_agree_with_the_loader_on_every_match` |
+| A comma join to a core table in the truth SQL | `test_truth_is_independent_of_the_stats_layer_and_loader` |
+| Rate tolerance of 1 point instead of 0.5 | `test_expected_numbers` |
+| Years read as statistics | `test_numbers_in_skips_years_dates_and_ordinals` |
+| Any number accepted as supported | `test_invented_numbers` |
+| Records ("3-3") never checked as pairs | `test_pairs_must_appear_as_pairs` |
+| Counts ("10 of 14") never checked as pairs | `test_pairs_must_appear_as_pairs` |
+| Claims in words left out of the pass rule | `test_who_leads`, `test_who_is_better`. **Not caught at first**: those tests checked the claim result but not the pass; fixed. |
+
+The review's examples of wrong answers that passed, and right answers that failed, are tests
+too (`test_review_*`, `test_who_leads`, `test_who_is_better`, `test_refusals_from_review`); the
+reviewer showed each one scoring wrongly before the fix.
+
 ## Disagreements with Tennis Abstract
 
 The pinned data is the source of truth for the tests (D-015). Tennis Abstract keeps updating,

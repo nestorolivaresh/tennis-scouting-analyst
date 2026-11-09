@@ -340,6 +340,9 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
+- Evals: H04 varies between runs (D-023). Options: return each head-to-head score from the
+  asked player's side as well as the winner's, so the model never rewrites one; run each
+  question several times and report a pass rate. Decide before Milestone 7's case study.
 - Milestone 3: give the API a SELECT-only database role. The stats connection is read-only
   by setting, but the local role is a superuser that could switch that off (D-014).
 
@@ -663,3 +666,111 @@ kind of error the evals' narrative score exists for.
 up to 100,000 tokens (pricing page, 2026-11-08), 20 times cheaper than Sonnet 5.5. Its
 quality on these reports is unknown; the evals can compare it. Its price depends on prompt
 length, so it isn't in the cost table yet, and its cost logs as `null` until it is.
+
+## D-023 Evals: ground truth, questions and scoring
+
+*2026-11-09, Milestone 4. Revised the same day after an independent review (below).*
+
+**Ground truth.** `evals/truth.py` computes every expected number in SQL over the `raw` tables
+only, and never imports the stats layer or the loader (spec, independence rule; D-012). It
+writes the rules of D-006 to D-010 again from this log: result types from the score, the
+stats sanity rules, exhibitions and levels from `raw.special_events`, merges from
+`raw.player_merges`, a year as a season. It covers the Sackmann seasons 2015-2025 only, so no
+answer changes when TML refreshes 2026 (D-002). Checks, in `evals/tests/test_truth.py`:
+- it reproduces values from named sources: Tennis Abstract and hand checks 1-4, 8, 10-15
+  and 20 (records, serve and pressure stats, levels, inclusive dates, exhibitions, unknown
+  results, no-surface matches);
+- it agrees with the loader on all 30,616 Sackmann matches: result type, level, exhibition,
+  stats kept, surface, winner and loser, with no duplicated rows. Two separate
+  implementations of the same rules;
+- it gives the same number as the stats tools for every expected value in the questions;
+- its SQL reads only `raw` tables (checked for joins and comma joins) and it imports
+  nothing from `api` or `ingest`.
+Breaking each of 19 rules on purpose made a test fail (`docs/stat-checks.md`).
+
+**Shared, so not independent.** Player identity (the reviewed merge files) and the CSV
+parsing that fills `raw` are shared with the loader. A CSV parsing bug would reach both the
+truth and the stats layer; only the `awk` hand checks, which read the files directly, would
+catch it.
+
+**Questions.** 43, in `evals/cases.py`: the spec's 40 in its five categories (10 single stat,
+10 filtered stat, 8 head-to-head, 6 comparison, 6 refuse or caveat), plus 3 head-to-head
+questions added from bugs found by hand (spec: add every bug found by hand as a new case).
+Each names its years. Each is asked on its own through the chat path (`chat_system_prompt`,
+`run_loop`), as the first question of a conversation.
+
+**Scoring** (`evals/score.py`, `evals/run.py`) is deterministic and free: no model grades.
+- **Numbers:** each expected number must appear in the answer: counts exactly (zero may be
+  written as "none" or "won all"), rates within 0.5 percentage points (spec), averages such as
+  aces per match within 0.05.
+- **Tool choice:** the expected tool was called, without an error, for the right players,
+  with the filters the question states; dates may differ by up to 7 days (a season's first
+  event can start in late December). Filters the question doesn't state may be absent.
+- **Invented numbers:** every number must match a number in that run's tool results or the
+  question, at the precision it's written with (a fraction may be written as a percentage).
+  Records ("11-8") must be a wins-losses pair from a result, or part of a real match score;
+  counts ("905 of 1,774", "10 out of 14") must be a part-of-whole pair from a result. Years,
+  dates and ordinals that name a serve, set or round are skipped.
+- **Claims in words**, built from the ground truth: a head-to-head answer must not name the
+  wrong leader ("in Sinner's favour", "Alcaraz trails") or call an uneven record split
+  evenly; H09, which asks who led, must name the leader; a comparison answer must name the
+  better player in its first sentence.
+- **Refusal:** the answer matches the case's patterns, states no probability after
+  declining to predict, and doesn't call a tool it shouldn't (stats for a player the user
+  didn't pick, or for someone else instead).
+- A question passes only if every check that applies passes and the run completed.
+
+**Runner.** Each answer is written to the CSV as soon as it's scored. `--max-cost` fails
+closed: a live run won't start for a model with no price, and a call cut off before its
+usage arrived counts at its maximum cost. `--rescore` scores past answers again (free): calls
+that succeeded are rerun on the same pinned data, calls that failed stay failed, and it
+refuses a results file from a different data snapshot (`data_lock` column).
+
+**Limits, so no score overclaims.**
+- Regular expressions over prose: an unusual phrasing can pass a wrong claim or fail a
+  right one. The reviewer's examples are tests; others will exist.
+- The invented-number check is lenient for whole numbers: with 30 to 40 numbers in a run's
+  tool results, a made-up integer often matches one by chance (37 of 101 in the review).
+- Claims in words other than who leads, who is better and "split evenly" are not scored.
+  Every answer is in the results CSV for reading.
+- The prompt fixes were made after reading failures on these same questions, and one run per
+  question can't show how often an answer varies. The first improved run passed H04 once
+  and failed it in the next run (below).
+
+**Process and results** (spec: baseline, group failures by cause, fix the top three, rerun).
+See the results table below.
+
+| Run (`evals/results/`) | Questions | Scored with | Passed | Cost | Mean time |
+| --- | --- | --- | --- | --- | --- |
+| `baseline` | 40 | the first scorer | 39/40 | $0.690 | 4.1 s |
+| `baseline-rescored` | 40 | the final scorer | 37/40 | (same answers) | |
+| `rerun-failures` | 6: the 3 failures and 3 new cases | the first scorer plus pairs | 6/6 | $0.127 | 4.6 s |
+| `final` | 43 | the first scorer plus pairs | 43/43 | $0.765 | 4.0 s |
+| `final-rescored` | 43 | the final scorer | 42/43 | (same answers) | |
+| `final-v2` | 43 | the final scorer | 42/43 | $0.779 | 3.9 s |
+
+On the spec's original 40 questions, scored the same way: baseline 37/40, `final-v2` 39/40.
+`final-v2` by category: single stat 10/10, filtered stat 10/10, head-to-head 10/11,
+comparison 6/6, refuse or caveat 6/6. The milestone spent about $2.43 on model calls,
+including one live report to check the prompt change ($0.069, verified, the same 9 tool
+calls as before).
+
+**Failures grouped by cause** (baseline, read by hand as well as scored):
+1. A number from general knowledge (S06: "a second-serve win rate under 50% is common").
+2. A tally made up from a list of matches (H03: "Medvedev won 10 of 14" from 2019 to 2024,
+   really 10 of 13; H04: "their last six finals split 3-3", really 4-2 to Alcaraz). The
+   same kind of error as the Milestone 3 report's "2-3 clay record in Sinner's favour".
+3. The scorer let both of those through, because each number appears somewhere in the
+   results. The baseline scored 39/40 when 37/40 was true.
+
+**Fixes:** the system prompt names these mistakes as things not to do, with the baseline's
+examples (from general knowledge, from a list, in words); the scorer checks records and
+counts as pairs and checks who leads; H09 to H11 turn the three hand-found bugs into
+questions.
+
+**What is still wrong.** H04 (the full Sinner-Alcaraz head-to-head, with a long list of
+matches) came out differently in each of three runs: correct in `rerun-failures`, "the split
+was even" in `final`, and in `final-v2` a Roland Garros final score restated "in Sinner's
+scoring order" with two sets wrong. The tool gives each score from the winner's side, and
+the model rewrites it. The prompt rule against tallies helped H03 and the new questions,
+but one run per question can't show how often an answer goes wrong.

@@ -30,7 +30,13 @@ CHAT_RULES = """
 You are answering follow-up questions in a chat. Answer briefly, in plain sentences. When the
 user names a player, call resolve_player first; if it doesn't return status "resolved", ask
 which player they mean and stop. Recompute every number you use with a tool in this turn, even
-one that appeared earlier in the conversation."""
+one that appeared earlier in the conversation. If the user asks about part of a period, such
+as one year of a head-to-head, call the tool again with those dates and quote its record."""
+
+
+def chat_system_prompt(conn: psycopg.Connection) -> str:
+    """The system prompt for chat, shared with the eval runner so the evals test this path."""
+    return system_prompt(stats.data_window(conn)) + CHAT_RULES
 
 
 def validate_history(messages: Any) -> list[dict[str, str]]:
@@ -84,8 +90,7 @@ def chat_events(
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
     try:
-        system = system_prompt(stats.data_window(conn)) + CHAT_RULES
-        for event, data in run_loop(client, conn, settings, run, system, limits, clock=clock):
+        for event, data in run_loop(client, conn, settings, run, chat_system_prompt(conn), limits, clock=clock):
             yield sse(event, data)
     except anthropic.APIError as e:
         kind, message = api_error(e)

@@ -4,7 +4,7 @@ An AI scouting analyst over public ATP match data. A coach picks a player, an op
 surface, and gets a scouting report where every number comes from tested code, not from the
 model's memory. Evals with independent ground truth check that the answers are correct.
 
-**Status:** Milestone 3 (agent and API). See [SPEC.md](SPEC.md) for the plan,
+**Status:** Milestone 4 (evals). See [SPEC.md](SPEC.md) for the plan,
 [docs/data-audit.md](docs/data-audit.md) for what the raw data contains,
 [docs/quality-report.md](docs/quality-report.md) for what was loaded,
 [docs/stat-checks.md](docs/stat-checks.md) for where every test number comes from, and
@@ -50,6 +50,25 @@ curl -sN localhost:8000/chat -H 'content-type: application/json' \
 ```
 
 `GET /health` checks the app and the database without calling the model.
+
+## Evals
+
+`evals/` asks the agent 43 questions (the spec's 40 in five categories, plus one for each bug
+found by hand) and scores the answers against ground truth computed by separate SQL over the
+raw source files, never by the stats layer. Scoring needs no model: each expected number must
+appear in the answer (counts exactly, rates within 0.5 percentage points), the right tool
+must be called with the question's filters, numbers, records ("11-8") and counts ("905 of
+1,774") must match the run's tool results, and head-to-head and comparison answers must not
+name the wrong leader. The checks read prose with regular expressions, so they catch the
+errors seen so far but not every possible one; every answer is in `evals/results/` for
+reading. The design, results and limits are in [D-023](docs/decisions.md).
+
+```bash
+uv run --env-file .env python -m evals.run --dry-run                 # ground truth only, free
+uv run --env-file .env python -m evals.run --label myrun             # all questions, about $0.80
+uv run --env-file .env python -m evals.run --label myrun --only S01,H04
+uv run --env-file .env python -m evals.run --rescore baseline        # rescore old answers, free
+```
 
 ## Run it locally
 
