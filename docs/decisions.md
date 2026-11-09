@@ -543,6 +543,7 @@ the Milestone 4 evals (spec).
 | `GET /health` | none | 200 `{status, database, llm_configured, data_window}` | 503 when the database is down |
 | `GET /players/search?q=` | a name or part of one | 200 `{query, candidates, more_candidates}`, best first, at most 10 | 422 for text with no letters or over 100 characters |
 | `POST /report` | `{player_id, opponent_id, surface}` | 200 with status `verified` or `unverified` | 422 bad input, 404 unknown player, 502 `incomplete` (a limit or a decline), 503 model not configured or rate limited |
+| `POST /report/stream` | the same as `/report` | 200, server-sent events ending with the same body `/report` returns | the same 4xx as `/report`, before the stream opens; errors after that arrive as an `error` event |
 | `POST /chat` | `{messages: [{role, content}, ...]}` | 200, server-sent events | 422 bad history (before the stream opens); errors after that arrive as an `error` event |
 
 - **A report response** carries the report, the grounding result (`passed`, `attempts`,
@@ -553,6 +554,14 @@ the Milestone 4 evals (spec).
   the same tool calls, which makes reports comparable and the evals repeatable.
 - **Reports take player IDs**, from `/players/search`, so a report never has to resolve a
   name. Chat resolves names with `resolve_player` and asks when a name is ambiguous.
+- **Report stream events** (added in Milestone 5, D-024): `start` (request ID and the checked
+  request), `model_call` (before each model call, with the tool calls so far), `tool_call` and
+  `tool_result`, `checking` (before each grounding check, with the number of key stats),
+  `correcting` (before the retry, with the number of errors), then `report` (the full body) or
+  `error`. The report's text is never sent before it has been checked. `POST /report` runs the
+  same code and returns only the last event.
+- **Streams are marked `Cache-Control: no-cache, no-transform` and `X-Accel-Buffering: no`**,
+  so a proxy doesn't compress or hold them (D-024).
 - **Chat events:** `start` (request ID), `tool_call` and `tool_result` (with the call's short
   `id`, as in reports), `text` (deltas), then `done` (outcome, usage, cost) or `error`. Log
   lines carry both the short `tool_call_id` and the API's `tool_use_id`.
@@ -776,3 +785,67 @@ was even" in `final`, and in `final-v2` a Roland Garros final score restated "in
 scoring order" with two sets wrong. The tool gives each score from the winner's side, and
 the model rewrites it. The prompt rule against tallies helped H03 and the new questions,
 but one run per question can't show how often an answer goes wrong.
+
+## D-024 Frontend
+
+*2026-11-09, Milestone 5.*
+
+**Stack.** `web/` is a Next.js app with TypeScript and Recharts (spec), pinned to exact
+versions: Next 16.4.5, React 19.3.1, Recharts 3.10.1, and TypeScript 5.9.3 (not the new 7.0,
+to avoid compatibility risk with Next). No other runtime dependency: plain CSS, no component
+library. The two typefaces (Archivo, Newsreader) come through `next/font`, which downloads them
+at build time and serves them from the app.
+
+**The key stays on the server.** The browser only talks to the Next.js server, which forwards
+`/api/*` to FastAPI (`next.config.ts` rewrites; `API_URL`, default `http://127.0.0.1:8000`, is
+an address, not a secret). The Anthropic key never leaves FastAPI.
+
+**Every number on screen comes from the run's tool results** (spec core rule). The key
+numbers are the ones the grounding check matched (D-018); both charts are built from the
+report's evidence in `web/lib/evidence.ts`, not from the model's text. When the evidence a
+chart needs is missing, the chart leaves a gap and says what's missing; it never shows 0.
+Opening a key number shows its tool call, filters, sample, exclusions, and the exact field
+with its counts (for example `stats.break_points_saved.value = 0.6568 (111 of 169)`).
+
+**Report prompt change for the surface chart.** The report used to call `surface_splits`
+filtered to the report's surface, so the chart had only one surface. It now calls it for every
+surface (same dates); the serve and break-point calls keep the surface filter. Each report still
+makes the same 9 tool calls (D-019). A live report through the app after the change: verified
+on the first attempt, 8 key numbers, 9 tool calls, 17.8 seconds, about $0.069.
+
+**Chat.** The open report goes first in the history as context (a user request and the
+report's text), then the last complete question-and-answer pairs, trimmed to the API's limits
+(D-019). The stream is read with `fetch` (EventSource can't POST) and parsed in
+`web/lib/sse.ts`. Answers render `**bold**` and `- ` bullets as React elements, never as HTML.
+
+**Design.** A scouting card: cool chalk background, green-black ink, the player in navy and the
+opponent in clay red, so colour always means the same person. Match setup reads as a sentence,
+"Scout [opponent] for [player] on [surface]". One accent, optic yellow, marks the key number
+whose evidence is open.
+
+**Checks.** `npm --prefix web test` runs 9 tests with Node's own test runner (Node strips the
+TypeScript types; no test library) on a real `/report` response: every key stat resolves to its
+tool result, rates show their counts, missing or failed evidence is reported, and the stream
+parser handles events split across chunks. `next build` type-checks. The full flow was checked
+by hand in a browser on 2026-11-09: player search and selection, a live report, the charts,
+the evidence view, a streamed chat answer with its tool lookups, a 375-pixel-wide phone
+layout with no sideways scrolling, and labelled inputs.
+
+**Live progress for the report.** A report takes 15 to 40 seconds. The web app uses
+`POST /report/stream` (D-019) and lists each step as it happens: choosing what to look up,
+each lookup, writing, checking the key numbers, and the correction if a check fails. The
+report itself appears only after its check. `POST /report` is unchanged, for curl and the evals.
+
+**Streams were being held by the proxy (found while building this).** When the browser accepts
+gzip, the Next.js proxy compressed the server-sent events and sent them all at the end: a chat
+answer arrived as 10 bytes at 0.07 s and the rest at 3.8 s. So the chat panel hadn't been
+streaming in the browser either; the earlier check only looked at the finished answer. The API
+now marks its streams `no-transform` (the standard way to tell a proxy not to change a
+response) and `X-Accel-Buffering: no`; through the proxy, with gzip accepted, the same answer
+then arrived in 35 pieces over 4 seconds. An API test checks the headers on both streams.
+Checked in the browser: the report's steps appeared as they happened (the first at 2 seconds,
+nine lookups by 7 seconds), then the verified report (Medvedev for Zverev on hard, 9 tool
+calls, 18.1 seconds, about $0.028 with the prompt cache warm).
+
+**Not done.** No automated browser test (Playwright would be a new dependency; ask first). No
+dark mode.

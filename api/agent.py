@@ -278,11 +278,14 @@ def run_loop(
     limits: Limits = Limits(),
     output_format: dict[str, Any] | None = None,
     clock: Callable[[], float] = time.monotonic,
+    announce_model_calls: bool = False,
 ) -> Iterator[tuple[str, dict[str, Any]]]:
     """Drive the conversation in `run` until the model answers or a limit is hit.
 
     Yields events as they happen, for /chat to stream: ("text", {"delta"}),
-    ("tool_call", {...}) and ("tool_result", {...}). Sets run.outcome and run.final_text.
+    ("tool_call", {...}) and ("tool_result", {...}); with `announce_model_calls`, also
+    ("model_call", {"call", "tool_calls_so_far"}) before each model call, for the report's
+    progress. Sets run.outcome and run.final_text.
     """
     deadline = run.started + limits.time_limit_s
     output_config: dict[str, Any] = {"effort": settings.effort}
@@ -297,6 +300,8 @@ def run_loop(
         if remaining <= 0:
             run.outcome = "time_limit"
             return
+        if announce_model_calls:
+            yield "model_call", {"call": run.model_calls + 1, "tool_calls_so_far": len(run.tool_calls)}
 
         call_started = clock()
         response = None

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import json
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import anthropic
@@ -58,7 +59,9 @@ def report_prompt(player: dict, opponent: dict, surface: str, date_from: str, da
 preparing to play {o["name"]} (player_id {o["player_id"]}) on {surface}.
 
 Gather, for both players (call tools for both in parallel where you can):
-- surface_splits, serve_return_stats and pressure_stats with filters
+- surface_splits with filters {{"date_from": "{date_from}", "date_to": "{date_to}"}} (every
+  surface, for the report's surface chart).
+- serve_return_stats and pressure_stats with filters
   {{"surface": "{surface}", "date_from": "{date_from}", "date_to": "{date_to}"}}. If a player has
   fewer than {SMALL_SAMPLE} matches with stats there, also get serve_return_stats without the
   surface filter (same dates), and say in data_caveats which one you used.
@@ -91,20 +94,26 @@ def two_years_before(day: dt.date) -> dt.date:
         return day.replace(year=day.year - WINDOW_YEARS, day=28)
 
 
-def build_report(
-    client: anthropic.Anthropic,
-    conn: psycopg.Connection,
-    settings: Settings,
-    player_id: Any,
-    opponent_id: Any,
-    surface: Any,
-    request_id: str | None = None,
-    limits: Limits = Limits(),
-    clock: Callable[[], float] = time.monotonic,
-) -> dict[str, Any]:
-    """Run the agent for a report and check it. Bad input raises ToolInputError, an unknown
-    player raises PlayerNotFound, and Anthropic API errors propagate; everything else comes
-    back in the result, with status "verified", "unverified" or "incomplete"."""
+@dataclasses.dataclass(frozen=True)
+class CheckedRequest:
+    """A checked request: both players exist, and the window is the two years up to the newest
+    tournament in the data."""
+
+    player: dict[str, Any]
+    opponent: dict[str, Any]
+    surface: str
+    window: dict[str, Any]
+    date_from: str
+    date_to: str
+
+    def public(self) -> dict[str, Any]:
+        return {"player": self.player["player"], "opponent": self.opponent["player"], "surface": self.surface,
+                "date_from": self.date_from, "date_to": self.date_to}  # fmt: skip
+
+
+def prepare_report(conn: psycopg.Connection, player_id: Any, opponent_id: Any, surface: Any) -> CheckedRequest:
+    """Check the request before any model call. Bad input raises ToolInputError; an unknown
+    player raises PlayerNotFound."""
     pid, oid = stats.parse_player_id(player_id), stats.parse_player_id(opponent_id, "opponent_id")
     if pid == oid:
         raise stats.ToolInputError("player_id and opponent_id must be different players")
@@ -118,22 +127,42 @@ def build_report(
         raise stats.PlayerNotFound(f"no player with opponent_id {oid}") from None
     window = stats.data_window(conn)
     date_to = dt.date.fromisoformat(window["last_tourney_date"])
-    date_from = two_years_before(date_to).isoformat()
+    return CheckedRequest(player, opponent, surface, window, two_years_before(date_to).isoformat(), date_to.isoformat())
 
-    prompt = report_prompt(player, opponent, surface, date_from, date_to.isoformat())
-    run = Run(model=settings.model, messages=[{"role": "user", "content": prompt}], started=clock())
+
+def report_events(
+    client: anthropic.Anthropic,
+    conn: psycopg.Connection,
+    settings: Settings,
+    req: CheckedRequest,
+    request_id: str | None = None,
+    limits: Limits = Limits(),
+    clock: Callable[[], float] = time.monotonic,
+    endpoint: str = "/report",
+) -> Iterator[tuple[str, dict[str, Any]]]:
+    """The report as it happens: ("start", request), then ("model_call", ...), ("tool_call",
+    ...) and ("tool_result", ...) from the agent loop, ("checking", {"key_stats"}) before each
+    grounding check, ("correcting", {"errors"}) before the one retry, and last ("report",
+    result), the same body POST /report returns. Anthropic API errors propagate. The report's
+    text is never sent before it has been checked."""
+    run = Run(model=settings.model, messages=[{"role": "user", "content": report_prompt(
+        req.player, req.opponent, req.surface, req.date_from, req.date_to)}], started=clock())  # fmt: skip
     if request_id:
         run.request_id = request_id
     log_event(
-        "report_start", request_id=run.request_id, player_id=player["player"]["player_id"],
-        opponent_id=opponent["player"]["player_id"], surface=surface,
+        "report_start", request_id=run.request_id, player_id=req.player["player"]["player_id"],
+        opponent_id=req.opponent["player"]["player_id"], surface=req.surface, endpoint=endpoint,
     )  # fmt: skip
+    yield "start", {"request_id": run.request_id, "request": req.public()}
 
     report, errors, attempts = None, [], 0
     while attempts < MAX_ATTEMPTS:
         attempts += 1
-        for _ in run_loop(client, conn, settings, run, system_prompt(window), limits, OUTPUT_FORMAT, clock):
-            pass
+        loop = run_loop(client, conn, settings, run, system_prompt(req.window), limits, OUTPUT_FORMAT, clock,
+                        announce_model_calls=True)  # fmt: skip
+        for event, data in loop:
+            if event != "text":  # with structured output the text is the report itself: held back
+                yield event, data
         if run.outcome != "completed":
             break
         try:
@@ -141,10 +170,13 @@ def build_report(
         except json.JSONDecodeError:
             report, errors = None, ["the report is not valid JSON"]
         else:
+            stated = report.get("key_stats") if isinstance(report, dict) else None
+            yield "checking", {"attempt": attempts, "key_stats": len(stated) if isinstance(stated, list) else 0}
             errors = check_report(report, run.tool_calls)
         log_event("grounding", request_id=run.request_id, attempt=attempts, passed=not errors, errors=errors)
         if not errors or attempts == MAX_ATTEMPTS:
             break
+        yield "correcting", {"errors": len(errors)}
         run.messages.append(
             {
                 "role": "user",
@@ -165,13 +197,64 @@ def build_report(
         "message": OUTCOME_MESSAGES.get(run.outcome) if status == "incomplete" else None,
         "report": report if status != "incomplete" else None,
         "grounding": {"passed": status == "verified", "attempts": attempts, "errors": errors},
-        "request": {"player": player["player"], "opponent": opponent["player"], "surface": surface,
-                    "date_from": date_from, "date_to": date_to.isoformat()},
+        "request": req.public(),
         "evidence": [call.evidence() for call in run.tool_calls.values()],
         "usage": run.summary(),
-    }  # fmt: skip
+    }
     log_event(
         "request_end", logging.INFO if status == "verified" else logging.WARNING,
-        request_id=run.request_id, endpoint="/report", status=status, **run.summary(),
+        request_id=run.request_id, endpoint=endpoint, status=status, **run.summary(),
     )  # fmt: skip
+    yield "report", result
+
+
+def build_report(
+    client: anthropic.Anthropic,
+    conn: psycopg.Connection,
+    settings: Settings,
+    player_id: Any,
+    opponent_id: Any,
+    surface: Any,
+    request_id: str | None = None,
+    limits: Limits = Limits(),
+    clock: Callable[[], float] = time.monotonic,
+) -> dict[str, Any]:
+    """POST /report: the same report, returned once it's done. Bad input raises
+    ToolInputError, an unknown player raises PlayerNotFound, and Anthropic API errors
+    propagate; everything else comes back in the result, with status "verified",
+    "unverified" or "incomplete"."""
+    req = prepare_report(conn, player_id, opponent_id, surface)
+    result: dict[str, Any] = {}
+    for event, data in report_events(client, conn, settings, req, request_id, limits, clock):
+        if event == "report":
+            result = data
     return result
+
+
+def report_stream(
+    client: anthropic.Anthropic,
+    connect: Callable[[], psycopg.Connection],
+    settings: Settings,
+    req: CheckedRequest,
+    request_id: str | None = None,
+) -> Iterator[str]:
+    """POST /report/stream: report_events as server-sent events. The request was checked
+    before the stream opened; failures after that arrive as an `error` event. The connection
+    opens and closes inside the stream, because the response outlives the request handler."""
+    from api.chat import api_error, sse  # chat owns the event format and the API error messages
+
+    try:
+        conn = connect()
+    except psycopg.OperationalError:
+        log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream", status="database_unavailable")
+        yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
+        return
+    try:
+        for event, data in report_events(client, conn, settings, req, request_id, endpoint="/report/stream"):
+            yield sse(event, data)
+    except anthropic.APIError as e:
+        kind, message = api_error(e)
+        log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream", status=kind)
+        yield sse("error", {"kind": kind, "message": message})
+    finally:
+        conn.close()

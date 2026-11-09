@@ -15,6 +15,10 @@ __pycache__/
 # Node
 node_modules/
 .next/
+next-env.d.ts
+*.tsbuildinfo
+# Written by `next dev` for coding agents; the repo's agent rules are in CLAUDE.md
+web/AGENTS.md
 
 # OS
 .DS_Store

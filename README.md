@@ -4,7 +4,7 @@ An AI scouting analyst over public ATP match data. A coach picks a player, an op
 surface, and gets a scouting report where every number comes from tested code, not from the
 model's memory. Evals with independent ground truth check that the answers are correct.
 
-**Status:** Milestone 4 (evals). See [SPEC.md](SPEC.md) for the plan,
+**Status:** Milestone 5 (web app). See [SPEC.md](SPEC.md) for the plan,
 [docs/data-audit.md](docs/data-audit.md) for what the raw data contains,
 [docs/quality-report.md](docs/quality-report.md) for what was loaded,
 [docs/stat-checks.md](docs/stat-checks.md) for where every test number comes from, and
@@ -45,6 +45,8 @@ uv run --env-file .env uvicorn api.app:app --port 8000   # needs ANTHROPIC_API_K
 curl -s 'localhost:8000/players/search?q=sinner'
 curl -s localhost:8000/report -H 'content-type: application/json' \
   -d '{"player_id": 206173, "opponent_id": 207989, "surface": "Clay"}'
+curl -sN localhost:8000/report/stream -H 'content-type: application/json' \
+  -d '{"player_id": 206173, "opponent_id": 207989, "surface": "Clay"}'    # the same, with progress
 curl -sN localhost:8000/chat -H 'content-type: application/json' \
   -d '{"messages": [{"role": "user", "content": "How has Alcaraz served on clay in 2025?"}]}'
 ```
@@ -68,6 +70,21 @@ uv run --env-file .env python -m evals.run --dry-run                 # ground tr
 uv run --env-file .env python -m evals.run --label myrun             # all questions, about $0.80
 uv run --env-file .env python -m evals.run --label myrun --only S01,H04
 uv run --env-file .env python -m evals.run --rescore baseline        # rescore old answers, free
+```
+
+## Web app
+
+`web/` is the coach's screen (Next.js, TypeScript, Recharts): pick the opponent, your player
+and a surface, watch each lookup as the report is written, read the report, open any key number to see the tool call, filters and sample
+behind it, and ask follow-up questions in a streaming chat. It talks to the API through its
+own server, so the Anthropic key never reaches the browser. Design and checks:
+[D-024](docs/decisions.md).
+
+```bash
+uv run --env-file .env uvicorn api.app:app --port 8000   # the API, in one terminal
+npm --prefix web install
+npm --prefix web run dev                                  # then open http://localhost:3000
+npm --prefix web test                                     # logic tests, no server needed
 ```
 
 ## Run it locally

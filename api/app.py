@@ -26,7 +26,7 @@ from api.db import connect
 from api.logs import configure, log_event
 
 configure()
-app = FastAPI(title="Tennis Scouting Analyst", version="0.3.0")
+app = FastAPI(title="Tennis Scouting Analyst", version="0.5.0")
 SETTINGS = Settings.from_env()
 
 
@@ -120,6 +120,12 @@ async def request_log(request: Request, call_next):
 
 # ---------- endpoints ----------
 
+# Server-sent events must reach the browser as they happen. A proxy that compresses or buffers
+# the response holds every event until the end: the Next.js dev proxy gzipped the stream and
+# sent it all at once (found in Milestone 5). `no-transform` tells proxies not to compress or
+# change it; `X-Accel-Buffering: no` turns off nginx-style buffering.
+STREAM_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
+
 
 @app.get("/health")
 def health(request: Request, settings: Settings = Depends(get_settings), connect_db=Depends(get_connect)) -> JSONResponse:
@@ -164,6 +170,25 @@ def post_report(
     return JSONResponse(result, status_code=200 if result["status"] != "incomplete" else 502)
 
 
+@app.post("/report/stream")
+def post_report_stream(
+    body: ReportRequest,
+    request: Request,
+    settings: Settings = Depends(get_settings),
+    client: anthropic.Anthropic = Depends(get_client),
+    connect_db=Depends(get_connect),
+) -> StreamingResponse:
+    """The same report, with progress as server-sent events (D-019). Bad input gets its 4xx
+    before the stream opens."""
+    conn = connect_db()
+    try:
+        req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface)
+    finally:
+        conn.close()
+    events = report.report_stream(client, connect_db, settings, req, request_id=request.state.request_id)
+    return StreamingResponse(events, media_type="text/event-stream", headers=STREAM_HEADERS)
+
+
 class ChatMessage(BaseModel):
     role: str
     content: str
@@ -183,4 +208,4 @@ def post_chat(
 ) -> StreamingResponse:
     history = chat.validate_history([m.model_dump() for m in body.messages])  # before the stream opens
     events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id)
-    return StreamingResponse(events, media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+    return StreamingResponse(events, media_type="text/event-stream", headers=STREAM_HEADERS)

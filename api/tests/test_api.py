@@ -177,6 +177,7 @@ def test_chat_streams_tool_calls_and_text(http, use_model):
     )
     response = http.post("/chat", json={"messages": [{"role": "user", "content": "Who is Sinner?"}]})
     assert response.status_code == 200 and response.headers["content-type"].startswith("text/event-stream")
+    assert "no-transform" in response.headers["cache-control"] and response.headers["x-accel-buffering"] == "no"
     sequence = events(response)
     assert [name for name, _ in sequence] == ["start", "tool_call", "tool_result", "text", "text", "done"]
     assert sequence[1][1] == {"id": "c1", "tool": "resolve_player", "input": {"name": "Sinner"}}
@@ -239,3 +240,45 @@ def test_players_search(http):
     body = http.get("/players/search", params={"q": "zverev"}).json()
     assert {c["player_id"] for c in body["candidates"]} == {100644, 104999}  # hand 9
     assert http.get("/players/search", params={"q": "!!"}).status_code == 422
+
+
+# ---------- /report/stream ----------
+
+
+def test_report_stream_shows_progress_then_the_checked_report(http, use_model):
+    use_model(FakeClient([gather, write_report()]))
+    response = http.post("/report/stream", json=REPORT)
+    assert response.status_code == 200 and response.headers["content-type"].startswith("text/event-stream")
+    assert "no-transform" in response.headers["cache-control"]  # or a proxy may gzip and hold the stream
+    sequence = events(response)
+    assert [name for name, _ in sequence] == [
+        "start", "model_call", "tool_call", "tool_result", "tool_call", "tool_result", "model_call", "checking", "report",
+    ]
+    start, final = sequence[0][1], sequence[-1][1]
+    assert start["request"]["date_to"] == "2026-10-26"  # hand 17
+    assert sequence[1][1] == {"call": 1, "tool_calls_so_far": 0} and sequence[6][1] == {"call": 2, "tool_calls_so_far": 2}
+    assert sequence[7][1] == {"attempt": 1, "key_stats": 4}
+    assert (final["status"], final["grounding"]["attempts"], final["request_id"]) == ("verified", 1, start["request_id"])
+    assert not any(name == "text" for name, _ in sequence)  # the report's text is never streamed before its check
+
+
+def test_report_stream_reports_the_retry(http, use_model):
+    use_model(FakeClient([gather, write_report(nudge=0.01), write_report()]))
+    names = [name for name, _ in events(http.post("/report/stream", json=REPORT))]
+    assert names[-5:] == ["checking", "correcting", "model_call", "checking", "report"]
+
+
+def test_report_stream_rejects_bad_input_before_the_stream_opens(http, use_model):
+    model = use_model(FakeClient([]))
+    response = http.post("/report/stream", json={**REPORT, "opponent_id": 999999999})
+    assert (response.status_code, response.json()["error"]["kind"]) == (404, "player_not_found")
+    assert model.requests == []
+
+
+def test_report_stream_ends_with_an_error_event_on_a_model_error(http, use_model):
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+    limited = anthropic.RateLimitError("slow down", response=httpx2.Response(429, request=request), body=None)
+    use_model(FakeClient([limited]))
+    sequence = events(http.post("/report/stream", json=REPORT))
+    assert [name for name, _ in sequence] == ["start", "model_call", "error"]
+    assert sequence[-1][1]["kind"] == "model_rate_limited"
