@@ -1,6 +1,7 @@
 // Everything the report view shows comes from the run's tool results ("evidence"), never
-// from the model's text: the evidence behind each key stat, and both charts. When the
-// evidence a chart needs is missing, the chart says so instead of showing zeros.
+// from the model's text: each key number's value, sample and description, and both charts.
+// Calls are matched on what the tool actually used (its result's player and filters), not on
+// what the model asked for. When the evidence is missing, the view says so; it never shows 0.
 
 import type { Evidence, KeyStat, PlayerRef, Rate, Sample, Surface, ToolResult } from "./types.ts";
 import { SURFACES } from "./types.ts";
@@ -15,37 +16,109 @@ export const TOOL_NAMES: Record<string, string> = {
   recent_form: "Recent form",
 };
 
+const STAT_NAMES: Record<string, string> = {
+  first_serve_in: "First serve in",
+  first_serve_points_won: "First-serve points won",
+  second_serve_points_won: "Second-serve points won",
+  service_points_won: "Service points won",
+  return_points_won: "Return points won",
+  aces_per_match: "Aces per match",
+  break_points_saved: "Break points saved",
+  break_points_converted: "Break points converted",
+  win_rate: "Win rate",
+  wins: "Wins",
+  losses: "Losses",
+  matches: "Matches",
+};
+
 const LEVELS: Record<string, string> = {
   G: "Grand Slams", M: "Masters 1000", A: "ATP 250 and 500", F: "Tour Finals", D: "Davis Cup", O: "Olympics",
 };
+
+const TOLERANCE = 1e-9; // the grounding check's (api/grounding.py)
 
 export function findEvidence(evidence: Evidence[], id: string): Evidence | undefined {
   return evidence.find((e) => e.tool_call_id === id);
 }
 
-/** Follow a dotted path ("surfaces.0.win_rate.value"); also return the object holding the
- * value, which for a rate carries its numerator and denominator. */
-export function resolvePath(result: unknown, path: string): { found: boolean; value: unknown; parent: unknown } {
+/** Follow a dotted path ("surfaces.0.win_rate.value") through a tool result's own fields; also
+ * return every object passed on the way, as api/grounding.py does. */
+export function resolvePath(result: unknown, path: string): { found: boolean; value: unknown; seen: unknown[] } {
   let node: unknown = result;
-  let parent: unknown = undefined;
+  const seen: unknown[] = [result];
   for (const part of path.split(".")) {
-    parent = node;
     if (Array.isArray(node) && /^\d+$/.test(part) && Number(part) < node.length) node = node[Number(part)];
-    else if (node && typeof node === "object" && !Array.isArray(node) && part in node) node = (node as Record<string, unknown>)[part];
-    else return { found: false, value: undefined, parent: undefined };
+    else if (node && typeof node === "object" && !Array.isArray(node) && Object.hasOwn(node, part)) node = (node as Record<string, unknown>)[part];
+    else return { found: false, value: undefined, seen };
+    seen.push(node);
   }
-  return { found: true, value: node, parent };
+  return { found: true, value: node, seen };
 }
 
 function isRate(x: unknown): x is Rate {
   return !!x && typeof x === "object" && "numerator" in x && "denominator" in x && "unit" in x;
 }
 
-/** What a key stat means, read from its evidence: the rate it belongs to, if any. */
-export function rateFor(stat: KeyStat, evidence: Evidence | undefined): Rate | null {
-  if (!evidence?.result) return null;
-  const { found, parent } = resolvePath(evidence.result, stat.field);
-  return found && stat.field.endsWith(".value") && isRate(parent) ? parent : null;
+function isNumber(x: unknown): x is number {
+  return typeof x === "number" && Number.isFinite(x);
+}
+
+/** The match counts a stat from this result may cite (api/grounding.py, sample_sizes). */
+function sampleSizes(result: ToolResult, seen: unknown[]): number[] {
+  const counts = [result.sample?.matches_counted, result.sample?.matches_with_stats];
+  for (const node of seen) {
+    if (node && typeof node === "object" && !Array.isArray(node)) counts.push((node as Record<string, unknown>).matches as number);
+  }
+  return counts.filter((n): n is number => Number.isInteger(n));
+}
+
+export type StatCheck = {
+  /** "matched": the value and sample are the tool's (as the grounding check found);
+   * "mismatch": the model's figure differs from the tool's; "missing": no such call or field. */
+  status: "matched" | "mismatch" | "missing";
+  value: number | null; // the tool's value, never the model's
+  rate: Rate | null;
+  sample: number | null; // matches it rests on, from the tool result
+  evidence: Evidence | undefined;
+};
+
+/** Read a key stat from the evidence and compare it with what the model wrote. */
+export function checkStat(stat: KeyStat, evidence: Evidence[]): StatCheck {
+  const source = findEvidence(evidence, stat.tool_call_id);
+  if (!source?.result || source.error) return { status: "missing", value: null, rate: null, sample: null, evidence: source };
+  const { found, value, seen } = resolvePath(source.result, stat.field);
+  if (!found || !isNumber(value)) return { status: "missing", value: null, rate: null, sample: null, evidence: source };
+  const parent = seen[seen.length - 2];
+  const rate = stat.field.endsWith(".value") && isRate(parent) ? parent : null;
+  const sizes = sampleSizes(source.result, seen);
+  const matched = isNumber(stat.value) && Math.abs(stat.value - value) <= TOLERANCE && sizes.includes(stat.sample_matches);
+  // The sample shown is the tool's: the stated one when it is one of the result's counts,
+  // otherwise the count of the object the value sits in, or the result's sample.
+  const nearest = [...seen].reverse().find((n) => n && typeof n === "object" && Number.isInteger((n as Record<string, unknown>).matches));
+  const sample = sizes.includes(stat.sample_matches)
+    ? stat.sample_matches
+    : ((nearest as { matches?: number } | undefined)?.matches ?? source.result.sample?.matches_with_stats ?? null);
+  return { status: matched ? "matched" : "mismatch", value, rate, sample, evidence: source };
+}
+
+/** What a key stat is, in words, from the tool result: whose number, which measure, which
+ * filters. The model's own label is not used, since nothing checks it. */
+export function describeStat(stat: KeyStat, source: Evidence | undefined): { title: string; filters: string[] } {
+  const result = source?.result;
+  if (!result) return { title: `Tool call ${stat.tool_call_id} (not in this report's results)`, filters: [] };
+  const parts = stat.field.split(".");
+  const key = parts.find((p) => p in STAT_NAMES && p !== "matches") ?? parts[parts.length - 1];
+  let measure = STAT_NAMES[key] ?? stat.field;
+  const listName = parts[0];
+  if ((listName === "surfaces" || listName === "by_surface") && /^\d+$/.test(parts[1] ?? "")) {
+    const row = (result[listName] as { surface?: string }[] | undefined)?.[Number(parts[1])];
+    if (row?.surface) measure = `${row.surface} ${measure.toLowerCase()}`;
+  }
+  if (source.tool === "head_to_head") measure = `head-to-head ${measure.charAt(0).toLowerCase()}${measure.slice(1)}`;
+  if (source.tool === "recent_form") measure = `${measure} in the last ${String(result.n ?? "")} matches`;
+  const who = result.opponent ? `${result.player?.name} against ${result.opponent.name}` : (result.player?.name ?? "");
+  const title = `${who}: ${measure.charAt(0).toLowerCase()}${measure.slice(1)}`;
+  return { title, filters: describeFilters(result.filters as Record<string, unknown> | undefined) };
 }
 
 /** The filters a tool call used, in words. Only the ones that were set. */
@@ -82,52 +155,70 @@ export function describeExcluded(excluded: Record<string, number> | undefined): 
 
 // ---------- charts ----------
 
-function callsFor(evidence: Evidence[], tool: string, player: PlayerRef): Evidence[] {
-  return evidence.filter((e) => e.tool === tool && !e.error && e.result && e.input.player_id === player.player_id);
+export type Window = { date_from: string; date_to: string };
+
+/** Successful calls of one tool for one player inside the report's window, judged by the
+ * result (what the tool actually did), not by the model's request. */
+function callsFor(evidence: Evidence[], tool: string, who: PlayerRef, window: Window): Evidence[] {
+  return evidence.filter((e) => {
+    const f = (e.result?.filters ?? {}) as Record<string, unknown>;
+    return e.tool === tool && !e.error && e.result && e.result.player?.player_id === who.player_id
+      && f.date_from === window.date_from && f.date_to === window.date_to && !f.season && !f.tourney_level
+      && !f.opponent_hand && !f.include_exhibitions;
+  });
 }
+
+type SurfaceCell = { winRate: number | null; record: string | null; status: "ok" | "no_matches" | "not_looked_up" };
 
 export interface SurfaceRow {
   surface: Surface;
-  player: number | null; // win rate as a percentage
+  player: number | null; // win rate as a percentage, or null for a gap
   opponent: number | null;
-  playerRecord: string | null;
-  opponentRecord: string | null;
+  playerCell: SurfaceCell;
+  opponentCell: SurfaceCell;
 }
 
 export interface ChartData<Row> {
   rows: Row[];
   sources: string[]; // tool_call_ids
-  missing: string[]; // what the chart couldn't find, in words
+  notes: string[]; // gaps and caveats, in words
 }
 
-/** Win rate by surface for both players, from surface_splits calls without a surface filter
- * (one row per surface). A call filtered to one surface only fills that surface. */
-export function surfaceChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef): ChartData<SurfaceRow> {
+/** Win rate by surface for both players. Uses a call over every surface when there is one, so a
+ * missing surface means no matches there; a call filtered to one surface fills only that one,
+ * and the others are "not looked up", never "no matches". */
+export function surfaceChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, window: Window): ChartData<SurfaceRow> {
   const sources: string[] = [];
-  const missing: string[] = [];
-  const bySurface = (who: PlayerRef) => {
-    const calls = callsFor(evidence, "surface_splits", who);
-    const call = calls.find((c) => !c.input.filters?.surface) ?? calls[0];
-    if (!call) {
-      missing.push(`${who.name}'s win-loss by surface`);
-      return new Map<string, { matches: number; wins: number; losses: number; win_rate: Rate }>();
+  const notes: string[] = [];
+  const cells = (who: PlayerRef): Map<string, SurfaceCell> => {
+    const calls = callsFor(evidence, "surface_splits", who, window);
+    const all = calls.find((c) => !c.result?.filters?.surface);
+    const used = all ? [all] : calls;
+    if (!used.length) notes.push(`${who.name}'s win-loss by surface isn't in this report's results.`);
+    const map = new Map<string, SurfaceCell>();
+    for (const call of used) {
+      sources.push(call.tool_call_id);
+      for (const r of ((call.result as ToolResult).surfaces ?? []) as { surface: string; wins: number; losses: number; win_rate: Rate }[]) {
+        const value = r.win_rate.value;
+        map.set(r.surface, { winRate: value === null ? null : round1(100 * value), record: `${r.wins}-${r.losses}`, status: "ok" });
+      }
     }
-    sources.push(call.tool_call_id);
-    const rows = ((call.result as ToolResult).surfaces ?? []) as { surface: string; matches: number; wins: number; losses: number; win_rate: Rate }[];
-    return new Map(rows.map((r) => [r.surface, r]));
+    for (const surface of SURFACES) {
+      if (map.has(surface)) continue;
+      map.set(surface, { winRate: null, record: null, status: all ? "no_matches" : "not_looked_up" });
+    }
+    const unlooked = SURFACES.filter((s) => map.get(s)!.status === "not_looked_up");
+    if (used.length && unlooked.length) notes.push(`${who.name}: ${unlooked.join(" and ").toLowerCase()} not looked up in this report.`);
+    return map;
   };
-  const mine = bySurface(player);
-  const theirs = bySurface(opponent);
-  const pct = (r?: { win_rate: Rate }) => (r && r.win_rate.value !== null ? round1(100 * r.win_rate.value) : null);
-  const record = (r?: { wins: number; losses: number }) => (r ? `${r.wins}-${r.losses}` : null);
-  const rows = SURFACES.map((surface) => ({
-    surface,
-    player: pct(mine.get(surface)),
-    opponent: pct(theirs.get(surface)),
-    playerRecord: record(mine.get(surface)),
-    opponentRecord: record(theirs.get(surface)),
-  }));
-  return { rows, sources, missing };
+  const mine = cells(player);
+  const theirs = cells(opponent);
+  const rows = SURFACES.map((surface) => {
+    const p = mine.get(surface)!;
+    const o = theirs.get(surface)!;
+    return { surface, player: p.winRate, opponent: o.winRate, playerCell: p, opponentCell: o };
+  });
+  return { rows, sources, notes };
 }
 
 export interface ServeRow {
@@ -138,36 +229,40 @@ export interface ServeRow {
   opponentCounts: string | null;
 }
 
-const SERVE_METRICS: [tool: string, key: string, label: string][] = [
-  ["serve_return_stats", "first_serve_in", "First serve in"],
-  ["serve_return_stats", "first_serve_points_won", "First-serve points won"],
-  ["serve_return_stats", "second_serve_points_won", "Second-serve points won"],
-  ["serve_return_stats", "service_points_won", "Service points won"],
-  ["serve_return_stats", "return_points_won", "Return points won"],
-  ["pressure_stats", "break_points_saved", "Break points saved"],
-  ["pressure_stats", "break_points_converted", "Break points converted"],
+const SERVE_METRICS: [tool: string, key: string][] = [
+  ["serve_return_stats", "first_serve_in"],
+  ["serve_return_stats", "first_serve_points_won"],
+  ["serve_return_stats", "second_serve_points_won"],
+  ["serve_return_stats", "service_points_won"],
+  ["serve_return_stats", "return_points_won"],
+  ["pressure_stats", "break_points_saved"],
+  ["pressure_stats", "break_points_converted"],
 ];
 
-/** Serve, return and break-point rates for both players, preferring the calls filtered to the
- * report's surface (the report falls back to all surfaces when a sample is small). */
-export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, surface: Surface): ChartData<ServeRow> {
+/** Serve, return and break-point rates for both players, from the calls on the report's surface;
+ * when a player only has the all-surfaces fallback (a small sample on the surface), that is
+ * used and said. Gaps (no call, or no matches with stats) are explained in the notes. */
+export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, surface: Surface, window: Window): ChartData<ServeRow> & { scope: string } {
   const sources = new Set<string>();
-  const missing: string[] = [];
-  const pick = (who: PlayerRef, tool: string) => {
-    const calls = callsFor(evidence, tool, who);
-    return calls.find((c) => c.input.filters?.surface === surface) ?? calls[0];
-  };
+  const notes: string[] = [];
+  const scopes = new Set<string>();
   const rates = (who: PlayerRef) => {
     const out = new Map<string, Rate>();
     for (const tool of ["serve_return_stats", "pressure_stats"]) {
-      const call = pick(who, tool);
+      const calls = callsFor(evidence, tool, who, window);
+      const onSurface = calls.find((c) => c.result?.filters?.surface === surface);
+      const anySurface = calls.find((c) => !c.result?.filters?.surface);
+      const call = onSurface ?? anySurface;
       if (!call) {
-        missing.push(`${who.name}'s ${TOOL_NAMES[tool].toLowerCase()}`);
+        notes.push(`${who.name}'s ${TOOL_NAMES[tool].toLowerCase()} aren't in this report's results.`);
         continue;
       }
       sources.add(call.tool_call_id);
-      const stats = ((call.result as ToolResult).stats ?? {}) as Record<string, Rate>;
-      for (const [key, rate] of Object.entries(stats)) out.set(`${tool}.${key}`, rate);
+      scopes.add(onSurface ? surface.toLowerCase() : "all surfaces");
+      if (!onSurface) notes.push(`${who.name}'s ${TOOL_NAMES[tool].toLowerCase()} cover all surfaces, because the ${surface.toLowerCase()} sample was small.`);
+      const result = call.result as ToolResult;
+      notes.push(`${who.name}'s ${TOOL_NAMES[tool].toLowerCase()}: ${result.sample?.matches_with_stats ?? "an unknown number of"} matches with stats.`);
+      for (const [key, rate] of Object.entries((result.stats ?? {}) as Record<string, Rate>)) out.set(`${tool}.${key}`, rate);
     }
     return out;
   };
@@ -175,26 +270,27 @@ export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: Pl
   const theirs = rates(opponent);
   const pct = (r?: Rate) => (r && r.value !== null ? round1(100 * r.value) : null);
   const counts = (r?: Rate) => (r && r.value !== null ? `${r.numerator.toLocaleString("en-US")} of ${r.denominator.toLocaleString("en-US")}` : null);
-  const rows = SERVE_METRICS.map(([tool, key, metric]) => ({
-    metric,
-    player: pct(mine.get(`${tool}.${key}`)),
-    opponent: pct(theirs.get(`${tool}.${key}`)),
-    playerCounts: counts(mine.get(`${tool}.${key}`)),
-    opponentCounts: counts(theirs.get(`${tool}.${key}`)),
-  }));
-  return { rows, sources: [...sources], missing };
+  const rows = SERVE_METRICS.map(([tool, key]) => {
+    const p = mine.get(`${tool}.${key}`);
+    const o = theirs.get(`${tool}.${key}`);
+    for (const [who, rate] of [[player, p], [opponent, o]] as const) {
+      if (rate && rate.value === null) notes.push(`${who.name}: no ${STAT_NAMES[key].toLowerCase()} figure (no matches with stats for it).`);
+    }
+    return { metric: STAT_NAMES[key], player: pct(p), opponent: pct(o), playerCounts: counts(p), opponentCounts: counts(o) };
+  });
+  return { rows, sources: [...sources], notes, scope: scopes.size === 1 ? [...scopes][0] : "mixed surfaces" };
 }
 
 export function round1(x: number): number {
   return Math.round(x * 10) / 10;
 }
 
-/** A key stat's value as the coach should read it: rates as percentages with one decimal,
- * per-match averages with one decimal, counts as whole numbers. */
-export function formatStat(stat: KeyStat, rate: Rate | null): string {
-  if (rate?.unit === "fraction") return `${round1(100 * stat.value).toFixed(1)}%`;
-  if (rate?.unit === "per_match") return stat.value.toFixed(1);
-  return Number.isInteger(stat.value) ? stat.value.toLocaleString("en-US") : String(stat.value);
+/** A value as the coach should read it: rates as percentages with one decimal, per-match
+ * averages with one decimal, counts as whole numbers. */
+export function formatValue(value: number, rate: Rate | null): string {
+  if (rate?.unit === "fraction") return `${round1(100 * value).toFixed(1)}%`;
+  if (rate?.unit === "per_match") return value.toFixed(1);
+  return Number.isInteger(value) ? value.toLocaleString("en-US") : String(value);
 }
 
 export function sampleLine(sample: Sample | undefined): string | null {

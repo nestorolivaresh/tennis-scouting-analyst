@@ -250,6 +250,7 @@ def test_report_stream_shows_progress_then_the_checked_report(http, use_model):
     response = http.post("/report/stream", json=REPORT)
     assert response.status_code == 200 and response.headers["content-type"].startswith("text/event-stream")
     assert "no-transform" in response.headers["cache-control"]  # or a proxy may gzip and hold the stream
+    assert response.headers["x-accel-buffering"] == "no"
     sequence = events(response)
     assert [name for name, _ in sequence] == [
         "start", "model_call", "tool_call", "tool_result", "tool_call", "tool_result", "model_call", "checking", "report",
@@ -282,3 +283,101 @@ def test_report_stream_ends_with_an_error_event_on_a_model_error(http, use_model
     sequence = events(http.post("/report/stream", json=REPORT))
     assert [name for name, _ in sequence] == ["start", "model_call", "error"]
     assert sequence[-1][1]["kind"] == "model_rate_limited"
+
+
+def test_report_stream_delivers_an_incomplete_report_as_the_last_event(http, use_model):
+    use_model(FakeClient([gather, message(text(""), stop_reason="refusal")]))
+    final = events(http.post("/report/stream", json=REPORT))[-1]
+    assert final[0] == "report" and (final[1]["status"], final[1]["report"]) == ("incomplete", None)
+    assert final[1]["message"] == "The model declined to answer this request." and len(final[1]["evidence"]) == 2
+
+
+@pytest.mark.parametrize(
+    ("body", "settings", "status", "kind"),
+    [
+        ({**REPORT, "surface": "Ice"}, SETTINGS, 422, "invalid_input"),
+        (REPORT, Settings(api_key=None, model=None), 503, "llm_not_configured"),
+    ],
+)
+def test_report_stream_fails_before_the_stream_opens(http, use_model, body, settings, status, kind):
+    use_model(FakeClient([]) if settings.llm_configured else None, settings=settings)
+    response = http.post("/report/stream", json=body)
+    assert (response.status_code, response.json()["error"]["kind"]) == (status, kind)
+
+
+def test_report_stream_database_down_before_the_stream_opens(http, use_model):
+    def down():
+        raise psycopg.OperationalError("connection refused")
+
+    use_model(FakeClient([]))
+    app_module.app.dependency_overrides[app_module.get_connect] = lambda: down
+    response = http.post("/report/stream", json=REPORT)
+    assert (response.status_code, response.json()["error"]["kind"]) == (503, "database_unavailable")
+
+
+@pytest.mark.parametrize("path", ["/report/stream", "/chat"])
+def test_streams_end_with_an_error_event_on_an_unexpected_failure(http, use_model, path):
+    use_model(FakeClient([RuntimeError("boom")]))
+    body = REPORT if path == "/report/stream" else {"messages": [{"role": "user", "content": "hi"}]}
+    final = events(http.post(path, json=body))[-1]
+    assert final[0] == "error" and final[1]["kind"] == "internal_error"
+    assert "boom" not in final[1]["message"]  # internal details never reach the client
+
+
+def test_closing_a_report_mid_stream_logs_it_and_closes_the_model_loop(use_model):
+    """A client that goes away: the generator is closed (api/streaming.py), its model stream
+    closes with it, and a request_end line records what was spent."""
+    import io
+    import logging
+
+    from api import report
+    from api.db import connect
+    from api.logs import JsonFormatter, logger
+
+    buffer = io.StringIO()
+    handler = logging.StreamHandler(buffer)
+    handler.setFormatter(JsonFormatter())
+    logger.addHandler(handler)
+    conn = connect()
+    try:
+        req = report.prepare_report(conn, SINNER, ALCARAZ, "Clay")
+        gen = report.report_events(FakeClient([gather, write_report()]), conn, SETTINGS, req, request_id="r1")
+        names = [next(gen)[0] for _ in range(3)]  # start, model_call, tool_call
+        gen.close()
+    finally:
+        logger.removeHandler(handler)
+        conn.close()
+    assert names == ["start", "model_call", "tool_call"]
+    ends = [json.loads(line) for line in buffer.getvalue().splitlines() if '"request_end"' in line]
+    assert [(e["status"], e["model_calls"]) for e in ends] == [("client_disconnected", 1)]
+
+
+def test_the_stream_wrapper_closes_the_generator_when_the_client_stops_reading():
+    import asyncio
+
+    from api.streaming import closing
+
+    closed = []
+
+    def events():
+        try:
+            yield "a"
+            yield "b"
+        finally:
+            closed.append(True)
+
+    gen = events()  # held here, as the server holds it, so only an explicit close runs its finally
+
+    async def read_one():
+        stream = closing(gen)
+        first = await anext(stream)
+        await stream.aclose()  # what Starlette does when the client disconnects
+        return first
+
+    assert asyncio.run(read_one()) == "a" and closed == [True]
+
+
+def test_heartbeats_are_sse_comments():
+    from api.streaming import KEEP_ALIVE, sse
+
+    assert sse("heartbeat", {}) == KEEP_ALIVE and KEEP_ALIVE.startswith(":")

@@ -97,8 +97,19 @@ export default function Home() {
           )}
         </div>
 
-        <ChatPanel key={report.state === "done" ? report.data.request_id : "no-report"} context={context} />
+        <ChatPanel context={context} contextLabel={report.state === "done" ? contextLabel(report.data) : null} />
       </div>
+
+      <footer className="credits">
+        <p>
+          Match data for 2015 to 2025 and player details: “Tennis databases, files, and algorithms” by Jeff Sackmann /{" "}
+          <a href="https://www.tennisabstract.com/">Tennis Abstract</a>, licensed under{" "}
+          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. Season 2026: the{" "}
+          <a href="https://stats.tennismylife.org/tennis-match-database">TennisMyLife ATP match database</a>, for
+          non-commercial use. This app reshapes and checks the data; its derived data is shared under CC BY-NC-SA 4.0.
+          The full terms are in the project's DATA_LICENSE.md. A non-commercial portfolio project.
+        </p>
+      </footer>
     </main>
   );
 }
@@ -110,12 +121,15 @@ function Working({ started, events, names }: { started: number; events: ReportEv
     return () => clearInterval(timer);
   }, []);
   const steps = progressSteps(events, names);
+  const current = steps[steps.length - 1];
   return (
     <div className="working">
-      <p role="status">
-        <strong>Writing the report.</strong> {Math.round((now - started) / 1000)} seconds so far. The report appears once
-        every key number has been checked against the data.
+      <p>
+        <strong>Writing the report.</strong> <span aria-hidden="true">{Math.round((now - started) / 1000)} seconds so far.</span> The
+        report appears once every key number has been checked against the data.
       </p>
+      {/* Screen readers hear each new step once, not the ticking timer. */}
+      <p className="visually-hidden" role="status">{current?.text ?? "Starting"}</p>
       <ol className="progress" aria-label="Progress">
         {steps.map((step) => (
           <li key={step.key} data-state={step.state}>{step.text}</li>
@@ -123,6 +137,11 @@ function Working({ started, events, names }: { started: number; events: ReportEv
       </ol>
     </div>
   );
+}
+
+function contextLabel(data: ReportResponse): string {
+  const { player, opponent, surface } = data.request;
+  return `${opponent.name} for ${player.name}, ${surface.toLowerCase()}`;
 }
 
 /** The report as a first exchange, so follow-up questions have context. */

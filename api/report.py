@@ -8,6 +8,7 @@ import json
 import logging
 import time
 from collections.abc import Callable, Iterator
+from contextlib import closing
 from typing import Any
 
 import anthropic
@@ -17,6 +18,7 @@ from api import stats
 from api.agent import OUTCOME_MESSAGES, Limits, Run, Settings, run_loop, system_prompt
 from api.grounding import MIN_KEY_STATS, check_report
 from api.logs import log_event
+from api.streaming import HEARTBEAT_S, sse
 
 WINDOW_YEARS = 2  # the report's "recent" window, ending at the newest tournament in the data
 SMALL_SAMPLE = 10
@@ -139,12 +141,14 @@ def report_events(
     limits: Limits = Limits(),
     clock: Callable[[], float] = time.monotonic,
     endpoint: str = "/report",
+    heartbeat_s: float | None = None,
 ) -> Iterator[tuple[str, dict[str, Any]]]:
     """The report as it happens: ("start", request), then ("model_call", ...), ("tool_call",
     ...) and ("tool_result", ...) from the agent loop, ("checking", {"key_stats"}) before each
     grounding check, ("correcting", {"errors"}) before the one retry, and last ("report",
-    result), the same body POST /report returns. Anthropic API errors propagate. The report's
-    text is never sent before it has been checked."""
+    result), the same body POST /report returns. Anthropic API errors propagate, after a
+    request_end log line with the tokens used so far. The report's text is never sent before it
+    has been checked."""
     run = Run(model=settings.model, messages=[{"role": "user", "content": report_prompt(
         req.player, req.opponent, req.surface, req.date_from, req.date_to)}], started=clock())  # fmt: skip
     if request_id:
@@ -153,16 +157,31 @@ def report_events(
         "report_start", request_id=run.request_id, player_id=req.player["player"]["player_id"],
         opponent_id=req.opponent["player"]["player_id"], surface=req.surface, endpoint=endpoint,
     )  # fmt: skip
-    yield "start", {"request_id": run.request_id, "request": req.public()}
+    try:
+        yield "start", {"request_id": run.request_id, "request": req.public()}
+        yield from _checked_report(client, conn, settings, req, run, limits, clock, endpoint, heartbeat_s)
+    except GeneratorExit:  # the client went away
+        log_event("request_end", logging.WARNING, request_id=run.request_id, endpoint=endpoint,
+                  status="client_disconnected", **run.summary())  # fmt: skip
+        raise
+    except anthropic.APIError as e:
+        from api.chat import api_error
 
+        log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint=endpoint,
+                  status=api_error(e)[0], **run.summary())  # fmt: skip
+        raise
+
+
+def _checked_report(client, conn, settings, req, run, limits, clock, endpoint, heartbeat_s):
     report, errors, attempts = None, [], 0
     while attempts < MAX_ATTEMPTS:
         attempts += 1
         loop = run_loop(client, conn, settings, run, system_prompt(req.window), limits, OUTPUT_FORMAT, clock,
-                        announce_model_calls=True)  # fmt: skip
-        for event, data in loop:
-            if event != "text":  # with structured output the text is the report itself: held back
-                yield event, data
+                        announce_model_calls=True, heartbeat_s=heartbeat_s)  # fmt: skip
+        with closing(loop):  # closing it ends the model's HTTP stream right away
+            for event, data in loop:
+                if event != "text":  # with structured output the text is the report itself: held back
+                    yield event, data
         if run.outcome != "completed":
             break
         try:
@@ -238,10 +257,11 @@ def report_stream(
     req: CheckedRequest,
     request_id: str | None = None,
 ) -> Iterator[str]:
-    """POST /report/stream: report_events as server-sent events. The request was checked
-    before the stream opened; failures after that arrive as an `error` event. The connection
-    opens and closes inside the stream, because the response outlives the request handler."""
-    from api.chat import api_error, sse  # chat owns the event format and the API error messages
+    """POST /report/stream: report_events as server-sent events, with a keep-alive comment
+    during long model calls. The request was checked before the stream opened; any failure
+    after that arrives as an `error` event. The connection opens and closes inside the stream,
+    because the response outlives the request handler."""
+    from api.chat import api_error  # chat owns the API error messages
 
     try:
         conn = connect()
@@ -249,12 +269,17 @@ def report_stream(
         log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream", status="database_unavailable")
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
+    events = report_events(client, conn, settings, req, request_id, endpoint="/report/stream", heartbeat_s=HEARTBEAT_S)
     try:
-        for event, data in report_events(client, conn, settings, req, request_id, endpoint="/report/stream"):
-            yield sse(event, data)
-    except anthropic.APIError as e:
+        with closing(events):
+            for event, data in events:
+                yield sse(event, data)
+    except anthropic.APIError as e:  # report_events has logged it
         kind, message = api_error(e)
-        log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream", status=kind)
         yield sse("error", {"kind": kind, "message": message})
+    except Exception as e:  # noqa: BLE001 - reported to the client and logged by type, never hidden
+        log_event("request_end", logging.ERROR, request_id=request_id, endpoint="/report/stream",
+                  status="internal_error", error_type=type(e).__name__)  # fmt: skip
+        yield sse("error", {"kind": "internal_error", "message": "The report failed on the server. Try again."})
     finally:
         conn.close()

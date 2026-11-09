@@ -24,6 +24,7 @@ from api import chat, report, stats
 from api.agent import Settings
 from api.db import connect
 from api.logs import configure, log_event
+from api.streaming import closing as close_on_disconnect
 
 configure()
 app = FastAPI(title="Tennis Scouting Analyst", version="0.5.0")
@@ -186,7 +187,7 @@ def post_report_stream(
     finally:
         conn.close()
     events = report.report_stream(client, connect_db, settings, req, request_id=request.state.request_id)
-    return StreamingResponse(events, media_type="text/event-stream", headers=STREAM_HEADERS)
+    return StreamingResponse(close_on_disconnect(events), media_type="text/event-stream", headers=STREAM_HEADERS)
 
 
 class ChatMessage(BaseModel):
@@ -208,4 +209,4 @@ def post_chat(
 ) -> StreamingResponse:
     history = chat.validate_history([m.model_dump() for m in body.messages])  # before the stream opens
     events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id)
-    return StreamingResponse(events, media_type="text/event-stream", headers=STREAM_HEADERS)
+    return StreamingResponse(close_on_disconnect(events), media_type="text/event-stream", headers=STREAM_HEADERS)

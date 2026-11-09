@@ -256,7 +256,11 @@ input {
 
 .picker-list li[aria-selected="true"] {
   background: var(--paper);
-  outline: 2px solid var(--line);
+  box-shadow: inset 3px 0 0 var(--ink); /* the keyboard choice: a bar in ink, well over 3:1 */
+}
+
+.picker-note {
+  padding: 0.5rem 0.6rem;
 }
 
 .picker-list .who {
@@ -267,11 +271,6 @@ input {
 .picker-note {
   color: var(--muted);
   font-size: var(--step--1);
-}
-
-.picker-note {
-  padding: 0.5rem 0.6rem;
-  margin: 0;
 }
 
 /* ---------- surface picker ---------- */
@@ -362,7 +361,7 @@ input {
 }
 
 .matchup ul,
-.plan ol,
+.plan ul,
 .caveats ul {
   margin: 0;
   padding-left: 1.2rem;
@@ -426,9 +425,29 @@ input {
   background: currentColor;
 }
 
-.chart-missing {
-  color: var(--warn);
+.chart-notes {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.chat-note {
+  color: var(--muted);
   font-size: var(--step--1);
+  border-top: 1px solid var(--line);
+  padding-top: 0.5rem;
+}
+
+.credits {
+  margin-top: 4rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--step--1);
+  max-width: 80ch;
+}
+
+.credits a {
+  color: inherit;
 }
 
 .tooltip {
@@ -480,9 +499,24 @@ input {
   white-space: nowrap;
 }
 
-.number-source {
+.number-source,
+.number-filters {
+  display: block;
   font-size: var(--step--1);
   color: var(--muted);
+}
+
+.number-warning {
+  display: block;
+  font-size: var(--step--1);
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.number-row[data-status="mismatch"] .number-value,
+.number-row[data-status="missing"] .number-value {
+  color: var(--warn);
+  font-size: var(--step-1);
 }
 
 .number-row[data-open="true"] .number-source {
@@ -630,7 +664,7 @@ input {
 .chat input {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--line);
+  border: 1px solid var(--muted); /* 5.7:1 against the paper: visible as a field */
   border-radius: var(--radius);
   padding: 0.55rem 0.7rem;
   background: var(--paper);

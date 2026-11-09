@@ -279,13 +279,16 @@ def run_loop(
     output_format: dict[str, Any] | None = None,
     clock: Callable[[], float] = time.monotonic,
     announce_model_calls: bool = False,
+    heartbeat_s: float | None = None,
 ) -> Iterator[tuple[str, dict[str, Any]]]:
     """Drive the conversation in `run` until the model answers or a limit is hit.
 
     Yields events as they happen, for /chat to stream: ("text", {"delta"}),
     ("tool_call", {...}) and ("tool_result", {...}); with `announce_model_calls`, also
     ("model_call", {"call", "tool_calls_so_far"}) before each model call, for the report's
-    progress. Sets run.outcome and run.final_text.
+    progress; with `heartbeat_s`, ("heartbeat", {}) when that long has passed without an event
+    while a model call streams, so a proxy doesn't close an idle stream. Sets run.outcome and
+    run.final_text.
     """
     deadline = run.started + limits.time_limit_s
     output_config: dict[str, Any] = {"effort": settings.effort}
@@ -317,9 +320,14 @@ def run_loop(
                 output_config=output_config,
                 cache_control={"type": "ephemeral"},
             ) as stream:
+                quiet_since = clock()
                 for event in stream:
                     if event.type == "text" and not output_format:
                         yield "text", {"delta": event.text}
+                        quiet_since = clock()
+                    elif heartbeat_s is not None and clock() - quiet_since >= heartbeat_s:
+                        yield "heartbeat", {}
+                        quiet_since = clock()
                     if clock() > deadline:
                         break
                 else:

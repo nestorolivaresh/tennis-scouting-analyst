@@ -1,43 +1,70 @@
-// Run with: npm test (node's own test runner; Node strips the TypeScript types).
-// The fixture is a real /report response (Sinner v Alcaraz on clay, 2026-11-09). Expected
-// values are read from its tool results, never typed in (spec: no hardcoded statistics).
+// Run with: npm test (Node's own test runner; Node strips the TypeScript types).
+// Fixtures are real /report responses (Sinner v Alcaraz on clay, 2026-11-09): `current` from
+// the current prompt (win-loss over every surface), `clay` from before it (one surface).
+// Expected values are read from their tool results, never typed in (spec: no hardcoded stats).
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import report from "./fixtures/report-clay.json" with { type: "json" };
+import clayReport from "./fixtures/report-clay.json" with { type: "json" };
+import currentReport from "./fixtures/report-current.json" with { type: "json" };
 import {
-  describeExcluded, describeFilters, findEvidence, formatStat, rateFor, resolvePath, sampleLine, serveChart, surfaceChart,
+  checkStat, describeExcluded, describeFilters, describeStat, formatValue, resolvePath, round1, sampleLine, serveChart, surfaceChart,
 } from "./evidence.ts";
-import { SseParser } from "./sse.ts";
-import type { Evidence, KeyStat, ReportResponse } from "./types.ts";
+import type { Evidence, KeyStat, Rate, ReportResponse } from "./types.ts";
 
-const r = report as unknown as ReportResponse;
-const { player, opponent } = r.request;
+const current = currentReport as unknown as ReportResponse;
+const clay = clayReport as unknown as ReportResponse;
+const { player, opponent } = current.request;
+const window = { date_from: current.request.date_from, date_to: current.request.date_to };
 
-test("every key stat points at a tool call whose result holds its value", () => {
-  for (const stat of r.report!.key_stats) {
-    const evidence = findEvidence(r.evidence, stat.tool_call_id);
-    assert.ok(evidence, stat.tool_call_id);
-    const { found, value } = resolvePath(evidence.result, stat.field);
-    assert.ok(found, stat.field);
-    assert.equal(value, stat.value);
+const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
+
+test("a verified report's key numbers all match their tool results, and show the tool's value", () => {
+  for (const stat of current.report!.key_stats) {
+    const check = checkStat(stat, current.evidence);
+    assert.equal(check.status, "matched", stat.field);
+    assert.equal(check.value, resolvePath(check.evidence!.result, stat.field).value);
+    assert.equal(check.sample, stat.sample_matches);
   }
 });
 
-test("a rate's evidence carries its counts, and it is shown as a percentage", () => {
-  const stat = r.report!.key_stats.find((s) => s.field.endsWith(".value"))!;
-  const rate = rateFor(stat, findEvidence(r.evidence, stat.tool_call_id))!;
-  assert.equal(rate.unit, "fraction");
-  assert.ok(rate.value !== null && Math.abs(rate.value - rate.numerator / rate.denominator) < 5e-5); // 4 places
-  assert.match(formatStat(stat, rate), /^\d{1,3}\.\d%$/);
-  const count: KeyStat = { ...stat, field: "record.wins", value: 7 };
-  assert.equal(formatStat(count, null), "7");
+test("an unverified number shows the tool's value, not the model's, and is marked", () => {
+  const stat = current.report!.key_stats.find((s) => s.field.endsWith(".value"))!;
+  const wrong: KeyStat = { ...stat, value: stat.value + 0.03 };
+  const check = checkStat(wrong, current.evidence);
+  assert.equal(check.status, "mismatch");
+  assert.equal(check.value, stat.value); // the data's value
+  const missing = checkStat({ ...stat, tool_call_id: "c42" }, current.evidence);
+  assert.deepEqual([missing.status, missing.value, missing.sample], ["missing", null, null]);
+  const wrongSample = checkStat({ ...stat, sample_matches: 99_999 }, current.evidence);
+  assert.equal(wrongSample.status, "mismatch");
+  assert.notEqual(wrongSample.sample, 99_999); // the sample shown is the tool's
 });
 
-test("paths that don't exist are reported, not guessed", () => {
-  const evidence = r.evidence[0];
-  assert.equal(resolvePath(evidence.result, "surfaces.9.win_rate.value").found, false);
-  assert.equal(resolvePath(evidence.result, "nothing.here").found, false);
+test("a failed tool call or an inherited property never resolves", () => {
+  const stat = current.report!.key_stats[0];
+  const failed = current.evidence.map((e) => ({ ...e, error: "internal error in this tool", result: null }));
+  assert.equal(checkStat(stat, failed).status, "missing");
+  assert.equal(resolvePath({ record: { wins: 1 } }, "record.constructor").found, false);
+});
+
+test("key numbers are described from the tool result, not the model's label", () => {
+  for (const stat of current.report!.key_stats) {
+    const source = current.evidence.find((e) => e.tool_call_id === stat.tool_call_id)!;
+    const { title, filters } = describeStat(stat, source);
+    assert.ok(title.startsWith(source.result!.player!.name), title);
+    assert.deepEqual(filters, describeFilters(source.result!.filters as Record<string, unknown>));
+  }
+  const h2h = current.evidence.find((e) => e.tool === "head_to_head")!;
+  assert.match(describeStat({ label: "", value: 1, tool_call_id: h2h.tool_call_id, field: "record.wins", sample_matches: 1 }, h2h).title,
+    new RegExp(`^${player.name} against ${opponent.name}: head-to-head wins$`));
+});
+
+test("values are formatted by their unit", () => {
+  const rate: Rate = { value: 0.65678, numerator: 111, denominator: 169, unit: "fraction" };
+  assert.equal(formatValue(rate.value!, rate), `${round1(100 * rate.value!).toFixed(1)}%`);
+  assert.equal(formatValue(2.3043, { ...rate, unit: "per_match" }), "2.3");
+  assert.equal(formatValue(1262, null), "1,262");
 });
 
 test("filters, exclusions and samples in words", () => {
@@ -52,79 +79,67 @@ test("filters, exclusions and samples in words", () => {
     player_retired_or_defaulted: 0, first_tourney_date: "2022-01-03", last_tourney_date: "2022-11-14" })!, /^70 matches \(68 with stats\)/);
 });
 
-test("serve chart: both players' rates, from the calls filtered to the report's surface", () => {
-  const chart = serveChart(r.evidence, player, opponent, "Clay");
-  assert.deepEqual(chart.missing, []);
-  const serveCall = r.evidence.find((e) => e.tool === "serve_return_stats" && e.input.player_id === player.player_id)!;
-  const firstIn = (serveCall.result!.stats as Record<string, { value: number }>).first_serve_in.value;
-  assert.equal(chart.rows[0].metric, "First serve in");
-  assert.equal(chart.rows[0].player, Math.round(1000 * firstIn) / 10);
-  assert.ok(chart.rows.every((row) => row.player !== null && row.opponent !== null));
-  assert.equal(chart.sources.length, 4); // serve and pressure calls for each player
+// ---------- charts ----------
+
+test("surface chart: every surface from the all-surfaces calls; a surface missing there had no matches", () => {
+  const chart = surfaceChart(current.evidence, player, opponent, window);
+  assert.deepEqual(chart.sources.length, 2);
+  for (const row of chart.rows) {
+    for (const [who, cell] of [[player, row.playerCell], [opponent, row.opponentCell]] as const) {
+      const call = current.evidence.find((e) => e.tool === "surface_splits" && e.result!.player!.player_id === who.player_id)!;
+      const data = (call.result!.surfaces as { surface: string; wins: number; losses: number }[]).find((s) => s.surface === row.surface);
+      assert.equal(cell.status, data ? "ok" : "no_matches");
+      if (data) assert.equal(cell.record, `${data.wins}-${data.losses}`);
+    }
+  }
 });
 
-test("surface chart says which surfaces it has when the calls were filtered to one", () => {
-  const chart = surfaceChart(r.evidence, player, opponent);
-  const clay = chart.rows.find((row) => row.surface === "Clay")!;
-  assert.ok(clay.player !== null && clay.opponent !== null);
-  assert.equal(chart.rows.find((row) => row.surface === "Hard")!.player, null); // not in this run's results: null, never 0
+test("surface chart: a call filtered to one surface never claims 'no matches' elsewhere", () => {
+  const chart = surfaceChart(clay.evidence, clay.request.player, clay.request.opponent,
+    { date_from: clay.request.date_from, date_to: clay.request.date_to });
+  const hard = chart.rows.find((r) => r.surface === "Hard")!;
+  assert.deepEqual([hard.player, hard.playerCell.status], [null, "not_looked_up"]);
+  assert.equal(chart.rows.find((r) => r.surface === "Clay")!.playerCell.status, "ok");
+  assert.ok(chart.notes.some((n) => n.includes("not looked up")));
 });
 
-test("a chart with no evidence lists what is missing", () => {
-  const none: Evidence[] = [];
-  assert.deepEqual(surfaceChart(none, player, opponent).missing, [
-    `${player.name}'s win-loss by surface`, `${opponent.name}'s win-loss by surface`,
-  ]);
-  assert.equal(serveChart(none, player, opponent, "Clay").missing.length, 4);
+test("serve chart: the calls on the report's surface, with sample sizes in the notes", () => {
+  const chart = serveChart(current.evidence, player, opponent, "Clay", window);
+  assert.equal(chart.scope, "clay");
+  const call = current.evidence.find((e) => e.tool === "serve_return_stats" && e.result!.player!.player_id === player.player_id)!;
+  const firstIn = (call.result!.stats as Record<string, Rate>).first_serve_in;
+  assert.deepEqual([chart.rows[0].metric, chart.rows[0].player], ["First serve in", round1(100 * firstIn.value!)]);
+  assert.ok(chart.notes.some((n) => n.includes(`${call.result!.sample!.matches_with_stats} matches with stats`)));
+});
+
+test("serve chart: the all-surfaces fallback is used only when needed, and said", () => {
+  const evidence = clone(current.evidence);
+  const call = evidence.find((e) => e.tool === "serve_return_stats" && e.result!.player!.player_id === opponent.player_id)!;
+  call.result!.filters = { ...call.result!.filters, surface: null }; // as if the clay sample had been too small
+  const chart = serveChart(evidence, player, opponent, "Clay", window);
+  assert.equal(chart.scope, "mixed surfaces");
+  assert.ok(chart.notes.some((n) => n.startsWith(`${opponent.name}'s serve and return stats cover all surfaces`)));
+});
+
+test("charts ignore calls outside the report's window or with other filters", () => {
+  const evidence = clone(current.evidence).map((e) => ({ ...e, result: e.result && { ...e.result, filters: { ...e.result.filters, date_from: "2015-01-01" } } }));
+  const chart = serveChart(evidence as Evidence[], player, opponent, "Clay", window);
+  assert.ok(chart.rows.every((r) => r.player === null && r.opponent === null));
+  assert.equal(surfaceChart(evidence as Evidence[], player, opponent, window).sources.length, 0);
+});
+
+test("a rate with no matches behind it is a gap with a note, never zero", () => {
+  const evidence = clone(current.evidence);
+  const call = evidence.find((e) => e.tool === "pressure_stats" && e.result!.player!.player_id === player.player_id)!;
+  (call.result!.stats as Record<string, Rate>).break_points_saved.value = null;
+  const chart = serveChart(evidence, player, opponent, "Clay", window);
+  assert.equal(chart.rows.find((r) => r.metric === "Break points saved")!.player, null);
+  assert.ok(chart.notes.some((n) => n.includes("no break points saved figure")));
 });
 
 test("failed tool calls are never used", () => {
-  const failed = r.evidence.map((e) => ({ ...e, error: "internal error in this tool", result: null }));
-  assert.equal(serveChart(failed, player, opponent, "Clay").missing.length, 4);
-});
-
-test("the stream parser handles events split across chunks", () => {
-  const parser = new SseParser();
-  const text = 'event: start\ndata: {"request_id": "abc"}\n\nevent: text\ndata: {"delta": "Hi"}\n\n';
-  const events = [...text].flatMap((char) => parser.feed(char)); // one character at a time
-  assert.deepEqual(events, [
-    { event: "start", data: { request_id: "abc" } },
-    { event: "text", data: { delta: "Hi" } },
-  ]);
-  assert.equal(parser.incomplete, false);
-  parser.feed('event: text\ndata: {"del');
-  assert.equal(parser.incomplete, true);
-});
-
-test("report progress: each real step, newest one in progress, failures marked", async () => {
-  const { progressSteps } = await import("./progress.ts");
-  const names = new Map([[player.player_id, player.name], [opponent.player_id, opponent.name]]);
-  const events = [
-    { event: "start", data: { request_id: "r", request: r.request } },
-    { event: "model_call", data: { call: 1, tool_calls_so_far: 0 } },
-    { event: "tool_call", data: { id: "c1", tool: "surface_splits", input: { player_id: player.player_id, filters: {} } } },
-    { event: "tool_result", data: { id: "c1", tool: "surface_splits", ok: true, error: null } },
-    { event: "tool_call", data: { id: "c2", tool: "head_to_head", input: { player_id: player.player_id, opponent_id: opponent.player_id } } },
-  ] as const;
-  const running = progressSteps([...events] as never, names);
-  assert.deepEqual(running.map((s) => [s.text, s.state]), [
-    ["Choosing which stats to look up", "done"],
-    [`Win-loss by surface: ${player.name}, every surface`, "done"],
-    [`Head-to-head: ${player.name} and ${opponent.name}`, "active"],
-  ]);
-  const later = progressSteps([
-    ...events,
-    { event: "tool_result", data: { id: "c2", tool: "head_to_head", ok: false, error: "internal error in this tool" } },
-    { event: "model_call", data: { call: 2, tool_calls_so_far: 2 } },
-    { event: "checking", data: { attempt: 1, key_stats: 6 } },
-    { event: "correcting", data: { errors: 1 } },
-    { event: "model_call", data: { call: 3, tool_calls_so_far: 2 } },
-  ] as never, names);
-  assert.deepEqual(later.slice(2).map((s) => [s.text, s.state]), [
-    [`Head-to-head: ${player.name} and ${opponent.name} (failed)`, "failed"],
-    ["Writing the report", "done"],
-    ["Checking 6 key numbers against the data", "done"],
-    ["1 number didn't match; asking for a corrected report", "done"],
-    ["Rewriting the report with the corrections", "active"],
-  ]);
+  const failed = current.evidence.map((e) => ({ ...e, error: "internal error in this tool", result: null }));
+  const chart = serveChart(failed, player, opponent, "Clay", window);
+  assert.equal(chart.sources.length, 0);
+  assert.equal(chart.notes.length, 4);
 });

@@ -9,7 +9,12 @@ export class SseParser<E extends { event: string; data: unknown } = ChatEvent> {
 
   /** Add a chunk of text; returns the events it completed. */
   feed(chunk: string): E[] {
-    this.buffer += chunk.replace(/\r\n/g, "\n");
+    // Normalize CRLF and bare CR line endings; a CR at the end may be half of a CRLF split
+    // across chunks, so it waits for the next chunk.
+    this.buffer += chunk;
+    const holdCr = this.buffer.endsWith("\r");
+    const text = (holdCr ? this.buffer.slice(0, -1) : this.buffer).replace(/\r\n?/g, "\n");
+    this.buffer = holdCr ? `${text}\r` : text;
     const events: E[] = [];
     let end: number;
     while ((end = this.buffer.indexOf("\n\n")) !== -1) {
@@ -19,6 +24,12 @@ export class SseParser<E extends { event: string; data: unknown } = ChatEvent> {
       if (event) events.push(event);
     }
     return events;
+  }
+
+  /** Call when the stream ends: a CR held back in case an LF followed is a line ending after all. */
+  finish(): E[] {
+    if (this.buffer.endsWith("\r")) this.buffer = `${this.buffer.slice(0, -1)}\n`;
+    return this.feed("");
   }
 
   /** True if the stream ended partway through an event. */

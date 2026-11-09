@@ -8,9 +8,9 @@ question, which also keeps the rule that every number comes from a tool result i
 
 from __future__ import annotations
 
-import json
 import logging
 import time
+from contextlib import closing
 from collections.abc import Callable, Iterator
 from typing import Any
 
@@ -20,6 +20,7 @@ import psycopg
 from api import stats
 from api.agent import OUTCOME_MESSAGES, Limits, Run, Settings, run_loop, system_prompt
 from api.logs import log_event
+from api.streaming import HEARTBEAT_S, sse
 
 MAX_MESSAGES = 21  # ten exchanges plus the new question
 MAX_MESSAGE_CHARS = 4_000
@@ -62,10 +63,6 @@ def validate_history(messages: Any) -> list[dict[str, str]]:
     return history
 
 
-def sse(event: str, data: dict[str, Any]) -> str:
-    return f"event: {event}\ndata: {json.dumps(data, default=str)}\n\n"
-
-
 def chat_events(
     client: anthropic.Anthropic,
     connect: Callable[[], psycopg.Connection],
@@ -90,12 +87,23 @@ def chat_events(
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
     try:
-        for event, data in run_loop(client, conn, settings, run, chat_system_prompt(conn), limits, clock=clock):
-            yield sse(event, data)
+        loop = run_loop(client, conn, settings, run, chat_system_prompt(conn), limits, clock=clock, heartbeat_s=HEARTBEAT_S)
+        with closing(loop):  # closing it ends the model's HTTP stream right away
+            for event, data in loop:
+                yield sse(event, data)
+    except GeneratorExit:  # the client went away; the model stream closes with the loop
+        log_event("request_end", logging.WARNING, request_id=run.request_id, endpoint="/chat",
+                  status="client_disconnected", **run.summary())  # fmt: skip
+        raise
     except anthropic.APIError as e:
         kind, message = api_error(e)
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status=kind, **run.summary())
         yield sse("error", {"kind": kind, "message": message})
+        return
+    except Exception as e:  # noqa: BLE001 - reported to the client and logged by type, never hidden
+        log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status="internal_error",
+                  error_type=type(e).__name__, **run.summary())  # fmt: skip
+        yield sse("error", {"kind": "internal_error", "message": "The answer failed on the server. Try again."})
         return
     finally:
         conn.close()

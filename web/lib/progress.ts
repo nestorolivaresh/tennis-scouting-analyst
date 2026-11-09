@@ -14,10 +14,15 @@ export function progressSteps(events: ReportEvent[], names: Map<number, string>)
   for (const e of events) {
     if (e.event === "tool_result") results.set(e.data.id, e.data.ok);
   }
-  for (const e of events) {
+  events.forEach((e, i) => {
     if (e.event === "model_call") {
-      if (e.data.call === 1) steps.push({ key: "plan", text: "Choosing which stats to look up", state: "done" });
-      else steps.push({ key: `write-${e.data.call}`, text: corrected ? "Rewriting the report with the corrections" : "Writing the report", state: "done" });
+      // What this call did shows in what follows it: more lookups, or the report.
+      const next = events[i + 1];
+      const looksUpMore = next?.event === "tool_call";
+      const text = e.data.call === 1 ? "Choosing which stats to look up"
+        : looksUpMore ? "Choosing more stats to look up"
+        : corrected ? "Rewriting the report with the corrections" : "Writing the report";
+      steps.push({ key: `model-${e.data.call}`, text, state: "done" });
     } else if (e.event === "tool_call") {
       const ok = results.get(e.data.id);
       steps.push({
@@ -32,7 +37,7 @@ export function progressSteps(events: ReportEvent[], names: Map<number, string>)
       const n = e.data.errors;
       steps.push({ key: "correct", text: `${n} ${n === 1 ? "number didn't" : "numbers didn't"} match; asking for a corrected report`, state: "done" });
     }
-  }
+  });
   // The newest step is the one in progress, unless it's a lookup that has already returned.
   const last = steps[steps.length - 1];
   if (last && !results.has(last.key)) last.state = "active";

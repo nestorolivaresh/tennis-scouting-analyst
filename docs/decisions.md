@@ -340,6 +340,9 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
+- Milestone 6: the per-IP rate limit must read the client address from the proxy's
+  `X-Forwarded-For` (the API sees the Next.js server as the client), and any proxy in front of
+  the API must allow at least 90 seconds of idle time on the two streams (D-024).
 - Evals: H04 varies between runs (D-023). Options: return each head-to-head score from the
   asked player's side as well as the winner's, so the model never rewrites one; run each
   question several times and report a pass rate. Decide before Milestone 7's case study.
@@ -561,7 +564,9 @@ the Milestone 4 evals (spec).
   `error`. The report's text is never sent before it has been checked. `POST /report` runs the
   same code and returns only the last event.
 - **Streams are marked `Cache-Control: no-cache, no-transform` and `X-Accel-Buffering: no`**,
-  so a proxy doesn't compress or hold them (D-024).
+  so a proxy doesn't compress or hold them, and send a `: keep-alive` comment every 10 seconds
+  while a model call streams. A client that goes away stops the stream after the step in
+  progress, and the request is logged as `client_disconnected` (D-024).
 - **Chat events:** `start` (request ID), `tool_call` and `tool_result` (with the call's short
   `id`, as in reports), `text` (deltas), then `done` (outcome, usage, cost) or `error`. Log
   lines carry both the short `tool_call_id` and the API's `tool_use_id`.
@@ -797,15 +802,22 @@ library. The two typefaces (Archivo, Newsreader) come through `next/font`, which
 at build time and serves them from the app.
 
 **The key stays on the server.** The browser only talks to the Next.js server, which forwards
-`/api/*` to FastAPI (`next.config.ts` rewrites; `API_URL`, default `http://127.0.0.1:8000`, is
-an address, not a secret). The Anthropic key never leaves FastAPI.
+exactly three routes to FastAPI: `players/search`, `report/stream` and `chat`
+(`next.config.ts`; `API_URL`, default `http://127.0.0.1:8000`, is an address, not a secret).
+The API's docs and `POST /report` aren't reachable through the app. The Anthropic key never
+leaves FastAPI.
 
-**Every number on screen comes from the run's tool results** (spec core rule). The key
-numbers are the ones the grounding check matched (D-018); both charts are built from the
-report's evidence in `web/lib/evidence.ts`, not from the model's text. When the evidence a
-chart needs is missing, the chart leaves a gap and says what's missing; it never shows 0.
-Opening a key number shows its tool call, filters, sample, exclusions, and the exact field
-with its counts (for example `stats.break_points_saved.value = 0.6568 (111 of 169)`).
+**Every number on screen comes from the run's tool results** (spec core rule), in
+`web/lib/evidence.ts`. Each key number's value, sample and title are read from the tool result
+it cites, never from the model's JSON; the model's figure appears only when it differs, as a
+warning ("Didn't match the data: the report said 0.62"), and a number whose call or field is
+missing is shown as not available. Opening one shows its tool call, filters, sample, exclusions,
+and the exact field with its counts (for example `stats.break_points_saved.value = 0.6568 (111
+of 169)`). Both charts pick calls by what the tool actually used (the result's player, filters
+and the report's date window), not by the model's request. A gap is never drawn as zero, and a
+note says why: no matches on that surface, not looked up in this report, or no matches with
+stats; the serve chart says when a player's numbers cover all surfaces (the small-sample
+fallback) and how many matches each rests on.
 
 **Report prompt change for the surface chart.** The report used to call `surface_splits`
 filtered to the report's surface, so the chart had only one surface. It now calls it for every
@@ -823,10 +835,13 @@ opponent in clay red, so colour always means the same person. Match setup reads 
 "Scout [opponent] for [player] on [surface]". One accent, optic yellow, marks the key number
 whose evidence is open.
 
-**Checks.** `npm --prefix web test` runs 9 tests with Node's own test runner (Node strips the
-TypeScript types; no test library) on a real `/report` response: every key stat resolves to its
-tool result, rates show their counts, missing or failed evidence is reported, and the stream
-parser handles events split across chunks. `next build` type-checks. The full flow was checked
+**Checks.** `npm --prefix web test` runs 19 tests with Node's own test runner (Node strips the
+TypeScript types; no test library) on two real `/report` responses (one from before the
+all-surfaces change, one after): key numbers from the evidence, including a mismatch and a
+missing call; titles from the tool result; both charts' call selection, fallback, gaps and
+notes; the stream parser (split chunks, CRLF and CR, comments); the report client against a
+stand-in `fetch` (progress, an `error` event, a cut stream, a 4xx); the progress steps; and the
+chat history (alternation, limits, cut-off answers left out). `next build` type-checks. The full flow was checked
 by hand in a browser on 2026-11-09: player search and selection, a live report, the charts,
 the evidence view, a streamed chat answer with its tool lookups, a 375-pixel-wide phone
 layout with no sideways scrolling, and labelled inputs.
@@ -847,5 +862,36 @@ Checked in the browser: the report's steps appeared as they happened (the first 
 nine lookups by 7 seconds), then the verified report (Medvedev for Zverev on hard, 9 tool
 calls, 18.1 seconds, about $0.028 with the prompt cache warm).
 
+**Revised after an independent review (2026-11-09).** A review agent found 16 problems; all
+are fixed:
+- Key numbers on an unverified report showed the model's own values and samples; the charts
+  could say "no matches" for surfaces never looked up, and picked calls by the model's raw
+  input. Both now read the tool results as above.
+- The Next.js proxy closes a response after 30 seconds of silence, and the report stream is
+  silent while the model writes. `experimental.proxyTimeout` is now 90 seconds, above the
+  agent's 60-second limit, and both streams send a `: keep-alive` comment every 10 seconds
+  while a model call streams. Checked with a stand-in API silent for 35 seconds: the event
+  arrived through the proxy at 35.0 s.
+- When the browser went away, the open model stream and the database connection were held
+  until garbage collection, and nothing was logged. `api/streaming.py` now closes the stream's
+  generator as soon as the client stops reading (after the step in progress, for a model call
+  that is already running), which closes the model's HTTP stream and the connection and logs
+  `request_end` with status `client_disconnected` and the tokens spent. Unexpected errors after
+  a stream opens now end it with an `error` event and a log line; a model error's line includes
+  the tokens and cost.
+- The app had no credits footer, which the spec, D-001, D-013 and the CC BY-NC-SA licence
+  require. It now credits both sources and points to `DATA_LICENSE.md`.
+- A finished report cleared the chat; now the conversation stays and a note marks the change.
+  Cut-off answers are no longer sent back to the model as if complete. The chat no longer
+  claims its numbers are checked.
+- Accessibility: the progress timer no longer re-announces every second (only new steps are
+  announced); the player picker closes on blur, reopens with the down arrow, announces how many
+  players match, and marks the keyboard choice with a bar in ink; field borders meet 3:1; the
+  charts' empty tab stops are gone; chat answers are announced once finished.
+- Smaller: the date line no longer claims every number is from the two-year window; progress
+  says "Choosing more stats to look up" when a model call asks for more; inherited properties
+  never resolve as fields; React keys are unique; the stream reader is released on errors.
+
 **Not done.** No automated browser test (Playwright would be a new dependency; ask first). No
-dark mode.
+dark mode. Keep-alives depend on the model API sending events while it thinks; the 90-second
+proxy timeout covers the case where it doesn't.

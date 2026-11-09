@@ -6,6 +6,7 @@
 
 import { Charts } from "./Charts.tsx";
 import { KeyNumbers } from "./KeyNumbers.tsx";
+import { checkStat } from "@/lib/evidence.ts";
 import type { ReportResponse } from "@/lib/types.ts";
 
 export function ReportView({ data }: { data: ReportResponse }) {
@@ -24,35 +25,33 @@ export function ReportView({ data }: { data: ReportResponse }) {
           <div className="matchup">
             <section>
               <h3 className="who-opponent">What {opponent.name} does well</h3>
-              <ul className="prose">{report.strengths.map((s) => <li key={s}>{s}</li>)}</ul>
+              <ul className="prose">{report.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
             </section>
             <section>
               <h3 className="who-opponent">Where {opponent.name} is open</h3>
-              <ul className="prose">{report.weaknesses.map((s) => <li key={s}>{s}</li>)}</ul>
+              <ul className="prose">{report.weaknesses.map((s, i) => <li key={i}>{s}</li>)}</ul>
             </section>
           </div>
 
           <section className="section plan">
             <h3 className="who-player">Game plan for {player.name}</h3>
-            <ul className="prose">{report.game_plan.map((s) => <li key={s}>{s}</li>)}</ul>
+            <ul className="prose">{report.game_plan.map((s, i) => <li key={i}>{s}</li>)}</ul>
           </section>
 
           <section className="section">
-            <Charts evidence={evidence} player={player} opponent={opponent} surface={surface} />
+            <Charts evidence={evidence} player={player} opponent={opponent} surface={surface} window={request} />
           </section>
 
           <section className="section">
             <h2>Key numbers</h2>
-            <p className="hint">
-              Tournaments starting {request.date_from} to {request.date_to}. Open a number to see the data behind it.
-            </p>
+            <p className="hint">Each number is read from the tool result it cites. Open one to see the tool, filters and sample behind it.</p>
             <KeyNumbers stats={report.key_stats} evidence={evidence} />
           </section>
 
           {report.data_caveats.length > 0 && (
             <section className="section caveats">
               <h3>About the data</h3>
-              <ul>{report.data_caveats.map((s) => <li key={s}>{s}</li>)}</ul>
+              <ul>{report.data_caveats.map((s, i) => <li key={i}>{s}</li>)}</ul>
             </section>
           )}
         </>
@@ -77,8 +76,11 @@ function Status({ data }: { data: ReportResponse }) {
   if (data.status === "unverified") {
     return (
       <div className="status" data-kind="unverified" role="alert">
-        <strong>Some key numbers didn't match the stats data, so treat this report with care.</strong>
-        <ul>{data.grounding.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+        <strong>
+          {failing(data)} of {data.report?.key_stats.length ?? 0} key numbers didn't match the stats data. They're marked
+          below, and the report's text may repeat them, so treat it with care.
+        </strong>
+        <ul>{data.grounding.errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
       </div>
     );
   }
@@ -87,4 +89,8 @@ function Status({ data }: { data: ReportResponse }) {
       <strong>The report couldn't be finished.</strong> {data.message ?? ""} Try again, or ask about the matchup in the chat.
     </div>
   );
+}
+
+function failing(data: ReportResponse): number {
+  return (data.report?.key_stats ?? []).filter((stat) => checkStat(stat, data.evidence).status !== "matched").length;
 }

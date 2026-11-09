@@ -224,3 +224,19 @@ def test_tool_schemas_match_the_stats_functions():
     for tool in agent.TOOLS:
         params = list(inspect.signature(getattr(stats, tool["name"])).parameters)[1:]  # after conn
         assert set(tool["input_schema"]["properties"]) == set(params), tool["name"]
+
+
+def test_heartbeats_while_a_quiet_model_call_streams(conn):
+    """With structured output nothing is streamed to the client during a model call; the loop
+    sends a heartbeat when heartbeat_s passes, so a proxy keeps the connection open."""
+    clock = Clock()
+
+    def tick():
+        clock.now += 4  # four seconds per streamed block
+
+    client = FakeClient([message(text("a"), text("b"), text("c"))], on_event=tick)
+    run = Run(model=SETTINGS.model, messages=[{"role": "user", "content": "q"}], started=clock())
+    fmt = {"type": "json_schema", "schema": {"type": "object"}}
+    names = [e for e, _ in run_loop(client, conn, SETTINGS, run, "s", Limits(), fmt, clock=clock, heartbeat_s=5)]
+    assert names == ["heartbeat"]  # after 8 seconds quiet; the third block comes 4 seconds later
+    assert run.outcome == "completed"

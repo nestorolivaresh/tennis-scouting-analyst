@@ -48,10 +48,14 @@ export async function streamChat(
   if (!response.ok || !response.body) throw await failure(response);
   const parser = new SseParser();
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    for (const event of parser.feed(value)) onEvent(event);
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      for (const event of done ? parser.finish() : parser.feed(value)) onEvent(event);
+      if (done) break;
+    }
+  } finally {
+    reader.cancel().catch(() => {}); // releases the connection if we stopped early
   }
   if (parser.incomplete) {
     onEvent({ event: "error", data: { kind: "stream_cut", message: "The answer stopped partway. Try asking again." } });
@@ -75,14 +79,18 @@ export async function streamReport(
   const parser = new SseParser<ReportEvent>();
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let result: ReportResponse | null = null;
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    for (const event of parser.feed(value)) {
-      if (event.event === "report") result = event.data;
-      else if (event.event === "error") throw new ApiFailure(event.data.kind, event.data.message, 200);
-      else onEvent(event);
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      for (const event of done ? parser.finish() : parser.feed(value)) {
+        if (event.event === "report") result = event.data;
+        else if (event.event === "error") throw new ApiFailure(event.data.kind, event.data.message, 200);
+        else onEvent(event);
+      }
+      if (done) break;
     }
+  } finally {
+    reader.cancel().catch(() => {}); // releases the connection if we stopped early
   }
   if (!result) throw new ApiFailure("stream_cut", "The report stopped before it finished. Try again.", 200);
   return result;

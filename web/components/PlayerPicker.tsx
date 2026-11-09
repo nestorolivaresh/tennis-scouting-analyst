@@ -74,10 +74,10 @@ export function PlayerPicker({ side, label, placeholder, value, onChange }: Prop
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowDown" && candidates.length) {
+    if (event.key === "ArrowDown") {
       event.preventDefault();
-      setOpen(true);
-      setActive((i) => Math.min(i + 1, candidates.length - 1));
+      if (!open) setOpen(true); // reopens the list after Escape
+      else if (candidates.length) setActive((i) => Math.min(i + 1, candidates.length - 1));
     } else if (event.key === "ArrowUp" && candidates.length) {
       event.preventDefault();
       setActive((i) => Math.max(i - 1, 0));
@@ -98,8 +98,8 @@ export function PlayerPicker({ side, label, placeholder, value, onChange }: Prop
       <input
         id={`${listId}-input`}
         role="combobox"
-        aria-expanded={showList}
-        aria-controls={listId}
+        aria-expanded={showList && candidates.length > 0}
+        aria-controls={showList && candidates.length > 0 ? listId : undefined}
         aria-autocomplete="list"
         aria-activedescendant={showList && candidates[active] ? `${listId}-${active}` : undefined}
         autoComplete="off"
@@ -113,21 +113,22 @@ export function PlayerPicker({ side, label, placeholder, value, onChange }: Prop
           if (value) onChange(null);
         }}
         onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
         onKeyDown={onKeyDown}
       />
-      {showList && (
+      <span className="visually-hidden" role="status">{statusText(lookup, text)}</span>
+      {showList && lookup.state !== "done" && (
+        <div className={`picker-list picker-note${lookup.state === "error" ? " error-text" : ""}`} aria-hidden="true">
+          {lookup.state === "error" ? lookup.message : "Searching…"}
+        </div>
+      )}
+      {showList && lookup.state === "done" && !candidates.length && (
+        <div className="picker-list picker-note" aria-hidden="true">
+          No ATP player in the data matches “{text.trim()}”. Check the spelling, or try the last name.
+        </div>
+      )}
+      {showList && candidates.length > 0 && (
         <ul className="picker-list" id={listId} role="listbox" aria-label={`${label} matches`}>
-          {lookup.state === "loading" && <li className="picker-note" role="presentation">Searching…</li>}
-          {lookup.state === "error" && (
-            <li className="picker-note error-text" role="presentation">
-              {lookup.message}
-            </li>
-          )}
-          {lookup.state === "done" && !candidates.length && (
-            <li className="picker-note" role="presentation">
-              No ATP player in the data matches “{text.trim()}”. Check the spelling, or try the last name.
-            </li>
-          )}
           {candidates.map((c, i) => (
             <li
               key={c.player_id}
@@ -149,13 +150,18 @@ export function PlayerPicker({ side, label, placeholder, value, onChange }: Prop
               </div>
             </li>
           ))}
-          {lookup.state === "done" && lookup.more && (
-            <li className="picker-note" role="presentation">
-              More players match. Type more of the name to narrow it down.
-            </li>
-          )}
         </ul>
       )}
     </span>
   );
+}
+
+/** What a screen reader hears as the search runs: the state, and how many players match. */
+function statusText(lookup: Lookup, text: string): string {
+  if (lookup.state === "loading") return "Searching";
+  if (lookup.state === "error") return lookup.message;
+  if (lookup.state !== "done") return "";
+  if (!lookup.candidates.length) return `No player matches ${text.trim()}`;
+  const n = lookup.candidates.length;
+  return `${n} ${n === 1 ? "player matches" : "players match"}${lookup.more ? ", and more: type more of the name" : ""}. Use the arrow keys to choose.`;
 }
