@@ -308,8 +308,8 @@ here so no eval result overclaims:
 **Chosen.** The repo states its terms instead of waiting for permission. `DATA_LICENSE.md` and
 the README credit both sources, say the project is non-commercial (no ads, payments or paid
 features), say that raw data isn't included, list the changes made to the data, share derived
-data under CC BY-NC-SA 4.0 (Sackmann's ShareAlike clause requires it), and say how to ask for
-a correction or removal. Committed files contain no player birth dates: the player ID files
+data under CC BY-NC-SA 4.0 (Sackmann's ShareAlike clause requires it; what comes from
+TennisMyLife stays under its own terms), and say how to ask for a correction or removal. Committed files contain no player birth dates: the player ID files
 keep only IDs, matching methods and review decisions, and the review tool prints names and
 birth dates locally from the gitignored raw files. Test fixtures use made-up birth dates.
 `ingest/tests/test_no_birth_dates.py` fails if any real birth date from the raw player files

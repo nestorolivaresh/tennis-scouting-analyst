@@ -21,13 +21,18 @@ redistributing the raw CSV files.
 
 - **No raw data.** `ingest/download.py` downloads the source files into `data/`, which is not
   committed. Anyone who downloads them uses them under the original terms above.
-- **Data derived from the sources**, shared under
-  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) as Sackmann's license
-  requires, with the same attribution:
+- **Data derived from the sources**, for non-commercial use only and with the same attribution:
   - `docs/data-audit.md` and `docs/quality-report.md` (counts and summaries);
   - `ingest/player_merges.csv`, `ingest/player_crosswalk.csv` and `ingest/player_review.csv`
     (player IDs, matching methods and review decisions);
-  - eval questions and results, when they are added.
+  - `web/lib/fixtures/` (example app responses, with match results and stats);
+  - `evals/cases.py` and `evals/results/` (eval questions and results).
+
+  What comes from Sackmann's data is shared under
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), as his license requires.
+  What comes from the TennisMyLife data stays under TennisMyLife's terms above and isn't
+  relicensed here. That covers the TennisMyLife IDs in `ingest/player_crosswalk.csv`, and the
+  2026 matches in the summaries and fixtures.
 - **Changes made to the data.** The project reshapes matches to one row per player,
   normalizes tournament levels, merges duplicate player IDs, removes stats that fail sanity
   checks, and maps TennisMyLife players to Sackmann IDs. `docs/decisions.md` explains each
