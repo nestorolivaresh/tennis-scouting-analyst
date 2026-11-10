@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
-// The browser talks only to this Next.js server; it forwards the three routes the app uses to
+// The browser talks only to this Next.js server; it forwards the four routes the app uses to
 // the FastAPI service, which holds the Anthropic key (spec: the API key stays on the server).
 // Nothing else on the API (its docs, POST /report) is reachable through this app. API_URL is
 // the FastAPI address, not a secret.
 const apiUrl = process.env.API_URL ?? "http://127.0.0.1:8000";
-const ROUTES = ["players/search", "report/stream", "chat"];
+const ROUTES = ["players/search", "players/:id/stats", "report/stream", "chat"];
 
 const config: NextConfig = {
   turbopack: { root: import.meta.dirname }, // this folder, not a lockfile further up

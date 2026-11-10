@@ -20,7 +20,7 @@ from fastapi import Depends, FastAPI, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from api import chat, report, spend, stats
+from api import chat, player_stats, report, spend, stats
 from api.agent import Settings
 from api.db import connect, connect_usage
 from api.logs import configure, log_event
@@ -186,6 +186,24 @@ def health(request: Request, settings: Settings = Depends(get_settings), connect
 def players_search(q: str = Query(...), conn=Depends(get_conn)) -> dict[str, Any]:
     """Autocomplete, with no model call."""
     return stats.search_players(conn, q)
+
+
+# The data only changes on a reload, and the body depends only on the URL. Only a 200 carries
+# this: errors come from the exception handlers, so a failure is never cached.
+PLAYER_STATS_HEADERS = {"Cache-Control": "public, max-age=300, s-maxage=3600"}
+
+
+@app.get("/players/{player_id}/stats")
+def get_player_stats(
+    player_id: str,
+    surface: str | None = Query(None),
+    season: str | None = Query(None),
+    opponent_id: str | None = Query(None),
+    conn=Depends(get_conn),
+) -> JSONResponse:
+    """The player stats page, with no model call. Parameters are text so the stats layer's own
+    validation answers bad input, with the app's error body."""
+    return JSONResponse(player_stats.compose(conn, player_id, surface, season, opponent_id), headers=PLAYER_STATS_HEADERS)
 
 
 def reserve_budget(endpoint: str, request: Request, settings: Settings, connect_log) -> Callable[[str, dict[str, Any]], None]:
