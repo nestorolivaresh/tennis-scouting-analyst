@@ -12,7 +12,7 @@ import logging
 import time
 import uuid
 from collections.abc import Callable, Iterator
-from typing import Any
+from typing import Any, Literal
 
 import anthropic
 import psycopg
@@ -219,10 +219,15 @@ def reserve_budget(endpoint: str, request: Request, settings: Settings, connect_
     return lambda status, summary: spend.settle(connect_log, request_id, status, summary)
 
 
+# The languages the app is shown in (D-027). Anything else is refused before a model call.
+Language = Literal["en", "es", "fr"]
+
+
 class ReportRequest(BaseModel):
     player_id: int
     opponent_id: int
     surface: str
+    language: Language = "en"
 
 
 @app.post("/report")
@@ -234,7 +239,7 @@ def post_report(
     conn=Depends(get_conn),
     connect_log=Depends(get_usage_connect),
 ) -> JSONResponse:
-    req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface)  # bad input costs nothing
+    req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface, body.language)  # bad input costs nothing
     on_end = reserve_budget("/report", request, settings, connect_log)
     result = report.run_report(client, conn, settings, req, request_id=request.state.request_id, on_end=on_end)
     # A report that didn't finish within the limits is the model's failure to deliver, not the
@@ -255,7 +260,7 @@ def post_report_stream(
     budget get their status before the stream opens."""
     conn = connect_db()
     try:
-        req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface)
+        req = report.prepare_report(conn, body.player_id, body.opponent_id, body.surface, body.language)
     finally:
         conn.close()
     on_end = reserve_budget("/report/stream", request, settings, connect_log)
@@ -270,6 +275,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
+    language: Language = "en"
 
 
 @app.post("/chat")
@@ -283,5 +289,6 @@ def post_chat(
 ) -> StreamingResponse:
     history = chat.validate_history([m.model_dump() for m in body.messages])  # before the stream opens
     on_end = reserve_budget("/chat", request, settings, connect_log)
-    events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id, on_end=on_end)
+    events = chat.chat_events(client, connect_db, settings, history, request_id=request.state.request_id, on_end=on_end,
+                              language=body.language)  # fmt: skip
     return StreamingResponse(close_on_disconnect(events), media_type="text/event-stream", headers=STREAM_HEADERS)

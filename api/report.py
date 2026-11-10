@@ -55,7 +55,27 @@ REPORT_SCHEMA = {
 OUTPUT_FORMAT = {"type": "json_schema", "schema": REPORT_SCHEMA}
 
 
-def report_prompt(player: dict, opponent: dict, surface: str, date_from: str, date_to: str) -> str:
+# The visitor's language (D-027). English adds nothing, so the English prompt, and the evals
+# behind it, stay exactly as they were. key_stats are checked against tool results, so they
+# stay in the format the grounding check reads.
+REPORT_LANGUAGE_RULES = {
+    "es": (
+        "\n\nWrite summary, strengths, weaknesses, game_plan and data_caveats in Spanish: neutral Spanish for a "
+        "coach in Spain or Latin America, addressing the coach as tú. In that text, use a decimal comma and a "
+        "space before the percent sign (61,6 %; 4,5 aces per match), and write dates as 5 de abril de 2026 or "
+        "abril de 2026. Keep player and tournament names as the tool results give them. key_stats stay exactly "
+        "as described above."
+    ),
+    "fr": (
+        "\n\nWrite summary, strengths, weaknesses, game_plan and data_caveats in French, addressing the coach as "
+        "vous. In that text, use a decimal comma and a space before the percent sign (61,6 %; 4,5 aces par "
+        "match), and write dates as 5 avril 2026 or avril 2026. Keep player and tournament names as the tool "
+        "results give them. key_stats stay exactly as described above."
+    ),
+}
+
+
+def report_prompt(player: dict, opponent: dict, surface: str, date_from: str, date_to: str, language: str = "en") -> str:
     p, o = player["player"], opponent["player"]
     return f"""Write a scouting report for the coach of {p["name"]} (player_id {p["player_id"]}), who is
 preparing to play {o["name"]} (player_id {o["player_id"]}) on {surface}.
@@ -88,7 +108,7 @@ Write the report:
 In the text (every field except key_stats), write rates as percentages with one decimal,
 per-match averages with one decimal (4.5, not 4.5312), and dates in words (5 April 2026, or
 April 2026 for a month; never 2026-04-05 or 2026-04). Include only numbers that appear in tool
-results, rounded as above."""
+results, rounded as above.""" + REPORT_LANGUAGE_RULES.get(language, "")
 
 
 def two_years_before(day: dt.date) -> dt.date:
@@ -109,13 +129,14 @@ class CheckedRequest:
     window: dict[str, Any]
     date_from: str
     date_to: str
+    language: str = "en"  # the visitor's language for the report's text (D-027)
 
     def public(self) -> dict[str, Any]:
         return {"player": self.player["player"], "opponent": self.opponent["player"], "surface": self.surface,
                 "date_from": self.date_from, "date_to": self.date_to}  # fmt: skip
 
 
-def prepare_report(conn: psycopg.Connection, player_id: Any, opponent_id: Any, surface: Any) -> CheckedRequest:
+def prepare_report(conn: psycopg.Connection, player_id: Any, opponent_id: Any, surface: Any, language: str = "en") -> CheckedRequest:
     """Check the request before any model call. Bad input raises ToolInputError; an unknown
     player raises PlayerNotFound."""
     pid, oid = stats.parse_player_id(player_id), stats.parse_player_id(opponent_id, "opponent_id")
@@ -131,7 +152,7 @@ def prepare_report(conn: psycopg.Connection, player_id: Any, opponent_id: Any, s
         raise stats.PlayerNotFound(f"no player with opponent_id {oid}") from None
     window = stats.data_window(conn)
     date_to = dt.date.fromisoformat(window["last_tourney_date"])
-    return CheckedRequest(player, opponent, surface, window, two_years_before(date_to).isoformat(), date_to.isoformat())
+    return CheckedRequest(player, opponent, surface, window, two_years_before(date_to).isoformat(), date_to.isoformat(), language)
 
 
 def report_events(
@@ -154,12 +175,12 @@ def report_events(
     has been checked. `on_end(status, summary)` is called once when the request ends, however
     it ends (api/spend.py)."""
     run = Run(model=settings.model, messages=[{"role": "user", "content": report_prompt(
-        req.player, req.opponent, req.surface, req.date_from, req.date_to)}], started=clock())  # fmt: skip
+        req.player, req.opponent, req.surface, req.date_from, req.date_to, req.language)}], started=clock())  # fmt: skip
     if request_id:
         run.request_id = request_id
     log_event(
         "report_start", request_id=run.request_id, player_id=req.player["player"]["player_id"],
-        opponent_id=req.opponent["player"]["player_id"], surface=req.surface, endpoint=endpoint,
+        opponent_id=req.opponent["player"]["player_id"], surface=req.surface, language=req.language, endpoint=endpoint,
     )  # fmt: skip
     try:
         yield "start", {"request_id": run.request_id, "request": req.public()}

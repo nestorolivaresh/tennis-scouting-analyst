@@ -35,9 +35,22 @@ one that appeared earlier in the conversation. If the user asks about part of a 
 as one year of a head-to-head, call the tool again with those dates and quote its record."""
 
 
-def chat_system_prompt(conn: psycopg.Connection) -> str:
+# The visitor's language (D-027). English adds nothing, so the evals' prompt is unchanged.
+CHAT_LANGUAGE_RULES = {
+    "es": (
+        "\n\nAnswer in Spanish, addressing the user as tú, unless they write in another language. Use a "
+        "decimal comma and a space before the percent sign (61,6 %), and write dates as 5 de abril de 2026."
+    ),
+    "fr": (
+        "\n\nAnswer in French, addressing the user as vous, unless they write in another language. Use a "
+        "decimal comma and a space before the percent sign (61,6 %), and write dates as 5 avril 2026."
+    ),
+}
+
+
+def chat_system_prompt(conn: psycopg.Connection, language: str = "en") -> str:
     """The system prompt for chat, shared with the eval runner so the evals test this path."""
-    return system_prompt(stats.data_window(conn)) + CHAT_RULES
+    return system_prompt(stats.data_window(conn)) + CHAT_RULES + CHAT_LANGUAGE_RULES.get(language, "")
 
 
 def validate_history(messages: Any) -> list[dict[str, str]]:
@@ -72,6 +85,7 @@ def chat_events(
     limits: Limits = Limits(),
     clock: Callable[[], float] = time.monotonic,
     on_end: Callable[[str, dict[str, Any]], None] = lambda status, summary: None,
+    language: str = "en",
 ) -> Iterator[str]:
     """Server-sent events: start, then text / tool_call / tool_result as they happen, then
     done (outcome, usage and cost) or error. The connection opens and closes inside the
@@ -80,7 +94,8 @@ def chat_events(
     run = Run(model=settings.model, messages=list(history), started=clock())
     if request_id:
         run.request_id = request_id
-    log_event("chat_start", request_id=run.request_id, messages=len(history), chars=sum(len(m["content"]) for m in history))
+    log_event("chat_start", request_id=run.request_id, messages=len(history), chars=sum(len(m["content"]) for m in history),
+              language=language)  # fmt: skip
     yield sse("start", {"request_id": run.request_id})
     try:
         conn = connect()
@@ -90,7 +105,7 @@ def chat_events(
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
     try:
-        loop = run_loop(client, conn, settings, run, chat_system_prompt(conn), limits, clock=clock, heartbeat_s=HEARTBEAT_S)
+        loop = run_loop(client, conn, settings, run, chat_system_prompt(conn, language), limits, clock=clock, heartbeat_s=HEARTBEAT_S)
         with closing(loop):  # closing it ends the model's HTTP stream right away
             for event, data in loop:
                 yield sse(event, data)
