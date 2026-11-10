@@ -25,3 +25,6 @@ web/AGENTS.md
 
 # OS
 .DS_Store
+
+# Local assistant settings and worktrees
+.claude/
