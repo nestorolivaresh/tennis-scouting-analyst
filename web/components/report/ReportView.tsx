@@ -5,8 +5,10 @@
 // grounding check (D-018), and says so plainly when one didn't.
 
 import { useMemo } from "react";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { checkStat, checkedPercents, hasCareerHeadToHead } from "@/lib/evidence.ts";
 import { contextLabel, reportContext } from "@/lib/chat.ts";
+import { serverText } from "@/lib/i18n.ts";
 import { longDate } from "@/lib/people.ts";
 import type { ReportResponse } from "@/lib/types.ts";
 import { GamePlan } from "./GamePlan.tsx";
@@ -24,23 +26,23 @@ export type ReportViewProps = {
   onNewReport: () => void;
 };
 
-const SECTIONS = [
-  { href: "#plan", label: "Game plan" },
-  { href: "#notes", label: "Scouting notes" },
-  { href: "#side", label: "Side by side" },
-  { href: "#honours", label: "Honours board" },
-  { href: "#numbers", label: "Key numbers" },
-];
-
 export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
+  const t = useT();
   const { report, request, evidence } = data;
   const { player, opponent, surface } = request;
   const context = useMemo(() => reportContext(data), [data]);
   const checked = useMemo(() => checkedPercents(data), [data]);
-  const links = [...(report ? SECTIONS : []), { href: "#chat", label: "Ask a follow-up" }];
+  const sections = [
+    { href: "#plan", label: t.sectionPlan },
+    { href: "#notes", label: t.sectionNotes },
+    { href: "#side", label: t.sectionSide },
+    { href: "#honours", label: t.sectionHonours },
+    { href: "#numbers", label: t.sectionNumbers },
+  ];
+  const links = [...(report ? sections : []), { href: "#chat", label: t.askFollowUp }];
   return (
     <div className={styles.root}>
-      <nav aria-label="On this page" className={styles.pageNav}>
+      <nav aria-label={t.onThisPage} className={styles.pageNav}>
         {links.map((link) => (
           <a key={link.href} className={styles.navLink} href={link.href}>{link.label}</a>
         ))}
@@ -51,7 +53,7 @@ export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
 
         <div className={styles.statusRow}>
           <Status data={data} />
-          <button type="button" className={styles.textButton} onClick={onNewReport}>Write another report</button>
+          <button type="button" className={styles.textButton} onClick={onNewReport}>{t.writeAnother}</button>
         </div>
 
         {report && (
@@ -62,18 +64,17 @@ export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
             <HonoursBoard evidence={evidence} player={player} opponent={opponent} />
 
             <section id="numbers" className={styles.sec}>
-              <h2 className="h2">Key numbers and where they come from</h2>
+              <h2 className="h2">{t.keyNumbersTitle}</h2>
               <div className={`courtline ${styles.lineWide}`} aria-hidden="true" />
               <p className={styles.numbersIntro}>
-                Win rate, serve and pressure figures cover tournaments starting {longDate(request.date_from)} to {longDate(request.date_to)}.
-                {hasCareerHeadToHead(evidence, player, opponent) ? " Head-to-head covers every meeting in the data." : ""} Open a number to see its source.
+                {t.numbersIntro(longDate(request.date_from, t), longDate(request.date_to, t), hasCareerHeadToHead(evidence, player, opponent))}
               </p>
               <KeyNumbers stats={report.key_stats} evidence={evidence} />
             </section>
 
             {report.data_caveats.length > 0 && (
               <section className={styles.sec}>
-                <h2 className="h2">About the data</h2>
+                <h2 className="h2">{t.aboutData}</h2>
                 <div className={`courtline ${styles.lineWide}`} aria-hidden="true" />
                 <ul className={styles.caveats}>
                   {report.data_caveats.map((caveat, i) => <li key={i}>{caveat}</li>)}
@@ -82,14 +83,14 @@ export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
             )}
 
             <div className={styles.closing}>
-              <button type="button" className="btn" onClick={onNewReport}>Write another report</button>
+              <button type="button" className="btn" onClick={onNewReport}>{t.writeAnother}</button>
             </div>
           </>
         )}
 
         <RunLine data={data} />
 
-        <ReportChat context={context} contextLabel={report ? contextLabel(data) : null} surface={surface} />
+        <ReportChat context={context} contextLabel={report ? contextLabel(data, t) : null} surface={surface} />
       </main>
     </div>
   );
@@ -108,13 +109,14 @@ function Seal({ kind }: { kind: "verified" | "warning" }) {
 }
 
 function Status({ data }: { data: ReportResponse }) {
+  const t = useT();
   const total = data.report?.key_stats.length ?? 0;
   if (data.status === "verified") {
     return (
       <div className={styles.status} role="status">
         <Seal kind="verified" />
         <p className={styles.statusText}>
-          <strong>All {total} key numbers match the stats data.</strong> The written text around them isn&apos;t checked the same way.
+          <strong>{t.allKeyNumbersMatch(total)}</strong> {t.textNotChecked}
         </p>
       </div>
     );
@@ -126,9 +128,7 @@ function Status({ data }: { data: ReportResponse }) {
         <Seal kind="warning" />
         <div className={styles.statusBody}>
           <p className={styles.statusText}>
-            <strong>
-              {failing} of {total} key numbers didn&apos;t match the stats data. They&apos;re marked below, and the report&apos;s text may repeat them, so treat it with care.
-            </strong>
+            <strong>{t.keyNumbersFailed(failing, total)}</strong>
           </p>
           <ul className={styles.statusErrors}>{data.grounding.errors.map((error, i) => <li key={i}>{error}</li>)}</ul>
         </div>
@@ -139,18 +139,19 @@ function Status({ data }: { data: ReportResponse }) {
     <div className={`${styles.status} ${styles.statusWarning}`} role="alert">
       <Seal kind="warning" />
       <p className={styles.statusText}>
-        <strong>The report couldn&apos;t be finished.</strong> {data.message ?? ""} Try again, or ask about the matchup in the chat.
+        <strong>{t.reportNotFinished}</strong> {data.message === null ? "" : serverText(data.message, t)} {t.reportNotFinishedHelp}
       </p>
     </div>
   );
 }
 
 function RunLine({ data }: { data: ReportResponse }) {
+  const t = useT();
   const { usage, grounding } = data;
+  const cost = usage.cost_usd === null ? null : t.dec(usage.cost_usd.toFixed(3));
   return (
     <p className={styles.runLine}>
-      Request {data.request_id}. {usage.tool_calls} tool calls, {(usage.latency_ms / 1000).toFixed(1)} seconds
-      {usage.cost_usd !== null ? `, about $${usage.cost_usd.toFixed(3)}` : ""}.{grounding.attempts > 1 ? " The report was corrected once after the check." : ""}
+      {t.runLine(data.request_id, usage.tool_calls, t.dec((usage.latency_ms / 1000).toFixed(1)), cost, grounding.attempts > 1)}
     </p>
   );
 }

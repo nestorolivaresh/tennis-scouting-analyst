@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Board } from "@/components/ui/Board.tsx";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { PlayerSearch } from "@/components/ui/PlayerSearch.tsx";
 import { searchPlayers } from "@/lib/api.ts";
 import { saveHandoff } from "@/lib/handoff.ts";
@@ -24,6 +25,7 @@ type Props = {
 type HandoffState = { state: "idle" } | { state: "working" } | { state: "failed"; playerId: number };
 
 export function AgainstBox({ data, against, onChoose, onClear }: Props) {
+  const t = useT();
   const router = useRouter();
   const [picked, setPicked] = useState<Candidate | null>(null);
   const [handoff, setHandoff] = useState<HandoffState>({ state: "idle" });
@@ -78,39 +80,39 @@ export function AgainstBox({ data, against, onChoose, onClear }: Props) {
   }
 
   const h2h = against === null ? null : data.head_to_head;
-  const view = h2h ? againstView(h2h) : null;
+  const view = h2h ? againstView(h2h, t) : null;
   const failed = h2h !== null && handoff.state === "failed" && handoff.playerId === h2h.opponent.player_id;
 
   return (
     <Board aria-labelledby="against" className={styles.sideBoard}>
       <div className={styles.againstFrame}>
         <div className={styles.againstHead}>
-          <h2 id="against" ref={heading} tabIndex={-1} className={styles.againstTitle}>{view?.title ?? "Against another player"}</h2>
+          <h2 id="against" ref={heading} tabIndex={-1} className={styles.againstTitle}>{view?.title ?? t.againstAnother}</h2>
           {against !== null && (
-            <button type="button" className={styles.changeOpponent} aria-label="Change the player to compare with" onClick={change}>Change</button>
+            <button type="button" className={styles.changeOpponent} aria-label={t.changeCompare} onClick={change}>{t.change}</button>
           )}
         </div>
 
         {against === null && (
           <>
-            <p className={styles.againstText}>Choose a player to see the record between them.</p>
-            <label htmlFor={SEARCH_ID} className={styles.compareLabel}>Compare with</label>
+            <p className={styles.againstText}>{t.chooseToCompare}</p>
+            <label htmlFor={SEARCH_ID} className={styles.compareLabel}>{t.compareWith}</label>
             <div className={styles.compare}>
               <PlayerSearch
                 inputId={SEARCH_ID}
                 value={null}
                 onChange={choose}
-                placeholder="Search for a player"
+                placeholder={t.searchForPlayer}
                 excludeId={data.profile.player.player_id}
                 tone="opponent"
                 showMedal={false}
-                changeLabel="Change the player to compare with"
+                changeLabel={t.changeCompare}
               />
             </div>
           </>
         )}
 
-        {against !== null && !view && <p className={styles.againstText}>Loading the record…</p>}
+        {against !== null && !view && <p className={styles.againstText}>{t.loadingRecord}</p>}
 
         {view && h2h && (
           <>
@@ -122,11 +124,11 @@ export function AgainstBox({ data, against, onChoose, onClear }: Props) {
               disabled={handoff.state === "working"}
               onClick={() => scoutMatchup(h2h)}
             >
-              Scout this match-up
+              {t.scoutMatchup}
             </button>
             {failed && (
               <p className={styles.againstFailure} role="alert">
-                {lastName(h2h.opponent.name)}&rsquo;s details couldn&rsquo;t be loaded for the report. Try again.
+                {t.detailsFailed(lastName(h2h.opponent.name))}
               </p>
             )}
           </>

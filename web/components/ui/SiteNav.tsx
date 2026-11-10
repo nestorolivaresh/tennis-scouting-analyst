@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/components/ui/LanguageProvider.tsx";
 import { BACK_TO_SETUP } from "@/lib/handoff.ts";
+import { LOCALES, LOCALE_NAMES } from "@/lib/i18n.ts";
 import styles from "./SiteNav.module.css";
-
-const SECTIONS = [
-  { href: "/", label: "Scouting", isCurrent: (path: string) => path === "/" },
-  { href: "/players", label: "Player stats", isCurrent: (path: string) => path === "/players" || path.startsWith("/players/") },
-];
 
 export function SiteNav() {
   const pathname = usePathname();
+  const { t, locale, setLocale } = useLanguage();
+  const sections = [
+    { href: "/", label: t.navScouting, current: pathname === "/" },
+    { href: "/players", label: t.navPlayers, current: pathname === "/players" || pathname.startsWith("/players/") },
+  ];
   // A link to the current route does nothing by itself, but the report and the loader live on
   // "/" too, so the page is told to go back to match setup.
   const toSetup = (href: string) => () => {
@@ -33,17 +35,33 @@ export function SiteNav() {
           </svg>
           <span className={styles.brandName}>Tennis Scouting Analyst</span>
         </Link>
-        <nav aria-label="Main" className={styles.nav}>
-          {SECTIONS.map(({ href, label, isCurrent }) => {
-            const current = isCurrent(pathname);
-            return (
+        <div className={styles.right}>
+          <nav aria-label={t.navMain} className={styles.nav}>
+            {sections.map(({ href, label, current }) => (
               <Link key={href} href={href} className={styles.link} aria-current={current ? "page" : undefined} onClick={toSetup(href)}>
                 {current && <span className="serve" aria-hidden="true" />}
                 {label}
               </Link>
-            );
-          })}
-        </nav>
+            ))}
+          </nav>
+          {/* Each language is named in itself, so anyone can find their own. */}
+          <div className={styles.languages} role="group" aria-label={t.language}>
+            {LOCALES.map((code) => (
+              <button
+                key={code}
+                type="button"
+                lang={code}
+                className={styles.language}
+                aria-pressed={code === locale}
+                aria-label={LOCALE_NAMES[code]}
+                title={LOCALE_NAMES[code]}
+                onClick={() => setLocale(code)}
+              >
+                {code.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
     </div>
   );

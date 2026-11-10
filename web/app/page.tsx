@@ -7,7 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@/components/loader/Loader.tsx";
 import { ReportView } from "@/components/report/ReportView.tsx";
 import { MatchSetup } from "@/components/setup/MatchSetup.tsx";
+import { useLanguage } from "@/components/ui/LanguageProvider.tsx";
 import { ApiFailure, streamReport } from "@/lib/api.ts";
+import { failureText } from "@/lib/i18n.ts";
 import { BACK_TO_SETUP, takeHandoff } from "@/lib/handoff.ts";
 import { reportHold } from "@/lib/loader.ts";
 import type { Candidate, ReportEvent, ReportResponse, Surface } from "@/lib/types.ts";
@@ -28,6 +30,7 @@ type Phase =
   | { phase: "error"; message: string };
 
 export default function Home() {
+  const { t, locale } = useLanguage();
   const [player, setPlayer] = useState<Candidate | null>(null);
   const [opponent, setOpponent] = useState<Candidate | null>(null);
   const [surface, setSurface] = useState<Surface>("Clay");
@@ -86,7 +89,7 @@ export default function Home() {
     setPhase({ phase: "working", player, opponent, surface, started: Date.now(), events: [], names, final: null });
     try {
       const data = await streamReport(
-        { player_id: player.player_id, opponent_id: opponent.player_id, surface },
+        { player_id: player.player_id, opponent_id: opponent.player_id, surface, language: locale },
         (event) => setPhase((p) => (p.phase === "working" ? { ...p, events: [...p.events, event] } : p)),
         run.signal,
       );
@@ -94,7 +97,7 @@ export default function Home() {
       showReport(data);
     } catch (error) {
       if (run.signal.aborted) return;
-      setPhase({ phase: "error", message: error instanceof ApiFailure ? error.message : "The report request failed. Try again." });
+      setPhase({ phase: "error", message: error instanceof ApiFailure ? failureText(error.kind, error.message, t) : t.reportRequestFailed });
     }
   }
 

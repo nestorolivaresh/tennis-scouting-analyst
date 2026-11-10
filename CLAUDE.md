@@ -34,6 +34,8 @@
   ask before adding any other package. Anything shown on screen must come from the run's
   evidence (`web/lib/evidence.ts`), never from the model's text, and a missing value is shown as
   missing, not 0. Check with `npm --prefix web test` and `npm --prefix web run build`.
+  Words on screen come from `web/lib/messages/` (English is the reference, D-027); a test fails
+  when a component holds words of its own.
 - Deployment is Vercel plus Neon (D-025, `docs/deploy.md`). Never connect to the Neon database,
   run a deploy, or change Vercel settings without Nestor's explicit go-ahead for that action.
   With no `DAILY_SPEND_CAP_USD` the API refuses model calls; run it locally with

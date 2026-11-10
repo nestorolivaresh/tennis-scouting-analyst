@@ -54,10 +54,72 @@
   color: var(--bottle);
 }
 
+.right {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 2.6vw, 34px);
+}
+
+.languages {
+  display: flex;
+  align-items: center;
+  padding-left: clamp(12px, 1.8vw, 22px);
+  border-left: 1px solid var(--hairline);
+}
+
+.language {
+  min-width: 34px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1;
+  color: var(--muted-2);
+  cursor: pointer;
+}
+
+.language:hover {
+  color: var(--bottle);
+}
+
+.language[aria-pressed="true"] {
+  color: var(--bottle);
+  text-decoration: underline;
+  text-decoration-color: var(--brass);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+}
+
+/* On a phone the languages sit beside the emblem and the sections get their own row, the same
+   in every language, so a longer label never squeezes the bar. */
 @media (max-width: 520px) {
   .site {
-    gap: 12px;
-    padding: 6px 16px;
+    flex-wrap: wrap;
+    gap: 0 12px;
+    padding: 6px 16px 4px;
+  }
+
+  .right {
+    display: contents;
+  }
+
+  .languages {
+    order: 1;
+    margin-left: auto;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .nav {
+    order: 2;
+    width: 100%;
+  }
+
+  .language {
+    min-width: 32px;
+    font-size: 14px;
   }
 
   .brandName {

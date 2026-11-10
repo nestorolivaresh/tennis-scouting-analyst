@@ -210,8 +210,11 @@
 
 .clear {
   flex: none;
+  /* A longer language's label wraps inside the button instead of pushing past the board. */
+  max-width: 100%;
   min-height: 44px;
-  padding: 0 16px;
+  padding: 6px 16px;
+  line-height: 1.3;
   background: transparent;
   border: 1px solid var(--brass);
   border-radius: 2px;

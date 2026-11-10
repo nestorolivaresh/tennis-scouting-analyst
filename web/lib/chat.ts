@@ -1,7 +1,8 @@
 // The chat history the API accepts (api/chat.py): plain text turns that alternate from the user
 // and end with the user, at most 21 messages, 4,000 characters each and 30,000 in all.
 
-import { TOOL_NAMES, describeFilters } from "./evidence.ts";
+import { describeFilters } from "./evidence.ts";
+import { EN, type T, failureText, serverText, surfaceWords } from "./i18n.ts";
 import type { ChatEvent, ChatMessage, ReportResponse } from "./types.ts";
 
 export const MAX_PAIRS = 8; // context (2) + 8 pairs (16) + the question = 19 messages
@@ -35,9 +36,9 @@ export function buildHistory(context: ChatMessage[], turns: Turn[], question: st
   return [...context, ...kept.flat(), { role: "user", content: question.slice(0, MAX_CHARS) }];
 }
 
-export function contextLabel(data: ReportResponse): string {
+export function contextLabel(data: ReportResponse, t: T = EN): string {
   const { player, opponent, surface } = data.request;
-  return `${opponent.name} for ${player.name}, ${surface.toLowerCase()}`;
+  return t.chatContext(opponent.name, player.name, surfaceWords(t, surface));
 }
 
 /** The report as a first exchange, so follow-up questions have context. */
@@ -62,28 +63,29 @@ export type LiveTurn = Turn & { activity: Activity[]; error?: string; done: bool
 
 export const CUT_OFF_MESSAGE = "The answer stopped partway. Try asking again.";
 
-function describeCall(tool: string, input: Record<string, unknown>): string {
-  const name = TOOL_NAMES[tool] ?? tool;
-  if (tool === "resolve_player" && typeof input.name === "string") return `${name} for “${input.name}”`;
-  const filters = describeFilters(input.filters as Record<string, unknown> | undefined);
+function describeCall(tool: string, input: Record<string, unknown>, t: T): string {
+  const name = (Object.hasOwn(t.tools, tool) ? t.tools[tool] : undefined) ?? tool;
+  if (tool === "resolve_player" && typeof input.name === "string") return t.callFor(name, input.name);
+  const filters = describeFilters(input.filters as Record<string, unknown> | undefined, t);
   return filters.length ? `${name} (${filters.join(", ")})` : name;
 }
 
 /** One stream event applied to the answer it belongs to. */
-export function applyChatEvent(turn: LiveTurn, event: ChatEvent): LiveTurn {
+export function applyChatEvent(turn: LiveTurn, event: ChatEvent, t: T = EN): LiveTurn {
   switch (event.event) {
     case "tool_call":
-      return { ...turn, activity: [...turn.activity, { id: event.data.id, label: describeCall(event.data.tool, event.data.input), ok: null }] };
+      return { ...turn, activity: [...turn.activity, { id: event.data.id, label: describeCall(event.data.tool, event.data.input, t), ok: null }] };
     case "tool_result":
       return { ...turn, activity: turn.activity.map((a) => (a.id === event.data.id ? { ...a, ok: event.data.ok } : a)) };
     case "text":
       return { ...turn, content: turn.content + event.data.delta };
     case "done": {
       const completed = event.data.outcome === "completed";
-      return { ...turn, done: true, complete: completed, error: completed ? undefined : (event.data.message ?? "The answer stopped early.") };
+      const stopped = event.data.message === null ? t.answerStoppedEarly : serverText(event.data.message, t);
+      return { ...turn, done: true, complete: completed, error: completed ? undefined : stopped };
     }
     case "error":
-      return { ...turn, done: true, complete: false, error: event.data.message };
+      return { ...turn, done: true, complete: false, error: failureText(event.data.kind, event.data.message, t) };
     default:
       return turn;
   }

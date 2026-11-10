@@ -2,6 +2,8 @@
 // with a note saying why (no matches, not looked up, or no matches with stats); never a zero.
 
 import { type Lead, type SurfaceRow, type Window, isSmallSample, leadOf, scalePosition, serveChart, serveSampleLine, serveScale, shortNames, surfaceChart } from "@/lib/evidence.ts";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
+import { type T, surfaceWords } from "@/lib/i18n.ts";
 import { longDate } from "@/lib/people.ts";
 import type { Evidence, PlayerRef, Surface } from "@/lib/types.ts";
 import styles from "./ReportView.module.css";
@@ -9,44 +11,46 @@ import styles from "./ReportView.module.css";
 type Names = { player: string; opponent: string };
 type Props = { evidence: Evidence[]; player: PlayerRef; opponent: PlayerRef; surface: Surface; window: Window };
 
-const MISSING = "No data";
-const percent = (value: number | null) => (value === null ? MISSING : `${value.toFixed(1)}%`);
+const percent = (value: number | null, t: T) => (value === null ? t.noData : t.pct(value.toFixed(1)));
 
 function Ahead({ lead, names }: { lead: Lead; names: Names }) {
-  if (lead.side === null) return <>{MISSING}</>;
-  if (lead.side === "level") return <>Level</>;
-  return <><span className={lead.side === "player" ? styles.whoS : styles.whoA}>{names[lead.side]}</span> by {lead.gap}</>;
+  const t = useT();
+  if (lead.side === null) return <>{t.noData}</>;
+  if (lead.side === "level") return <>{t.level}</>;
+  return <><span className={lead.side === "player" ? styles.whoS : styles.whoA}>{names[lead.side]}</span> {t.byGap(t.dec(lead.gap ?? ""))}</>;
 }
 
 export function SideBySide({ evidence, player, opponent, surface, window }: Props) {
-  const serve = serveChart(evidence, player, opponent, surface, window);
-  const surfaces = surfaceChart(evidence, player, opponent, window);
+  const t = useT();
+  const serve = serveChart(evidence, player, opponent, surface, window, t);
+  const surfaces = surfaceChart(evidence, player, opponent, window, t);
   const names = shortNames(player, opponent);
   const scale = serveScale(serve.rows);
+  const [min, max] = [t.pct(String(scale.min)), t.pct(String(scale.max))];
   const word = surface.toLowerCase();
   const onSurface = serve.scope === word || serve.sources.length === 0;
-  const place = onSurface ? `on ${word}` : serve.scope === "all surfaces" ? "on all surfaces" : "on mixed surfaces";
-  const sampleLine = serveSampleLine(serve, player, opponent, surface);
+  const place = onSurface ? surfaceWords(t, surface).on : serve.scope === "all surfaces" ? t.onAllSurfaces : t.onMixedSurfaces;
+  const sampleLine = serveSampleLine(serve, player, opponent, surface, t);
   const small = [...serve.matchesWithStats.player, ...serve.matchesWithStats.opponent].some(isSmallSample);
   const notes = sampleLine ? serve.caveats : serve.notes;
   const surfaceRows = [...surfaces.rows].sort((a, b) => Number(b.surface === surface) - Number(a.surface === surface));
   return (
     <section id="side" className={styles.sec}>
-      <h2 className="h2">Side by side</h2>
+      <h2 className="h2">{t.sectionSide}</h2>
       <div className={`courtline ${styles.lineSide}`} aria-hidden="true" />
       <div className={styles.sideWrap}>
         <div className={styles.sideTable}>
-          <h3 className={`h3 ${styles.bottleHead}`}>Serve, return and break points {place}</h3>
+          <h3 className={`h3 ${styles.bottleHead}`}>{t.serveTableTitle(place)}</h3>
           <div className={styles.tableScroll}>
             <table className={styles.table}>
-              <caption className="vh">Figures {place} for {player.name} and {opponent.name}, with who is ahead and by how many percentage points</caption>
+              <caption className="vh">{t.serveCaption(place, player.name, opponent.name)}</caption>
               <thead>
                 <tr>
-                  <th scope="col" className={`${styles.td} ${styles.headMuted}`}>Figure</th>
+                  <th scope="col" className={`${styles.td} ${styles.headMuted}`}>{t.figure}</th>
                   <th scope="col" className={`${styles.td} ${styles.whoS} ${styles.headNum}`}><span className={`${styles.dotS} ${styles.dotKey}`} aria-hidden="true" />{names.player}</th>
-                  <th scope="col" className={`${styles.td} ${styles.dumbCol}`}><span className="vh">Gap on a scale of {scale.min}% to {scale.max}%</span></th>
+                  <th scope="col" className={`${styles.td} ${styles.dumbCol}`}><span className="vh">{t.gapScale(min, max)}</span></th>
                   <th scope="col" className={`${styles.td} ${styles.whoA} ${styles.headNum}`}><span className={`${styles.dotA} ${styles.dotKey}`} aria-hidden="true" />{names.opponent}</th>
-                  <th scope="col" className={`${styles.td} ${styles.headMuted}`}>Ahead</th>
+                  <th scope="col" className={`${styles.td} ${styles.headMuted}`}>{t.ahead}</th>
                 </tr>
               </thead>
               <tbody>
@@ -57,7 +61,7 @@ export function SideBySide({ evidence, player, opponent, surface, window }: Prop
                   return (
                     <tr key={row.metric}>
                       <th scope="row" className={styles.td}>{row.metric}</th>
-                      <td className={`${styles.td} ${styles.num} ${lead.side === "player" ? styles.lead : ""}`}>{percent(row.player)}</td>
+                      <td className={`${styles.td} ${styles.num} ${lead.side === "player" ? styles.lead : ""}`}>{percent(row.player, t)}</td>
                       <td className={`${styles.td} ${styles.dumbCol}`}>
                         <div className={styles.dumb} aria-hidden="true">
                           {ends.length === 2 && <span className={styles.dumbLine} style={{ left: `${scalePosition(from, scale)}%`, width: `${scalePosition(to, scale) - scalePosition(from, scale)}%` }} />}
@@ -65,7 +69,7 @@ export function SideBySide({ evidence, player, opponent, surface, window }: Prop
                           {row.opponent !== null && <span className={styles.dotA} style={{ left: `${scalePosition(row.opponent, scale)}%` }} />}
                         </div>
                       </td>
-                      <td className={`${styles.td} ${styles.num} ${lead.side === "opponent" ? styles.lead : ""}`}>{percent(row.opponent)}</td>
+                      <td className={`${styles.td} ${styles.num} ${lead.side === "opponent" ? styles.lead : ""}`}>{percent(row.opponent, t)}</td>
                       <td className={styles.td}><Ahead lead={lead} names={names} /></td>
                     </tr>
                   );
@@ -74,18 +78,18 @@ export function SideBySide({ evidence, player, opponent, surface, window }: Prop
             </table>
           </div>
           <p className={styles.sideNote}>
-            Gaps are in percentage points<span className={styles.dumbNote}>, drawn on a shared scale from {scale.min}% to {scale.max}%</span>.
-            {sampleLine ? ` ${sampleLine}` : ""}{small && <span className="tag">Small sample</span>}
+            {t.gapsNote}<span className={styles.dumbNote}>{t.gapsScale(min, max)}</span>.
+            {sampleLine ? ` ${sampleLine}` : ""}{small && <span className="tag">{t.smallSample}</span>}
           </p>
           <Notes notes={notes} />
         </div>
 
         <div className={styles.sideSurface}>
-          <h3 className={`h3 ${styles.bottleHead}`}>Win rate by surface</h3>
+          <h3 className={`h3 ${styles.bottleHead}`}>{t.winRateBySurface}</h3>
           <div className={styles.surfGrid}>
             {surfaceRows.map((row) => <SurfaceCard key={row.surface} row={row} isThisMatch={row.surface === surface} names={names} />)}
           </div>
-          <p className={styles.sideNote}>Tournaments starting {longDate(window.date_from)} to {longDate(window.date_to)}.</p>
+          <p className={styles.sideNote}>{t.tournamentsWindow(longDate(window.date_from, t), longDate(window.date_to, t))}</p>
           <Notes notes={surfaces.notes} />
         </div>
       </div>
@@ -98,31 +102,31 @@ function Notes({ notes }: { notes: string[] }) {
   return <ul className={styles.sideNotes}>{notes.map((note, i) => <li key={i}>{note}</li>)}</ul>;
 }
 
-const CELL_WORDS = { no_matches: "No matches", not_looked_up: "Not looked up" } as const;
-
-function cellText(cell: SurfaceRow["playerCell"]): string {
-  return cell.status === "ok" ? percent(cell.winRate) : CELL_WORDS[cell.status];
+function cellText(cell: SurfaceRow["playerCell"], t: T): string {
+  if (cell.status === "ok") return percent(cell.winRate, t);
+  return cell.status === "no_matches" ? t.noMatches : t.notLookedUpCell;
 }
 
 function SurfaceCard({ row, isThisMatch, names }: { row: SurfaceRow; isThisMatch: boolean; names: Names }) {
+  const t = useT();
   const lead = leadOf(row.player, row.opponent);
   const records = [
     row.playerCell.record && `${names.player} ${row.playerCell.record}`,
     row.opponentCell.record && `${names.opponent} ${row.opponentCell.record}`,
   ].filter(Boolean);
-  const ahead = lead.side === null ? null : lead.side === "level" ? "Level" : `${names[lead.side]} by ${lead.gap}`;
+  const ahead = lead.side === null ? null : lead.side === "level" ? t.level : `${names[lead.side]} ${t.byGap(t.dec(lead.gap ?? ""))}`;
   return (
     <div className={`${styles.surf} sw-${row.surface.toLowerCase()}`}>
       <div className={styles.surfTop}>
-        <span className={styles.surfName}>{row.surface}</span>
-        {isThisMatch && <span className={styles.surfThis}>This match</span>}
+        <span className={styles.surfName}>{surfaceWords(t, row.surface).name}</span>
+        {isThisMatch && <span className={styles.surfThis}>{t.thisMatch}</span>}
       </div>
       <div className={styles.surfRates}>
-        <span>{names.player} {cellText(row.playerCell)}</span>
-        <span>{names.opponent} {cellText(row.opponentCell)}</span>
+        <span>{names.player} {cellText(row.playerCell, t)}</span>
+        <span>{names.opponent} {cellText(row.opponentCell, t)}</span>
       </div>
       {ahead && <div className={styles.surfAhead}>{ahead}</div>}
-      {records.length > 0 && <div className={styles.surfRecord}>Won-lost: {records.join(", ")}</div>}
+      {records.length > 0 && <div className={styles.surfRecord}>{t.wonLost(records.join(", "))}</div>}
     </div>
   );
 }

@@ -1,8 +1,10 @@
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { type RecentForm, formView } from "@/lib/player-stats.ts";
 import styles from "./Stats.module.css";
 
 export function RecentMatches({ form }: { form: RecentForm }) {
-  const view = formView(form);
+  const t = useT();
+  const view = formView(form, t);
   return (
     <section className={`${styles.sec} ${styles.recent}`} aria-labelledby="recent">
       <h2 id="recent" className="h2">{view.title}</h2>
@@ -13,11 +15,11 @@ export function RecentMatches({ form }: { form: RecentForm }) {
           <div className={styles.matches} role="table" aria-labelledby="recent">
             <div role="rowgroup">
               <div className={`${styles.mrow} ${styles.mhead}`} role="row">
-                <span role="columnheader">Date</span>
-                <span role="columnheader">Tournament</span>
-                <span role="columnheader">Opponent</span>
-                <span role="columnheader">Result</span>
-                <span role="columnheader">Score</span>
+                <span role="columnheader">{t.colDate}</span>
+                <span role="columnheader">{t.colTournament}</span>
+                <span role="columnheader">{t.colOpponent}</span>
+                <span role="columnheader">{t.colResult}</span>
+                <span role="columnheader">{t.colScore}</span>
               </div>
             </div>
             <div className={styles.mbody} role="rowgroup">
@@ -28,11 +30,11 @@ export function RecentMatches({ form }: { form: RecentForm }) {
                     <span className={styles.event}>{m.event}</span>
                     <span className={styles.sub}>
                       {m.swatch && <span className={`sw ${m.swatch} ${styles.subSwatch}`} aria-hidden="true" />}
-                      {m.round} on {m.surface}
+                      {t.roundOn(m.round, m.surface)}
                     </span>
                   </span>
                   <span className={styles.cOpp} role="cell">{m.opponent} <span className={styles.oppRank}>{m.rank}</span></span>
-                  <span className={`${styles.cRes} ${m.won ? styles.won : styles.lost}`} role="cell">{m.won ? "Won" : "Lost"}</span>
+                  <span className={`${styles.cRes} ${m.won ? styles.won : styles.lost}`} role="cell">{m.won ? t.won : t.lost}</span>
                   <span className={`${styles.cScore} ${styles.num}`} role="cell">{m.score}</span>
                 </div>
               ))}

@@ -4,6 +4,8 @@
 // that tells them apart.
 
 import type { ReactNode } from "react";
+import type { Locale } from "@/lib/i18n.ts";
+import { useLanguage } from "./LanguageProvider.tsx";
 
 const W = 24;
 const H = 16;
@@ -443,9 +445,23 @@ export function hasFlag(code: string | null | undefined): boolean {
   return code != null && FLAGS.has(code);
 }
 
-/** The country's name for a code with a flag; null for any other code. */
-export function countryName(code: string | null | undefined): string | null {
-  return (code != null && FLAGS.get(code)?.name) || null;
+// For naming a country in Spanish or French with the browser's own names (Intl.DisplayNames).
+const ISO_REGION: Record<string, string> = {
+  USA: "US", FRA: "FR", ESP: "ES", ITA: "IT", ARG: "AR", AUS: "AU", GER: "DE", RUS: "RU", SRB: "RS", GBR: "GB", CAN: "CA",
+  CZE: "CZ", CRO: "HR", JPN: "JP", SUI: "CH", BEL: "BE", NED: "NL", AUT: "AT", KAZ: "KZ", POR: "PT", CHI: "CL", BRA: "BR",
+  POL: "PL", BUL: "BG", GRE: "GR", SVK: "SK", HUN: "HU", NOR: "NO", RSA: "ZA", CHN: "CN", BIH: "BA", GEO: "GE", UKR: "UA",
+  DEN: "DK", SLO: "SI", KOR: "KR", SWE: "SE", FIN: "FI", COL: "CO", URU: "UY", PHI: "PH",
+};
+
+/** The country's name for a code with a flag, in the given language; null for any other code. */
+export function countryName(code: string | null | undefined, locale: Locale = "en"): string | null {
+  const name = (code != null && FLAGS.get(code)?.name) || null;
+  if (!name || locale === "en" || code == null || !Object.hasOwn(ISO_REGION, code)) return name;
+  try {
+    return new Intl.DisplayNames([locale], { type: "region" }).of(ISO_REGION[code]) ?? name;
+  } catch {
+    return name;
+  }
 }
 
 export type FlagProps = {
@@ -457,10 +473,11 @@ export type FlagProps = {
 
 /** Draws the flag for an IOC code, or nothing when the code has no flag here. */
 export function Flag({ country, width = W, height = H, className }: FlagProps) {
+  const { locale } = useLanguage();
   const flag = country == null ? undefined : FLAGS.get(country);
   if (!flag) return null;
   return (
-    <svg className={className} width={width} height={height} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={flag.name}>
+    <svg className={className} width={width} height={height} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={countryName(country, locale) ?? flag.name}>
       {flag.art}
       <rect className="flag-sheen" width={W} height="2.2" fill="#FFFFFF" opacity="0" />
     </svg>

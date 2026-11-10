@@ -5,6 +5,8 @@
 
 import { useEffect, useState } from "react";
 import { Board } from "@/components/ui/Board.tsx";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
+import { surfaceWords } from "@/lib/i18n.ts";
 import { ALL_SCORES, type LoaderState, flapPosition, loaderState, loaderStatus } from "@/lib/loader.ts";
 import { type Step, progressSteps } from "@/lib/progress.ts";
 import type { ReportEvent, ReportResponse, Surface } from "@/lib/types.ts";
@@ -26,29 +28,30 @@ export type LoaderProps = {
 const FLAP_CLASS = { now: styles.flapNow, past: styles.flapPast, next: styles.flapNext };
 
 export function Loader({ player, opponent, surface, started, events, names, final }: LoaderProps) {
+  const t = useT();
   const [now, setNow] = useState(started);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const state = loaderState(events, final, Math.max(0, Math.round((now - started) / 1000)));
-  const steps = progressSteps(events, names);
+  const state = loaderState(events, final, Math.max(0, Math.round((now - started) / 1000)), t);
+  const steps = progressSteps(events, names, t);
 
   return (
     <main className={styles.main}>
       {/* Screen readers hear each new step once, not the ticking timer. */}
-      <p className="vh" role="status">{loaderStatus(state, steps)}</p>
+      <p className="vh" role="status">{loaderStatus(state, steps, t)}</p>
 
       <div className={styles.layout}>
         <div className={styles.boardColumn}>
-          <Board aria-label="Report progress">
+          <Board aria-label={t.reportProgress}>
             <div className={styles.slats}>
               <div className={`slat ${styles.headerSlat}`}>
-                <h1 className={styles.matchTitle}>Scouting {opponent} for {player}</h1>
+                <h1 className={styles.matchTitle}>{t.scoutingTitle(opponent, player)}</h1>
                 <span className={styles.surfaceLabel}>
                   <span className={`sw sw-${surface.toLowerCase()} ${styles.chip}`} aria-hidden="true" />
-                  On {surface.toLowerCase()}
+                  {surfaceWords(t, surface).onCap}
                 </span>
               </div>
 
@@ -66,7 +69,7 @@ export function Loader({ player, opponent, surface, started, events, names, fina
         </div>
 
         <section className={styles.card} aria-labelledby="umpire-card-title">
-          <h2 id="umpire-card-title" className={styles.cardTitle}>Umpire's card</h2>
+          <h2 id="umpire-card-title" className={styles.cardTitle}>{t.umpireCard}</h2>
           <ol className={styles.steps}>
             {steps.map((step) => (
               <StepLine key={step.key} step={step} finished={state.stage === "done"} />
@@ -80,13 +83,18 @@ export function Loader({ player, opponent, surface, started, events, names, fina
 
 /** All six flaps are always there, so Deuce can turn into the window the moment a check fails. */
 function ScoreWindow({ state }: { state: LoaderState }) {
+  const t = useT();
   return (
     <div className={styles.window} aria-hidden="true">
-      {ALL_SCORES.map((label) => (
-        <div key={label} className={`${styles.flap} ${FLAP_CLASS[flapPosition(label, state)]}${label.length > 2 ? ` ${styles.flapWord}` : ""}`}>
-          {label}
-        </div>
-      ))}
+      {ALL_SCORES.map((label) => {
+        // Sized by the word shown, not the English one: "Ad" is a short score, "Avantage" is not.
+        const shown = Object.hasOwn(t.flaps, label) ? t.flaps[label] : label;
+        return (
+          <div key={label} className={`${styles.flap} ${FLAP_CLASS[flapPosition(label, state)]}${shown.length > 7 ? ` ${styles.flapLong}` : shown.length > 2 ? ` ${styles.flapWord}` : ""}`}>
+            {shown}
+          </div>
+        );
+      })}
     </div>
   );
 }

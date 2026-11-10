@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { type PlayerStats, type ServeRow, serveGroups, serveNote } from "@/lib/player-stats.ts";
 import styles from "./Stats.module.css";
 
 function Row({ row, open, onToggle }: { row: ServeRow; open: boolean; onToggle: () => void }) {
+  const t = useT();
   const panelId = `src-${row.key}`;
   return (
     <div>
@@ -12,7 +14,7 @@ function Row({ row, open, onToggle }: { row: ServeRow; open: boolean; onToggle: 
         <span className={styles.numLeft}>
           <span className={styles.numTitle}>
             {row.title}
-            {row.small && <span className="tag">Small sample</span>}
+            {row.small && <span className="tag">{t.smallSample}</span>}
           </span>
           {row.hasBar && (
             <span className={styles.track} aria-hidden="true">
@@ -27,13 +29,13 @@ function Row({ row, open, onToggle }: { row: ServeRow; open: boolean; onToggle: 
       {open && (
         <div id={panelId} className={styles.card}>
           <dl>
-            <dt>Source</dt>
+            <dt>{t.source}</dt>
             <dd>{row.source.tool}</dd>
-            <dt>Filters</dt>
+            <dt>{t.filters}</dt>
             <dd>{row.source.filters}</dd>
-            <dt>Sample</dt>
+            <dt>{t.sample}</dt>
             <dd>{row.source.sample}</dd>
-            <dt>Left out</dt>
+            <dt>{t.leftOut}</dt>
             <dd>{row.source.left}</dd>
           </dl>
         </div>
@@ -43,13 +45,14 @@ function Row({ row, open, onToggle }: { row: ServeRow; open: boolean; onToggle: 
 }
 
 export function ServeReturn({ data }: { data: PlayerStats }) {
+  const t = useT();
   const [open, setOpen] = useState<string | null>(null);
   return (
     <section className={styles.serveCol} aria-labelledby="serve-return">
-      <h2 id="serve-return" className="h2">Serve and return</h2>
+      <h2 id="serve-return" className="h2">{t.serveAndReturn}</h2>
       <div className="courtline" aria-hidden="true" />
-      <p className={styles.note}>{serveNote(data.filters)}</p>
-      {serveGroups(data).map((group) => (
+      <p className={styles.note}>{serveNote(data.filters, t)}</p>
+      {serveGroups(data, t).map((group) => (
         <div key={group.name}>
           <h3 className="h3">{group.name}</h3>
           {group.rows.map((row) => (

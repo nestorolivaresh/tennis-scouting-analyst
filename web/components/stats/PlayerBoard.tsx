@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Board } from "@/components/ui/Board.tsx";
+import { useLanguage } from "@/components/ui/LanguageProvider.tsx";
 import { countryName } from "@/components/ui/Flag.tsx";
 import { Medal } from "@/components/ui/Medal.tsx";
 import { saveHandoff } from "@/lib/handoff.ts";
@@ -9,10 +10,11 @@ import { type PlayerStats, bioLine, boardNumbers, isFiltered, scoutHandoff, show
 import styles from "./Stats.module.css";
 
 export function PlayerBoard({ data, onClear }: { data: PlayerStats; onClear: () => void }) {
+  const { t, locale } = useLanguage();
   const { profile, filters } = data;
   const { name } = profile.player;
-  const bio = bioLine(profile, countryName(profile.country));
-  const numbers = boardNumbers(data.record.overall);
+  const bio = bioLine(profile, countryName(profile.country, locale), t);
+  const numbers = boardNumbers(data.record.overall, t);
 
   return (
     <Board aria-labelledby="who-name">
@@ -25,19 +27,19 @@ export function PlayerBoard({ data, onClear }: { data: PlayerStats; onClear: () 
               {bio && <p className={styles.bio}>{bio}</p>}
             </div>
           </div>
-          <Link className="btn-chalk" href="/" onClick={() => saveHandoff(scoutHandoff(profile))}>Scout {name}</Link>
+          <Link className="btn-chalk" href="/" onClick={() => saveHandoff(scoutHandoff(profile))}>{t.scoutName(name)}</Link>
         </div>
 
         <div className={`slat ${styles.tiles}`}>
-          <div className="tile-cell"><span className="tile-label">Matches</span><span className="tile t-a" style={{ animationDelay: "0.05s" }}>{numbers.matches}</span></div>
-          <div className="tile-cell"><span className="tile-label">Won</span><span className="tile t-b" style={{ animationDelay: "0.14s" }}>{numbers.won}</span></div>
-          <div className="tile-cell"><span className="tile-label">Lost</span><span className="tile t-c" style={{ animationDelay: "0.23s" }}>{numbers.lost}</span></div>
-          <div className="tile-cell"><span className="tile-label">Win rate</span><span className={`tile t-a${numbers.hasWinRate ? "" : ` ${styles.tileWord}`}`} style={{ animationDelay: "0.32s" }}>{numbers.winRate}</span></div>
+          <div className="tile-cell"><span className="tile-label">{t.tileMatches}</span><span className="tile t-a" style={{ animationDelay: "0.05s" }}>{numbers.matches}</span></div>
+          <div className="tile-cell"><span className="tile-label">{t.tileWon}</span><span className="tile t-b" style={{ animationDelay: "0.14s" }}>{numbers.won}</span></div>
+          <div className="tile-cell"><span className="tile-label">{t.tileLost}</span><span className="tile t-c" style={{ animationDelay: "0.23s" }}>{numbers.lost}</span></div>
+          <div className="tile-cell"><span className="tile-label">{t.tileWinRate}</span><span className={`tile t-a${numbers.hasWinRate ? "" : ` ${styles.tileWord}`}`} style={{ animationDelay: "0.32s" }}>{numbers.winRate}</span></div>
         </div>
 
         <div className={`slat ${styles.showing}`}>
-          <p className={styles.showingText} role="status">{showingText(filters)}</p>
-          {isFiltered(filters) && <button type="button" className={styles.clear} onClick={onClear}>Show every surface and season</button>}
+          <p className={styles.showingText} role="status">{showingText(filters, t)}</p>
+          {isFiltered(filters) && <button type="button" className={styles.clear} onClick={onClear}>{t.showEverything}</button>}
         </div>
       </div>
     </Board>

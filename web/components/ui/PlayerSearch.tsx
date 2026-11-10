@@ -5,9 +5,11 @@
 
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { ApiFailure, searchPlayers } from "@/lib/api.ts";
+import { type T, failureText } from "@/lib/i18n.ts";
 import { handName, longDate } from "@/lib/people.ts";
 import type { Candidate } from "@/lib/types.ts";
 import { Flag } from "./Flag.tsx";
+import { useT } from "./LanguageProvider.tsx";
 import { Medal } from "./Medal.tsx";
 import styles from "./PlayerSearch.module.css";
 
@@ -31,6 +33,7 @@ type Lookup =
   | { state: "error"; message: string };
 
 export function PlayerSearch({ inputId, describedBy, value, onChange, placeholder, excludeId, tone, showMedal = true, changeLabel }: PlayerSearchProps) {
+  const t = useT();
   // What's being typed. While a player is chosen the input shows their name instead.
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
@@ -56,14 +59,14 @@ export function PlayerSearch({ inputId, describedBy, value, onChange, placeholde
         setActive(0);
       } catch (error) {
         if (controller.signal.aborted) return;
-        setLookup({ state: "error", message: error instanceof ApiFailure ? error.message : "The player search failed. Try again." });
+        setLookup({ state: "error", message: error instanceof ApiFailure ? failureText(error.kind, error.message, t) : t.searchFailed });
       }
     }, 200);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [text, open, picked]);
+  }, [text, open, picked, t]);
 
   const found = lookup.state === "done" ? lookup.candidates : [];
   const candidates = found.filter((c) => c.player_id !== excludeId);
@@ -105,9 +108,7 @@ export function PlayerSearch({ inputId, describedBy, value, onChange, placeholde
   const showList = open && lookup.state !== "idle";
   const listOpen = showList && candidates.length > 0;
   const rootClass = [styles.root, showMedal && styles.withMedal, picked && styles.picked].filter(Boolean).join(" ");
-  const emptyNote = found.length > 0
-    ? "That player is already chosen. Pick someone else."
-    : `No ATP player in the data matches “${text.trim()}”. Check the spelling, or try the last name.`;
+  const emptyNote = found.length > 0 ? t.alreadyChosen : t.noPlayerInData(text.trim());
 
   return (
     <div className={rootClass}>
@@ -141,13 +142,13 @@ export function PlayerSearch({ inputId, describedBy, value, onChange, placeholde
         />
         {value && (
           <button type="button" className={styles.change} aria-label={changeLabel} onClick={change}>
-            Change
+            {t.change}
           </button>
         )}
       </div>
-      <span className="vh" role="status">{statusText(lookup, candidates.length, found.length, text)}</span>
+      <span className="vh" role="status">{statusText(lookup, candidates.length, found.length, text, t)}</span>
       {showList && lookup.state === "loading" && (
-        <div className={`${styles.results} ${styles.note}`} aria-hidden="true">Searching…</div>
+        <div className={`${styles.results} ${styles.note}`} aria-hidden="true">{t.searching}</div>
       )}
       {showList && lookup.state === "error" && (
         <div className={`${styles.results} ${styles.note} ${styles.failed}`} aria-hidden="true">{lookup.message}</div>
@@ -156,7 +157,7 @@ export function PlayerSearch({ inputId, describedBy, value, onChange, placeholde
         <div className={`${styles.results} ${styles.note}`} aria-hidden="true">{emptyNote}</div>
       )}
       {listOpen && (
-        <ul className={styles.results} id={listId} role="listbox" aria-label="Matching players">
+        <ul className={styles.results} id={listId} role="listbox" aria-label={t.matchingPlayers}>
           {candidates.map((c, i) => (
             <li key={c.player_id} role="presentation">
               <button
@@ -173,7 +174,7 @@ export function PlayerSearch({ inputId, describedBy, value, onChange, placeholde
                 <span className={styles.flag}><Flag country={c.country} /></span>
                 <span className={styles.who}>
                   <span className={styles.name}>{c.name}</span>
-                  <span className={styles.meta}>{describe(c)}</span>
+                  <span className={styles.meta}>{describe(c, t)}</span>
                 </span>
               </button>
             </li>
@@ -184,20 +185,20 @@ export function PlayerSearch({ inputId, describedBy, value, onChange, placeholde
   );
 }
 
-function describe(c: Candidate): string {
+function describe(c: Candidate, t: T): string {
   return [
     c.country,
-    handName(c.hand),
-    `${c.matches_loaded} ${c.matches_loaded === 1 ? "match" : "matches"}`,
-    c.last_tourney_date ? `last played ${longDate(c.last_tourney_date)}` : null,
+    handName(c.hand, t),
+    t.matchCount(c.matches_loaded),
+    c.last_tourney_date ? t.lastPlayed(longDate(c.last_tourney_date, t)) : null,
   ].filter(Boolean).join(", ");
 }
 
 /** What a screen reader hears as the search runs: the state, and how many players match. */
-function statusText(lookup: Lookup, shown: number, found: number, text: string): string {
-  if (lookup.state === "loading") return "Searching";
+function statusText(lookup: Lookup, shown: number, found: number, text: string, t: T): string {
+  if (lookup.state === "loading") return t.searchingStatus;
   if (lookup.state === "error") return lookup.message;
   if (lookup.state !== "done") return "";
-  if (!shown) return found ? "That player is already chosen" : `No player matches ${text.trim()}`;
-  return `${shown} ${shown === 1 ? "player matches" : "players match"}${lookup.more ? ", and more: type more of the name" : ""}. Use the arrow keys to choose.`;
+  if (!shown) return found ? t.alreadyChosenStatus : t.noPlayerMatches(text.trim());
+  return t.playersMatch(shown, lookup.more);
 }

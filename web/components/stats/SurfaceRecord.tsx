@@ -1,16 +1,18 @@
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { type PageQuery, type PlayerStats, type SurfaceTileId, countedNote, surfaceTiles } from "@/lib/player-stats.ts";
 import styles from "./Stats.module.css";
 
 export function SurfaceRecord({ data, query, onPick }: { data: PlayerStats; query: PageQuery; onPick: (tile: SurfaceTileId) => void }) {
+  const t = useT();
   return (
     <section className={styles.sec} aria-labelledby="by-surface">
-      <h2 id="by-surface" className="h2">Record by surface</h2>
+      <h2 id="by-surface" className="h2">{t.recordBySurface}</h2>
       <div className="courtline" aria-hidden="true" />
-      <p className={styles.note}>Choose a surface to filter the whole page.</p>
+      <p className={styles.note}>{t.chooseSurface}</p>
       <fieldset className={styles.surfaceSet}>
-        <legend className="vh">Filter by surface</legend>
+        <legend className="vh">{t.filterBySurface}</legend>
         <div className={styles.surfaces}>
-          {surfaceTiles(data.by_surface, query).map((tile) => (
+          {surfaceTiles(data.by_surface, query, t).map((tile) => (
             <label key={tile.id} className={styles.surf}>
               <input type="radio" name="surface" value={tile.id} checked={tile.on} onChange={() => onPick(tile.id)} />
               <span className={`${styles.court} ${tile.swatch}`}>
@@ -29,7 +31,7 @@ export function SurfaceRecord({ data, query, onPick }: { data: PlayerStats; quer
           ))}
         </div>
       </fieldset>
-      <p className={`${styles.note} ${styles.countedNote}`}>{countedNote(data.record, data.profile.player.name)}</p>
+      <p className={`${styles.note} ${styles.countedNote}`}>{countedNote(data.record, data.profile.player.name, t)}</p>
     </section>
   );
 }

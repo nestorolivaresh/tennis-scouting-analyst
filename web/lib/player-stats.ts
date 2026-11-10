@@ -2,8 +2,9 @@
 // response (GET /players/{id}/stats) and is described from that block's own tool, filters, sample
 // and excluded counts. A rate with nothing to divide by stays missing; it never becomes 0.
 
-import { TOOL_NAMES, describeExcluded, describeFilters, formatValue, sampleLine } from "./evidence.ts";
+import { describeExcluded, describeFilters, formatValue, sampleLine } from "./evidence.ts";
 import type { Handoff } from "./handoff.ts";
+import { EN, type T, surfaceWords } from "./i18n.ts";
 import { eventName, handName, lastName, longDate, monthYear, roundName } from "./people.ts";
 import type { Candidate, PlayerRef, Rate, Sample, SearchResult } from "./types.ts";
 
@@ -168,20 +169,17 @@ export function isBadLink(status: number): boolean {
 }
 
 // ---------- words and numbers ----------
+// Every function that writes words takes a language (lib/i18n.ts, D-027), English by default.
 
-function count(n: number): string {
-  return formatValue(n, null);
-}
-
-function plural(n: number, one: string, many: string): string {
-  return `${count(n)} ${n === 1 ? one : many}`;
+function count(n: number, t: T): string {
+  return formatValue(n, null, t);
 }
 
 /** The rate as it reads on screen, or null when there was nothing to divide by. Worked out from
  * the counts because the API's value is already rounded to four places, and rounding that again
  * can move the last digit: 37 of 43 is 86.0%, but its 0.8605 would read 86.1%. */
-function rateText(rate: Rate | undefined): string | null {
-  return rate && rate.value !== null ? formatValue(rate.numerator / rate.denominator, rate) : null;
+function rateText(rate: Rate | undefined, t: T): string | null {
+  return rate && rate.value !== null ? formatValue(rate.numerator / rate.denominator, rate, t) : null;
 }
 
 function barWidth(rate: Rate | undefined): number {
@@ -193,31 +191,30 @@ export function isFiltered(filters: PageFilters): boolean {
 }
 
 /** "on clay in 2025", or "" with no filters. */
-function context(filters: PageFilters): string {
-  return [filters.surface && `on ${filters.surface.toLowerCase()}`, filters.season && `in ${filters.season}`].filter(Boolean).join(" ");
+function context(filters: PageFilters, t: T): string {
+  return [filters.surface && surfaceWords(t, filters.surface).on, filters.season && t.inSeason(String(filters.season))].filter(Boolean).join(" ");
 }
 
-export function showingText(filters: PageFilters): string {
-  const where = filters.surface ? `${filters.surface.toLowerCase()} courts` : "every surface";
-  return `Showing ${where}, ${filters.season ?? "every season"}.`;
+export function showingText(filters: PageFilters, t: T = EN): string {
+  const where = filters.surface ? surfaceWords(t, filters.surface).courts : t.everySurface;
+  return t.showing(where, filters.season === null ? t.everySeason : String(filters.season));
 }
 
-export function coverageLine(window: DataWindow | null): string {
+export function coverageLine(window: DataWindow | null, t: T = EN): string {
   const first = window?.first_tourney_date?.slice(0, 4);
   const last = window?.last_match_date ?? window?.last_tourney_date;
-  const span = first && last ? ` from ${first}, through ${longDate(last)}` : "";
-  return `ATP tour-level singles${span}. Every number comes from tested database queries, with no AI model involved.`;
+  return t.coverage(first && last ? t.coverageSpan(first, longDate(last, t)) : "");
 }
 
 /** Country, hand, height and latest ranking, leaving out whatever isn't known. `country` is the
  * country's name when the app has one; otherwise the data's code is shown. */
-export function bioLine(profile: Pick<Profile, "country" | "hand" | "height_cm" | "latest_rank">, country: string | null): string {
-  const facts = [country ?? profile.country, handName(profile.hand), profile.height_cm === null ? null : `${profile.height_cm} cm`]
+export function bioLine(profile: Pick<Profile, "country" | "hand" | "height_cm" | "latest_rank">, country: string | null, t: T = EN): string {
+  const facts = [country ?? profile.country, handName(profile.hand, t), profile.height_cm === null ? null : t.heightCm(profile.height_cm)]
     .filter(Boolean)
     .join(", ");
   const about = facts && `${facts.charAt(0).toUpperCase()}${facts.slice(1)}.`;
   const rank = profile.latest_rank;
-  const ranked = rank && `Ranked ${rank.rank} at ${eventName(rank.tournament)}, ${monthYear(rank.match_date ?? rank.tourney_date)}.`;
+  const ranked = rank && t.ranked(rank.rank, eventName(rank.tournament), monthYear(rank.match_date ?? rank.tourney_date, t));
   return [about, ranked].filter(Boolean).join(" ");
 }
 
@@ -230,27 +227,27 @@ export interface BoardNumbers {
 }
 
 /** The four hanging tiles. A true count of 0 is a count; a rate over 0 matches is not a rate. */
-export function boardNumbers(record: RecordSummary): BoardNumbers {
-  const winRate = rateText(record.win_rate);
-  return { matches: count(record.matches), won: count(record.wins), lost: count(record.losses), winRate: winRate ?? "No data", hasWinRate: winRate !== null };
+export function boardNumbers(record: RecordSummary, t: T = EN): BoardNumbers {
+  const winRate = rateText(record.win_rate, t);
+  return { matches: count(record.matches, t), won: count(record.wins, t), lost: count(record.losses, t), winRate: winRate ?? t.noData, hasWinRate: winRate !== null };
 }
 
-export function countedNote(record: Pick<SurfaceSplits, "filters" | "sample" | "excluded">, playerName: string): string {
+export function countedNote(record: Pick<SurfaceSplits, "filters" | "sample" | "excluded">, playerName: string, t: T = EN): string {
   const { sample } = record;
   const parts: string[] = [];
   if (!sample.matches_counted) {
-    parts.push(isFiltered(record.filters) ? "No matches for this filter." : "No matches in the data.");
+    parts.push(isFiltered(record.filters) ? t.noMatchesFilter : t.noMatchesData);
   } else {
     const range = sample.first_tourney_date && sample.last_tourney_date
-      ? ` in tournaments starting ${longDate(sample.first_tourney_date)} to ${longDate(sample.last_tourney_date)}`
+      ? t.countedRange(longDate(sample.first_tourney_date, t), longDate(sample.last_tourney_date, t))
       : "";
-    parts.push(`Counts ${plural(sample.matches_counted, "match", "matches")}${range}.`);
+    parts.push(t.counts(sample.matches_counted, range));
   }
-  const excluded = describeExcluded(record.excluded);
-  if (excluded.length) parts.push(`${excluded.join(", ")} left out.`);
+  const excluded = describeExcluded(record.excluded, t);
+  if (excluded.length) parts.push(t.leftOutList(excluded.join(", ")));
   const { opponent_retired_or_defaulted: byOpponents, player_retired_or_defaulted: byPlayer } = sample;
   if (byOpponents + byPlayer > 0) {
-    parts.push(`Retirements and defaults count: ${byOpponents} by opponents, ${byPlayer} by ${lastName(playerName)}.`);
+    parts.push(t.retirements(byOpponents, byPlayer, lastName(playerName)));
   }
   return parts.join(" ");
 }
@@ -271,17 +268,17 @@ export interface SurfaceTile {
 
 const SURFACE_TILES: SurfaceTileId[] = ["All", "Hard", "Clay", "Grass"];
 
-export function surfaceTiles(splits: Pick<SurfaceSplits, "overall" | "surfaces">, query: PageQuery): SurfaceTile[] {
+export function surfaceTiles(splits: Pick<SurfaceSplits, "overall" | "surfaces">, query: PageQuery, t: T = EN): SurfaceTile[] {
   const chosen = (query.surface ?? "All").toLowerCase();
   return SURFACE_TILES.map((id) => {
     const record = id === "All" ? splits.overall : splits.surfaces.find((s) => s.surface === id);
-    const rate = rateText(record?.win_rate);
+    const rate = rateText(record?.win_rate, t);
     return {
       id,
-      name: id === "All" ? "All surfaces" : id,
+      name: id === "All" ? t.allSurfacesTile : surfaceWords(t, id).name,
       swatch: `sw-${id.toLowerCase()}`,
       on: id.toLowerCase() === chosen,
-      rate: rate ?? "No matches",
+      rate: rate ?? t.noMatches,
       hasRate: rate !== null,
       record: record && rate !== null ? `${record.wins}-${record.losses}` : "",
     };
@@ -308,17 +305,17 @@ export function sumRecords(records: RecordSummary[]): RecordSummary {
   return { matches, wins, losses: matches - wins, win_rate: { value: matches ? wins / matches : null, numerator: wins, denominator: matches, unit: "fraction" } };
 }
 
-export function seasonRows(seasons: SeasonEntry[], query: PageQuery): SeasonRow[] {
+export function seasonRows(seasons: SeasonEntry[], query: PageQuery, t: T = EN): SeasonRow[] {
   const row = (season: number | null, record: RecordSummary, on: boolean): SeasonRow => {
-    const rate = rateText(record.win_rate);
+    const rate = rateText(record.win_rate, t);
     return {
       key: season === null ? "all" : String(season),
       season,
-      label: season === null ? "All seasons" : String(season),
+      label: season === null ? t.allSeasons : String(season),
       on,
       width: barWidth(record.win_rate),
       record: rate === null ? "" : `${record.wins}-${record.losses}`,
-      rate: rate ?? "No matches",
+      rate: rate ?? t.noMatches,
     };
   };
   return [
@@ -327,8 +324,8 @@ export function seasonRows(seasons: SeasonEntry[], query: PageQuery): SeasonRow[
   ];
 }
 
-export function seasonNote(filters: PageFilters): string {
-  return `${filters.surface ? `On ${filters.surface.toLowerCase()}` : "Every surface"}. Choose a year to filter the page.`;
+export function seasonNote(filters: PageFilters, t: T = EN): string {
+  return t.seasonNote(filters.surface ? surfaceWords(t, filters.surface).onCap : t.everySurfaceCap);
 }
 
 // ---------- serve and return ----------
@@ -341,22 +338,22 @@ export interface SourceFacts {
 }
 
 /** The Source panel: what this block of the response says about itself. */
-export function sourceFacts(block: Pick<Block, "tool" | "filters" | "sample" | "excluded">): SourceFacts {
-  const filters = describeFilters(block.filters);
+export function sourceFacts(block: Pick<Block, "tool" | "filters" | "sample" | "excluded">, t: T = EN): SourceFacts {
+  const filters = describeFilters(block.filters, t);
   const { sample } = block;
   const line = sample.matches_counted
     ? sampleLine({
         ...sample,
-        first_tourney_date: sample.first_tourney_date && longDate(sample.first_tourney_date),
-        last_tourney_date: sample.last_tourney_date && longDate(sample.last_tourney_date),
-      })
+        first_tourney_date: sample.first_tourney_date && longDate(sample.first_tourney_date, t),
+        last_tourney_date: sample.last_tourney_date && longDate(sample.last_tourney_date, t),
+      }, t)
     : null;
-  const left = describeExcluded(block.excluded);
+  const left = describeExcluded(block.excluded, t);
   return {
-    tool: TOOL_NAMES[block.tool] ?? block.tool,
-    filters: filters.length ? `${filters.join(", ")}.` : "None: every surface and season.",
-    sample: line ? `${line}.` : "No matches counted.",
-    left: left.length ? `${left.join(", ")}.` : "Nothing.",
+    tool: (Object.hasOwn(t.tools, block.tool) ? t.tools[block.tool] : undefined) ?? block.tool,
+    filters: filters.length ? `${filters.join(", ")}.` : t.noFiltersEver,
+    sample: line ? `${line}.` : t.noMatchesCounted,
+    left: left.length ? `${left.join(", ")}.` : t.nothingDot,
   };
 }
 
@@ -378,58 +375,57 @@ export interface ServeGroup {
   rows: ServeRow[];
 }
 
-type RowDefinition = [key: string, title: string, block: "serve_return" | "pressure", unit: string | null];
+type RowDefinition = [key: string, block: "serve_return" | "pressure"];
 
-const SERVE_GROUPS: [name: string, rows: RowDefinition[]][] = [
-  ["On serve", [
-    ["first_serve_in", "First serve in", "serve_return", "serve points"],
-    ["first_serve_points_won", "First-serve points won", "serve_return", "first-serve points"],
-    ["second_serve_points_won", "Second-serve points won", "serve_return", "second-serve points"],
-    ["service_points_won", "Service points won", "serve_return", "serve points"],
-    ["break_points_saved", "Break points saved", "pressure", "break points faced"],
-    ["aces_per_match", "Aces per match", "serve_return", null],
+// Each row's title is the stat's name and its unit the language's (t.stats, t.serveUnits). Aces
+// per match has no bar, so no unit.
+const SERVE_GROUPS: [group: "serve" | "return", rows: RowDefinition[]][] = [
+  ["serve", [
+    ["first_serve_in", "serve_return"],
+    ["first_serve_points_won", "serve_return"],
+    ["second_serve_points_won", "serve_return"],
+    ["service_points_won", "serve_return"],
+    ["break_points_saved", "pressure"],
+    ["aces_per_match", "serve_return"],
   ]],
-  ["On return", [
-    ["return_points_won", "Return points won", "serve_return", "return points"],
-    ["break_points_converted", "Break points converted", "pressure", "break points earned"],
+  ["return", [
+    ["return_points_won", "serve_return"],
+    ["break_points_converted", "pressure"],
   ]],
 ];
 
 const SMALL_SAMPLE = 10;
 
-export function serveGroups(data: Pick<PlayerStats, "filters" | "serve_return" | "pressure" | "career">): ServeGroup[] {
+export function serveGroups(data: Pick<PlayerStats, "filters" | "serve_return" | "pressure" | "career">, t: T = EN): ServeGroup[] {
   const filtered = isFiltered(data.filters);
-  const row = ([key, title, from, unit]: RowDefinition): ServeRow => {
+  const row = ([key, from]: RowDefinition): ServeRow => {
     const block = data[from];
     const rate: Rate | undefined = block.stats[key];
     const career: Rate | undefined = data.career[from].stats[key];
-    const value = rateText(rate);
+    const value = rateText(rate, t);
+    const unit = key === "aces_per_match" ? null : t.serveUnits[key];
     const hasBar = unit !== null;
-    let counts = filtered ? "No matches with stats for this filter" : "No matches with stats";
+    let counts = filtered ? t.noStatsFilter : t.noStats;
     if (rate && value !== null) {
-      counts = hasBar
-        ? `${count(rate.numerator)} of ${count(rate.denominator)} ${unit}`
-        : `${plural(rate.numerator, "ace", "aces")} in ${plural(rate.denominator, "match", "matches")}`;
+      counts = unit !== null ? `${t.countOf(rate.numerator, rate.denominator)} ${unit}` : t.acesIn(rate.numerator, rate.denominator);
     }
     return {
       key,
-      title,
-      value: value ?? "No data",
+      title: t.stats[key],
+      value: value ?? t.noData,
       counts,
       small: value !== null && block.sample.matches_with_stats < SMALL_SAMPLE,
       hasBar,
       width: hasBar ? barWidth(rate) : 0,
       tick: hasBar && filtered && career && career.value !== null ? barWidth(career) : null,
-      source: sourceFacts(block),
+      source: sourceFacts(block, t),
     };
   };
-  return SERVE_GROUPS.map(([name, rows]) => ({ name, rows: rows.map(row) }));
+  return SERVE_GROUPS.map(([group, rows]) => ({ name: t.serveGroups[group], rows: rows.map(row) }));
 }
 
-export function serveNote(filters: PageFilters): string {
-  return isFiltered(filters)
-    ? "Open a number to see its source. The brass tick marks the figure across every surface and season."
-    : "Open a number to see its source.";
+export function serveNote(filters: PageFilters, t: T = EN): string {
+  return isFiltered(filters) ? t.serveNoteFiltered : t.serveNote;
 }
 
 // ---------- against ----------
@@ -441,14 +437,14 @@ export interface AgainstView {
 }
 
 /** The head-to-head in the page's words, from that block's own players, record and filters. */
-export function againstView(h2h: HeadToHead): AgainstView {
+export function againstView(h2h: HeadToHead, t: T = EN): AgainstView {
   const { wins, losses, matches } = h2h.record;
-  const where = context(h2h.filters);
+  const where = context(h2h.filters, t);
   const text = matches
-    ? `${lastName(h2h.player.name)} ${wins}, ${lastName(h2h.opponent.name)} ${losses} ${where || "across every meeting in the data"}.`
-    : `No meetings ${where || "in the data"}.`;
-  const excluded = describeExcluded(h2h.excluded);
-  return { title: `Against ${h2h.opponent.name}`, text, note: excluded.length ? `${excluded.join(", ")} left out.` : null };
+    ? t.againstRecord(lastName(h2h.player.name), wins, lastName(h2h.opponent.name), losses, where)
+    : t.noMeetings(where);
+  const excluded = describeExcluded(h2h.excluded, t);
+  return { title: t.againstTitle(h2h.opponent.name), text, note: excluded.length ? t.leftOutList(excluded.join(", ")) : null };
 }
 
 // ---------- last 10 matches ----------
@@ -474,29 +470,27 @@ export interface FormView {
 
 const SWATCHES = new Set(["hard", "clay", "grass"]);
 
-export function formView(form: Pick<RecentForm, "n" | "filters" | "record" | "matches">): FormView {
-  const where = context(form.filters);
+export function formView(form: Pick<RecentForm, "n" | "filters" | "record" | "matches">, t: T = EN): FormView {
+  const where = context(form.filters, t);
   const returned = form.matches.length;
   const rows = form.matches.map((m, i): FormRow => {
-    const surface = m.surface?.toLowerCase() ?? null;
+    const swatch = m.surface?.toLowerCase() ?? null;
     return {
       key: `${m.tourney_date}-${m.round}-${m.opponent.player_id}-${i}`,
-      date: monthYear(m.match_date ?? m.tourney_date),
+      date: monthYear(m.match_date ?? m.tourney_date, t),
       event: eventName(m.tournament),
-      round: roundName(m.round),
-      surface: surface ?? "unknown surface",
-      swatch: surface && SWATCHES.has(surface) ? `sw-${surface}` : null,
+      round: roundName(m.round, t),
+      surface: m.surface ? surfaceWords(t, m.surface).lower : t.unknownSurface,
+      swatch: swatch && SWATCHES.has(swatch) ? `sw-${swatch}` : null,
       opponent: m.opponent.name,
-      rank: m.opponent.rank ? `No. ${m.opponent.rank}` : "No ranking in the data",
+      rank: m.opponent.rank ? t.rankNumber(m.opponent.rank) : t.noRanking,
       won: m.result === "W",
-      score: m.score ?? "No score in the data",
+      score: m.score ?? t.noScore,
     };
   });
   return {
-    title: returned === 1 ? "Last match" : `Last ${returned || form.n} matches`,
-    note: returned
-      ? `Newest first, ${where || "any surface or season"}. Won ${form.record.wins} of these ${returned}.`
-      : `No matches ${where || "in the data"}.`,
+    title: returned === 1 ? t.lastMatch : t.lastMatches(returned || form.n),
+    note: returned ? t.formNote(where, form.record.wins, returned) : t.noMatchesWhere(where),
     rows,
   };
 }

@@ -3,38 +3,15 @@
 // Calls are matched on what the tool actually used (its result's player and filters), not on
 // what the model asked for. When the evidence is missing, the view says so; it never shows 0.
 
+import { EN, type T, surfaceWords } from "./i18n.ts";
 import { eventName, lastName, longDate, roundName } from "./people.ts";
 import type { Evidence, KeyStat, PlayerRef, Rate, ReportResponse, Sample, Surface, ToolResult } from "./types.ts";
 import { SURFACES } from "./types.ts";
 
-export const TOOL_NAMES: Record<string, string> = {
-  resolve_player: "Player lookup",
-  player_profile: "Player profile",
-  surface_splits: "Win-loss by surface",
-  serve_return_stats: "Serve and return stats",
-  pressure_stats: "Break points",
-  head_to_head: "Head-to-head",
-  recent_form: "Recent form",
-};
-
-const STAT_NAMES: Record<string, string> = {
-  first_serve_in: "First serve in",
-  first_serve_points_won: "First-serve points won",
-  second_serve_points_won: "Second-serve points won",
-  service_points_won: "Service points won",
-  return_points_won: "Return points won",
-  aces_per_match: "Aces per match",
-  break_points_saved: "Break points saved",
-  break_points_converted: "Break points converted",
-  win_rate: "Win rate",
-  wins: "Wins",
-  losses: "Losses",
-  matches: "Matches",
-};
-
-const LEVELS: Record<string, string> = {
-  G: "Grand Slams", M: "Masters 1000", A: "ATP 250 and 500", F: "Tour Finals", D: "Davis Cup", O: "Olympics",
-};
+/** The English names. Every function here that writes words takes a language (lib/i18n.ts, D-027),
+ * English by default. */
+export const TOOL_NAMES: Record<string, string> = EN.tools;
+const STAT_NAMES: Record<string, string> = EN.stats;
 
 const TOLERANCE = 1e-9; // the grounding check's (api/grounding.py)
 
@@ -104,54 +81,49 @@ export function checkStat(stat: KeyStat, evidence: Evidence[]): StatCheck {
 
 /** What a key stat is, in words, from the tool result: whose number, which measure, which
  * filters. The model's own label is not used, since nothing checks it. */
-export function describeStat(stat: KeyStat, source: Evidence | undefined): { title: string; filters: string[] } {
+export function describeStat(stat: KeyStat, source: Evidence | undefined, t: T = EN): { title: string; filters: string[] } {
   const result = source?.result;
-  if (!result) return { title: `Tool call ${stat.tool_call_id} (not in this report's results)`, filters: [] };
+  if (!result) return { title: t.toolCallMissing(stat.tool_call_id), filters: [] };
   const parts = stat.field.split(".");
   const key = parts.find((p) => p in STAT_NAMES && p !== "matches") ?? parts[parts.length - 1];
-  let measure = STAT_NAMES[key] ?? stat.field;
+  let measure = (Object.hasOwn(t.stats, key) ? t.stats[key] : undefined) ?? stat.field;
   const listName = parts[0];
   if ((listName === "surfaces" || listName === "by_surface") && /^\d+$/.test(parts[1] ?? "")) {
     const row = (result[listName] as { surface?: string }[] | undefined)?.[Number(parts[1])];
-    if (row?.surface) measure = `${row.surface} ${measure.toLowerCase()}`;
+    if (row?.surface) measure = t.measureOnSurface(measure, surfaceWords(t, row.surface));
   }
-  if (source.tool === "head_to_head") measure = `head-to-head ${measure.charAt(0).toLowerCase()}${measure.slice(1)}`;
-  if (source.tool === "recent_form") measure = `${measure} in the last ${String(result.n ?? "")} matches`;
-  const who = result.opponent ? `${result.player?.name} against ${result.opponent.name}` : (result.player?.name ?? "");
+  if (source.tool === "head_to_head") measure = t.measureHeadToHead(measure);
+  if (source.tool === "recent_form") measure = t.measureRecent(measure, String(result.n ?? ""));
+  const who = result.opponent ? t.playerAgainst(result.player?.name, result.opponent.name) : (result.player?.name ?? "");
   const title = `${who}: ${measure.charAt(0).toLowerCase()}${measure.slice(1)}`;
-  return { title, filters: describeFilters(result.filters as Record<string, unknown> | undefined) };
+  return { title, filters: describeFilters(result.filters as Record<string, unknown> | undefined, t) };
 }
 
 /** The filters a tool call used, in words. Only the ones that were set. */
-export function describeFilters(filters: Record<string, unknown> | undefined): string[] {
+export function describeFilters(filters: Record<string, unknown> | undefined, t: T = EN): string[] {
   if (!filters) return [];
   const out: string[] = [];
-  if (filters.surface) out.push(`${filters.surface} courts`);
-  if (filters.season) out.push(`${filters.season} season`);
-  if (filters.date_from && filters.date_to) out.push(`Tournaments starting ${filters.date_from} to ${filters.date_to}`);
-  else if (filters.date_from) out.push(`Tournaments starting from ${filters.date_from}`);
-  else if (filters.date_to) out.push(`Tournaments starting up to ${filters.date_to}`);
+  const level = (code: string) => (Object.hasOwn(t.levels, code) ? t.levels[code] : code);
+  if (filters.surface) out.push(surfaceWords(t, String(filters.surface)).courtsCap);
+  if (filters.season) out.push(t.seasonFilter(String(filters.season)));
+  if (filters.date_from && filters.date_to) out.push(t.tournamentsBetween(String(filters.date_from), String(filters.date_to)));
+  else if (filters.date_from) out.push(t.tournamentsFrom(String(filters.date_from)));
+  else if (filters.date_to) out.push(t.tournamentsUpTo(String(filters.date_to)));
   const levels = filters.tourney_level;
-  if (Array.isArray(levels) && levels.length) out.push(levels.map((l) => LEVELS[String(l)] ?? String(l)).join(", "));
-  else if (typeof levels === "string") out.push(LEVELS[levels] ?? levels);
-  if (filters.opponent_hand === "L") out.push("Left-handed opponents");
-  if (filters.opponent_hand === "R") out.push("Right-handed opponents");
-  if (filters.include_exhibitions) out.push("Exhibitions included");
+  if (Array.isArray(levels) && levels.length) out.push(levels.map((l) => level(String(l))).join(", "));
+  else if (typeof levels === "string") out.push(level(levels));
+  if (filters.opponent_hand === "L") out.push(t.leftHandedOpponents);
+  if (filters.opponent_hand === "R") out.push(t.rightHandedOpponents);
+  if (filters.include_exhibitions) out.push(t.exhibitionsIncluded);
   return out;
 }
 
 /** What the tool left out, in words. Only the counts above zero. */
-export function describeExcluded(excluded: Record<string, number> | undefined): string[] {
-  const names: Record<string, [one: string, many: string]> = {
-    walkovers: ["walkover", "walkovers"],
-    exhibitions: ["exhibition", "exhibitions"],
-    unknown_results: ["match with an unclear result", "matches with an unclear result"],
-    unknown_surface: ["match with no surface recorded", "matches with no surface recorded"],
-    unknown_opponent_hand: ["match against an opponent of unknown hand", "matches against opponents of unknown hand"],
-  };
+export function describeExcluded(excluded: Record<string, number> | undefined, t: T = EN): string[] {
+  const names = t.excludedNames;
   return Object.entries(excluded ?? {})
     .filter(([, n]) => n > 0)
-    .map(([key, n]) => `${n} ${(names[key] ?? [key, key])[n === 1 ? 0 : 1]}`);
+    .map(([key, n]) => `${n} ${(Object.hasOwn(names, key) ? names[key] : [key, key])[n === 1 ? 0 : 1]}`);
 }
 
 // ---------- charts ----------
@@ -188,14 +160,14 @@ export interface ChartData<Row> {
 /** Win rate by surface for both players. Uses a call over every surface when there is one, so a
  * missing surface means no matches there; a call filtered to one surface fills only that one,
  * and the others are "not looked up", never "no matches". */
-export function surfaceChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, window: Window): ChartData<SurfaceRow> {
+export function surfaceChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, window: Window, t: T = EN): ChartData<SurfaceRow> {
   const sources: string[] = [];
   const notes: string[] = [];
   const cells = (who: PlayerRef): Map<string, SurfaceCell> => {
     const calls = callsFor(evidence, "surface_splits", who, window);
     const all = calls.find((c) => !c.result?.filters?.surface);
     const used = all ? [all] : calls;
-    if (!used.length) notes.push(`${who.name}'s win-loss by surface isn't in this report's results.`);
+    if (!used.length) notes.push(t.surfacesMissing(who.name));
     const map = new Map<string, SurfaceCell>();
     for (const call of used) {
       sources.push(call.tool_call_id);
@@ -208,7 +180,7 @@ export function surfaceChart(evidence: Evidence[], player: PlayerRef, opponent: 
       map.set(surface, { winRate: null, record: null, matches: null, status: all ? "no_matches" : "not_looked_up" });
     }
     const unlooked = SURFACES.filter((s) => map.get(s)!.status === "not_looked_up");
-    if (used.length && unlooked.length) notes.push(`${who.name}: ${unlooked.join(" and ").toLowerCase()} not looked up in this report.`);
+    if (used.length && unlooked.length) notes.push(t.notLookedUp(who.name, unlooked.map((s) => surfaceWords(t, s).lower).join(` ${t.and} `)));
     return map;
   };
   const mine = cells(player);
@@ -244,7 +216,7 @@ const SERVE_METRICS: [tool: string, key: string][] = [
 /** Serve, return and break-point rates for both players, from the calls on the report's surface;
  * when a player only has the all-surfaces fallback (a small sample on the surface), that is
  * used and said. Gaps (no call, or no matches with stats) are explained in the notes. */
-export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, surface: Surface, window: Window): ChartData<ServeRow> & {
+export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, surface: Surface, window: Window, t: T = EN): ChartData<ServeRow> & {
   scope: string;
   caveats: string[]; // the notes without the per-tool "N matches with stats" lines
   matchesWithStats: { player: number[]; opponent: number[] }; // one count per tool that was called
@@ -262,14 +234,14 @@ export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: Pl
       const anySurface = calls.find((c) => !c.result?.filters?.surface);
       const call = onSurface ?? anySurface;
       if (!call) {
-        notes.push(`${who.name}'s ${TOOL_NAMES[tool].toLowerCase()} aren't in this report's results.`);
+        notes.push(t.toolMissing(who.name, t.tools[tool]));
         continue;
       }
       sources.add(call.tool_call_id);
       scopes.add(onSurface ? surface.toLowerCase() : "all surfaces");
-      if (!onSurface) notes.push(`${who.name}'s ${TOOL_NAMES[tool].toLowerCase()} cover all surfaces, because the ${surface.toLowerCase()} sample was small.`);
+      if (!onSurface) notes.push(t.toolAllSurfaces(who.name, t.tools[tool], surfaceWords(t, surface)));
       const result = call.result as ToolResult;
-      const sampleNote = `${who.name}'s ${TOOL_NAMES[tool].toLowerCase()}: ${result.sample?.matches_with_stats ?? "an unknown number of"} matches with stats.`;
+      const sampleNote = t.toolSample(who.name, t.tools[tool], result.sample?.matches_with_stats ?? null);
       notes.push(sampleNote);
       sampleNotes.add(sampleNote);
       if (result.sample) withStats.set(`${who.player_id}.${tool}`, result.sample.matches_with_stats);
@@ -280,15 +252,15 @@ export function serveChart(evidence: Evidence[], player: PlayerRef, opponent: Pl
   const mine = rates(player);
   const theirs = rates(opponent);
   const pct = (r?: Rate) => (r ? ratePercent(r) : null);
-  const counts = (r?: Rate) => (r && r.value !== null ? `${r.numerator.toLocaleString("en-US")} of ${r.denominator.toLocaleString("en-US")}` : null);
+  const counts = (r?: Rate) => (r && r.value !== null ? t.countOf(r.numerator, r.denominator) : null);
   const rows = SERVE_METRICS.map(([tool, key]) => {
     const p = mine.get(`${tool}.${key}`);
     const o = theirs.get(`${tool}.${key}`);
     for (const [who, rate] of [[player, p], [opponent, o]] as const) {
-      if (rate && rate.value === null) notes.push(`${who.name}: no ${STAT_NAMES[key].toLowerCase()} figure (no matches with stats for it).`);
+      if (rate && rate.value === null) notes.push(t.noFigure(who.name, t.stats[key]));
     }
     return {
-      metric: STAT_NAMES[key], player: pct(p), opponent: pct(o), playerCounts: counts(p), opponentCounts: counts(o),
+      metric: t.stats[key], player: pct(p), opponent: pct(o), playerCounts: counts(p), opponentCounts: counts(o),
       playerSample: withStats.get(`${player.player_id}.${tool}`) ?? null,
       opponentSample: withStats.get(`${opponent.player_id}.${tool}`) ?? null,
     };
@@ -313,19 +285,19 @@ export function ratePercent(rate: Rate): number | null {
 
 /** A value as the coach should read it: rates as percentages with one decimal, per-match
  * averages with one decimal, counts as whole numbers. */
-export function formatValue(value: number, rate: Rate | null): string {
-  if (rate?.unit === "fraction") return `${(ratePercent(rate) ?? round1(100 * value)).toFixed(1)}%`;
-  if (rate?.unit === "per_match") return (rate.denominator > 0 ? rate.numerator / rate.denominator : value).toFixed(1);
-  return Number.isInteger(value) ? value.toLocaleString("en-US") : String(value);
+export function formatValue(value: number, rate: Rate | null, t: T = EN): string {
+  if (rate?.unit === "fraction") return t.pct((ratePercent(rate) ?? round1(100 * value)).toFixed(1));
+  if (rate?.unit === "per_match") return t.dec((rate.denominator > 0 ? rate.numerator / rate.denominator : value).toFixed(1));
+  return Number.isInteger(value) ? t.int(value) : t.dec(String(value));
 }
 
-export function sampleLine(sample: Sample | undefined): string | null {
+export function sampleLine(sample: Sample | undefined, t: T = EN): string | null {
   if (!sample) return null;
   const range = sample.first_tourney_date && sample.last_tourney_date
-    ? `, tournaments from ${sample.first_tourney_date} to ${sample.last_tourney_date}`
+    ? t.sampleRange(sample.first_tourney_date, sample.last_tourney_date)
     : "";
-  const stats = sample.matches_with_stats === sample.matches_counted ? "all with stats" : `${sample.matches_with_stats} with stats`;
-  return `${sample.matches_counted} ${sample.matches_counted === 1 ? "match" : "matches"} (${stats})${range}`;
+  const stats = sample.matches_with_stats === sample.matches_counted ? t.allWithStats : t.someWithStats(sample.matches_with_stats);
+  return t.sampleSummary(sample.matches_counted, stats, range);
 }
 
 // ---------- the report screen ----------
@@ -336,12 +308,12 @@ export function isSmallSample(matches: number | null | undefined): boolean {
   return typeof matches === "number" && matches < SMALL_SAMPLE;
 }
 
-export function matchCount(n: number): string {
-  return `${n.toLocaleString("en-US")} ${n === 1 ? "match" : "matches"}`;
+export function matchCount(n: number, t: T = EN): string {
+  return t.matchCount(n);
 }
 
-export function meetingCount(n: number): string {
-  return `${n.toLocaleString("en-US")} ${n === 1 ? "meeting" : "meetings"}`;
+export function meetingCount(n: number, t: T = EN): string {
+  return t.meetingCount(n);
 }
 
 /** Surnames for tight spots, or full names when the two players share one. */
@@ -404,41 +376,41 @@ export interface ScoreboardRow {
   winRate: Tile;
 }
 
-const NO_DATA: Tile = { status: "no_data", text: "No data", sample: null };
-const NO_MATCHES: Tile = { status: "no_matches", text: "No matches", sample: null };
+const noData = (t: T): Tile => ({ status: "no_data", text: t.noData, sample: null });
+const noMatches = (t: T): Tile => ({ status: "no_matches", text: t.noMatches, sample: null });
 
 type WinLoss = { matches: number; wins: number; losses: number };
 
 /** Each player's wins from a record kept from one player's side. Never met is "No matches"; an
  * unreadable record is "No data". A real count of 0, when they have met, is shown as 0. */
-function winTiles(record: WinLoss | undefined, forward: boolean): [mine: Tile, theirs: Tile] {
-  if (!record || !isNumber(record.matches) || !isNumber(record.wins) || !isNumber(record.losses)) return [NO_DATA, NO_DATA];
-  if (record.matches === 0) return [NO_MATCHES, NO_MATCHES];
+function winTiles(record: WinLoss | undefined, forward: boolean, t: T): [mine: Tile, theirs: Tile] {
+  if (!record || !isNumber(record.matches) || !isNumber(record.wins) || !isNumber(record.losses)) return [noData(t), noData(t)];
+  if (record.matches === 0) return [noMatches(t), noMatches(t)];
   const tile = (n: number): Tile => ({ status: "ok", text: String(n), sample: record.matches });
   return forward ? [tile(record.wins), tile(record.losses)] : [tile(record.losses), tile(record.wins)];
 }
 
 /** The scoreboard's numbers, per player: career head-to-head, head-to-head on the report's
  * surface and the win rate on that surface in the report's window. */
-export function scoreboardTiles(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, surface: Surface, window: Window): { player: ScoreboardRow; opponent: ScoreboardRow } {
+export function scoreboardTiles(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, surface: Surface, window: Window, t: T = EN): { player: ScoreboardRow; opponent: ScoreboardRow } {
   const calls = headToHeadCalls(evidence, player, opponent);
   const career = careerCall(calls);
   const filtered = calls.find((c) => c.result.filters?.surface === surface);
-  const [myCareer, theirCareer] = career ? winTiles(career.result.record as WinLoss | undefined, career.forward) : [NO_DATA, NO_DATA];
-  let [mineOn, theirsOn]: [Tile, Tile] = [NO_DATA, NO_DATA];
+  const [myCareer, theirCareer] = career ? winTiles(career.result.record as WinLoss | undefined, career.forward, t) : [noData(t), noData(t)];
+  let [mineOn, theirsOn]: [Tile, Tile] = [noData(t), noData(t)];
   if (career) {
     const surfaces = career.result.by_surface as (WinLoss & { surface: string })[] | undefined;
     const line = surfaces?.find((r) => r.surface === surface);
     // A call over every meeting lists only the surfaces they played on.
-    [mineOn, theirsOn] = line || !surfaces ? winTiles(line, career.forward) : [NO_MATCHES, NO_MATCHES];
+    [mineOn, theirsOn] = line || !surfaces ? winTiles(line, career.forward, t) : [noMatches(t), noMatches(t)];
   } else if (filtered) {
-    [mineOn, theirsOn] = winTiles(filtered.result.record as WinLoss | undefined, filtered.forward);
+    [mineOn, theirsOn] = winTiles(filtered.result.record as WinLoss | undefined, filtered.forward, t);
   }
-  const row = surfaceChart(evidence, player, opponent, window).rows.find((r) => r.surface === surface)!;
+  const row = surfaceChart(evidence, player, opponent, window, t).rows.find((r) => r.surface === surface)!;
   const rate = (cell: SurfaceCell): Tile => {
-    if (cell.status === "no_matches") return NO_MATCHES;
-    if (cell.status === "not_looked_up" || cell.winRate === null) return NO_DATA;
-    return { status: "ok", text: `${cell.winRate.toFixed(1)}%`, sample: cell.matches };
+    if (cell.status === "no_matches") return noMatches(t);
+    if (cell.status === "not_looked_up" || cell.winRate === null) return noData(t);
+    return { status: "ok", text: t.pct(cell.winRate.toFixed(1)), sample: cell.matches };
   };
   return {
     player: { career: myCareer, onSurface: mineOn, winRate: rate(row.playerCell) },
@@ -481,7 +453,7 @@ function meetingYear(tourneyDate: string, matchDate: string | null): string {
 
 /** Every meeting, newest first, from a head-to-head over all of them. Each winner comes from that
  * match's result, read from the side the tool call took. */
-export function honoursBoard(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef): Honours {
+export function honoursBoard(evidence: Evidence[], player: PlayerRef, opponent: PlayerRef, t: T = EN): Honours {
   const call = careerCall(headToHeadCalls(evidence, player, opponent));
   const matches = call?.result.matches as MatchEntry[] | undefined;
   if (!call || !Array.isArray(matches)) return { status: "not_looked_up" };
@@ -494,7 +466,7 @@ export function honoursBoard(evidence: Evidence[], player: PlayerRef, opponent: 
         date: m.tourney_date,
         year: meetingYear(m.tourney_date, m.match_date),
         event: eventName(m.tournament),
-        round: roundName(m.round),
+        round: roundName(m.round, t),
         surface: m.surface,
         winner: won === null ? null : won === call.forward ? "player" : "opponent",
         score: m.score,
@@ -533,14 +505,14 @@ export function scalePosition(value: number, scale: { min: number; max: number }
  * pressure samples differ or one is missing, so the per-tool notes are shown instead. */
 export function serveSampleLine(
   chart: Pick<ReturnType<typeof serveChart>, "scope" | "matchesWithStats">,
-  player: PlayerRef, opponent: PlayerRef, surface: Surface,
+  player: PlayerRef, opponent: PlayerRef, surface: Surface, t: T = EN,
 ): string | null {
   const single = (counts: number[]) => (counts.length && counts.every((n) => n === counts[0]) ? counts[0] : null);
   const [mine, theirs] = [single(chart.matchesWithStats.player), single(chart.matchesWithStats.opponent)];
   if (mine === null || theirs === null) return null;
   const names = shortNames(player, opponent);
-  const label = chart.scope === surface.toLowerCase() ? `${surface} matches` : "Matches";
-  return `${label} with stats: ${mine} for ${names.player}, ${theirs} for ${names.opponent}.`;
+  const words = chart.scope === surface.toLowerCase() ? surfaceWords(t, surface) : null;
+  return t.serveSampleLine(words, mine, names.player, theirs, names.opponent);
 }
 
 /** A percentage this report's evidence backs, as one-decimal text ("75.7"), with the row it came
@@ -612,49 +584,37 @@ function surfaceOfField(stat: KeyStat, result: ToolResult): string | null {
   return (result[list] as { surface?: string }[] | undefined)?.[Number(index)]?.surface ?? null;
 }
 
-const COUNTED: Record<string, string> = {
-  first_serve_in: "service points",
-  first_serve_points_won: "first-serve points",
-  second_serve_points_won: "second-serve points",
-  service_points_won: "service points",
-  return_points_won: "return points",
-  break_points_saved: "break points",
-  break_points_converted: "break points",
-};
+const COUNTED: Record<string, string> = EN.counted;
 
 /** The counts behind a key number, in words: "444 of 786 second-serve points, 56.5%". Null when
  * this field has no wording here, so the value is shown on its own. */
-export function describeValue(stat: KeyStat, check: StatCheck): string | null {
+export function describeValue(stat: KeyStat, check: StatCheck, t: T = EN): string | null {
   const result = check.evidence?.result;
   if (check.value === null || !result) return null;
   const parts = stat.field.split(".");
   const key = parts.find((p) => p in COUNTED || p === "win_rate" || p === "aces_per_match") ?? parts[parts.length - 1];
-  const count = (n: number) => n.toLocaleString("en-US");
-  const shown = formatValue(check.value, check.rate);
+  const shown = formatValue(check.value, check.rate, t);
   const headToHead = check.evidence?.tool === "head_to_head";
   if (check.rate) {
     const { numerator: n, denominator: d } = check.rate;
-    if (key in COUNTED) return `${count(n)} of ${count(d)} ${COUNTED[key]}, ${shown}`;
-    if (key === "win_rate") return `${count(n)} ${n === 1 ? "win" : "wins"} from ${headToHead ? meetingCount(d) : matchCount(d)}, ${shown}`;
-    if (key === "aces_per_match") return `${count(n)} aces over ${matchCount(d)}, ${shown} per match`;
+    if (key in COUNTED) return t.valueCounted(n, d, t.counted[key], shown);
+    if (key === "win_rate") return t.valueWinRate(n, headToHead ? t.meetingCount(d) : t.matchCount(d), shown);
+    if (key === "aces_per_match") return t.valueAces(n, t.matchCount(d), shown);
     return null;
   }
   if (key !== "wins" && key !== "losses") return null;
   const parent = resolvePath(result, parts.slice(0, -1).join(".")).value as { matches?: number } | undefined;
   if (!isNumber(parent?.matches)) return null;
-  const surface = surfaceOfField(stat, result)?.toLowerCase();
-  const of = headToHead ? meetingCount(parent.matches) : matchCount(parent.matches);
-  const from = surface ? of.replace(" ", ` ${surface} `) : of;
-  const word = key === "wins" ? (check.value === 1 ? "win" : "wins") : (check.value === 1 ? "loss" : "losses");
-  return `${count(check.value)} ${word} from ${from}`;
+  const surface = surfaceOfField(stat, result);
+  return t.valueRecord(key, check.value, t.sampleOf(parent.matches, headToHead, surface ? surfaceWords(t, surface) : null));
 }
 
-function inWords(items: string[]): string {
+function inWords(items: string[], t: T): string {
   if (items.length < 2) return items.join("");
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  return `${items.slice(0, -1).join(", ")} ${t.and} ${items[items.length - 1]}`;
 }
 
-const withLongDates = (text: string) => text.replace(/\d{4}-\d{2}-\d{2}/g, longDate);
+const withLongDates = (text: string, t: T) => text.replace(/\d{4}-\d{2}-\d{2}/g, (iso) => longDate(iso, t));
 
 export interface SourcePanel {
   source: string;
@@ -667,25 +627,26 @@ export interface SourcePanel {
 
 /** What a key number's source panel says, all read from the tool result. Null when the result
  * it cites isn't in the report. */
-export function sourcePanel(stat: KeyStat, check: StatCheck): SourcePanel | null {
+export function sourcePanel(stat: KeyStat, check: StatCheck, t: T = EN): SourcePanel | null {
   const source = check.evidence;
   const result = source?.result;
   if (!source || !result) return null;
-  const tool = TOOL_NAMES[source.tool] ?? source.tool;
-  const who = result.opponent ? `${result.player?.name} and ${result.opponent.name}` : `for ${result.player?.name}`;
-  const every = source.tool === "head_to_head" ? "None: every meeting in the data" : "None: every match in the data";
-  const surface = surfaceOfField(stat, result)?.toLowerCase();
-  const filters = describeStat(stat, source).filters.join("; ") || every;
-  const line = sampleLine(result.sample);
-  const noun = source.tool === "head_to_head" ? "meetings" : "matches";
-  const sample = line === null ? "Not reported" : surface && check.sample !== null ? `${check.sample} ${surface} ${noun}, out of ${line}` : line;
-  const excluded = describeExcluded(result.excluded);
+  const tool = (Object.hasOwn(t.tools, source.tool) ? t.tools[source.tool] : undefined) ?? source.tool;
+  const who = result.opponent ? t.panelPair(result.player?.name, result.opponent.name) : t.panelFor(result.player?.name);
+  const headToHead = source.tool === "head_to_head";
+  const every = headToHead ? t.noFilterMeetings : t.noFilterMatches;
+  const surface = surfaceOfField(stat, result);
+  const words = surface ? surfaceWords(t, surface) : null;
+  const filters = describeStat(stat, source, t).filters.join("; ") || every;
+  const line = sampleLine(result.sample, t);
+  const sample = line === null ? t.notReported : words && check.sample !== null ? t.panelSurfaceSample(check.sample, words, headToHead, line) : line;
+  const excluded = describeExcluded(result.excluded, t);
   return {
-    source: `${tool}, ${who} (call ${source.tool_call_id})`,
-    filters: `${withLongDates(filters)}${surface ? `. This is the ${surface} line.` : ""}`,
-    sample: withLongDates(sample),
-    leftOut: excluded.length ? inWords(excluded) : "Nothing",
-    value: check.value === null ? "Not found" : (describeValue(stat, check) ?? formatValue(check.value, check.rate)),
+    source: t.panelSource(tool, who, source.tool_call_id),
+    filters: `${withLongDates(filters, t)}${words ? t.panelSurfaceLine(words) : ""}`,
+    sample: withLongDates(sample, t),
+    leftOut: excluded.length ? inWords(excluded, t) : t.nothing,
+    value: check.value === null ? t.notFound : (describeValue(stat, check, t) ?? formatValue(check.value, check.rate, t)),
     field: check.value === null ? stat.field : `${stat.field} = ${check.value}`,
   };
 }

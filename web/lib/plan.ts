@@ -3,6 +3,7 @@
 // same percentage is in the report's checked values; the text alone never puts a number on screen.
 
 import { type CheckedPercent, isSmallSample } from "./evidence.ts";
+import { EN, type T } from "./i18n.ts";
 
 export interface PlanItem {
   head: string; // the first sentence
@@ -14,7 +15,7 @@ const INFERENCE = /coaching\s+inference\s*:/i;
 
 // Sentence-ending punctuation before a space and something that can start a sentence. Decimals
 // ("75.7%") have no space after the point; scores ("7-6(5)") have no point at all.
-const SENTENCE_END = /[.!?]+["'”’)\]]*(?=\s+["'“‘(\[]?[\p{Lu}\d])/gu;
+const SENTENCE_END = /[.!?]+["'”’»)\]]*(?=\s+["'“‘«¿¡(\[]?[\p{Lu}\d])/gu;
 const ABBREVIATIONS = new Set(["st", "vs", "v", "mr", "mrs", "dr", "jr", "sr", "mt", "ft", "e.g", "i.e"]);
 
 function isAbbreviation(word: string, following: string): boolean {
@@ -56,23 +57,25 @@ export interface Figure {
   small: boolean;
 }
 
-// Exactly one decimal, so "about 46%" and "75.70%" are not read as figures.
-const PERCENT = /(\d{1,3}\.\d)%/g;
+// Exactly one decimal, so "about 46%" and "75.70%" are not read as figures. Spanish and French
+// write "75,7 %": the comma and the space before the sign are read too (D-027).
+const PERCENT = /(\d{1,3}[.,]\d)[   ]?%/g;
 
 /** The figure for a point: the first percentage in its facts (not the coach's inference) that is
  * also a checked value. The comparison is added only when the text gives the other player's
  * figure too, because the same value can sit in more than one row. */
-export function findFigure(text: string, checked: CheckedPercent[], names: { player: string; opponent: string }): Figure | null {
+export function findFigure(text: string, checked: CheckedPercent[], names: { player: string; opponent: string }, t: T = EN): Figure | null {
   const { head, body } = parsePlanItem(text);
-  const stated = [...`${head} ${body}`.matchAll(PERCENT)].map((m) => m[1]);
+  const stated = [...`${head} ${body}`.matchAll(PERCENT)].map((m) => m[1].replace(",", "."));
   const value = stated.find((v) => checked.some((c) => c.value === v));
   if (value === undefined) return null;
   const sources = checked.filter((c) => c.value === value);
   const paired = sources.filter((c) => c.against !== null && stated.includes(c.against));
   const source = new Set(paired.map((c) => `${c.side} ${c.against}`)).size === 1 ? paired[0] : null;
   let sub: string | null = null;
-  if (source) sub = source.side === "player" ? `against ${source.against}% for ${names.opponent}` : `${names.opponent}, against ${source.against}% for ${names.player}`;
+  const against = t.pct(source?.against ?? "");
+  if (source) sub = source.side === "player" ? t.figureAgainst(against, names.opponent) : t.figureOpponent(names.opponent, against, names.player);
   const samples = new Set(sources.map((c) => c.sample));
   const sample = source ? source.sample : samples.size === 1 ? [...samples][0] : null;
-  return { text: `${value}%`, sub, sample, small: source ? isSmallSample(source.sample) : sources.some((c) => isSmallSample(c.sample)) };
+  return { text: t.pct(value), sub, sample, small: source ? isSmallSample(source.sample) : sources.some((c) => isSmallSample(c.sample)) };
 }

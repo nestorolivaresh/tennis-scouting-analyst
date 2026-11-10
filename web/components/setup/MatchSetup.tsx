@@ -3,7 +3,9 @@
 // Match setup: your player and the opponent feed a draw bracket into the surface. The choices
 // live in the page, so they survive a failed report.
 
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { PlayerSearch } from "@/components/ui/PlayerSearch.tsx";
+import { type T, surfaceWords } from "@/lib/i18n.ts";
 import type { Candidate, Surface } from "@/lib/types.ts";
 import styles from "./MatchSetup.module.css";
 
@@ -26,31 +28,33 @@ export type MatchSetupProps = {
 };
 
 export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, onSurface, onStart, error }: MatchSetupProps) {
+  const t = useT();
   const ready = player !== null && opponent !== null && player.player_id !== opponent.player_id;
+  const [scout, writeFor, end] = t.setupReady(surfaceWords(t, surface));
 
   return (
     <main className={styles.main}>
       <div className={styles.intro}>
-        <h1 className={styles.title}>Scout the next opponent</h1>
-        <p className={styles.lede}>ATP tour-level singles, 2015 on. Numbers come from tested stats tools, not the model’s memory.</p>
+        <h1 className={styles.title}>{t.setupTitle}</h1>
+        <p className={styles.lede}>{t.setupLede}</p>
       </div>
 
       {error !== null && (
         <p className={styles.alert} role="alert">
-          <strong>The report couldn't be written.</strong> {error}
+          <strong>{t.reportNotWritten}</strong> {error}
         </p>
       )}
 
       <form className={styles.card} aria-labelledby="setup-title" onSubmit={(event) => event.preventDefault()}>
-        <h2 id="setup-title" className={styles.cardTitle}>Set up the match</h2>
-        <p className={styles.cardLede}>Pick your player and who they're facing. We'll scout the opponent and write a game plan for your player.</p>
+        <h2 id="setup-title" className={styles.cardTitle}>{t.setupCardTitle}</h2>
+        <p className={styles.cardLede}>{t.setupCardLede}</p>
 
         <div className={styles.draw}>
           <div className={styles.players}>
             <PlayerLine
               id="your-player"
-              label="Your player"
-              help="The player you're preparing."
+              label={t.yourPlayer}
+              help={t.yourPlayerHelp}
               tone="player"
               value={player}
               onChange={onPlayer}
@@ -58,8 +62,8 @@ export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, on
             />
             <PlayerLine
               id="opponent"
-              label="Opponent"
-              help="The player we'll scout."
+              label={t.opponent}
+              help={t.opponentHelp}
               tone="opponent"
               value={opponent}
               onChange={onOpponent}
@@ -75,7 +79,7 @@ export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, on
           </div>
 
           <fieldset className={styles.surface}>
-            <legend>Surface</legend>
+            <legend>{t.surfaceLegend}</legend>
             <div className={styles.courts}>
               {COURTS.map(({ name, swatch }) => (
                 <label key={name} className={styles.swatch}>
@@ -88,7 +92,7 @@ export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, on
                     </svg>
                     {surface === name && <span className={styles.ball} aria-hidden="true" />}
                   </span>
-                  <span className={styles.courtName}>{name}</span>
+                  <span className={styles.courtName}>{surfaceWords(t, name).name}</span>
                 </label>
               ))}
             </div>
@@ -100,17 +104,17 @@ export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, on
             {ready ? (
               <>
                 <p className={styles.goLine}>
-                  We'll scout <strong>{opponent.name}</strong> on {surface.toLowerCase()} and write the game plan for <strong>{player.name}</strong>.
+                  {scout}<strong>{opponent.name}</strong>{writeFor}<strong>{player.name}</strong>{end}
                 </p>
-                <p className={styles.goNote}>Uses the two years up to the newest tournament in the data. It takes 15 to 40 seconds.</p>
+                <p className={styles.goNote}>{t.setupReadyNote}</p>
               </>
             ) : (
-              <p className={styles.goLine}>{nextStep(player, opponent)}</p>
+              <p className={styles.goLine}>{nextStep(player, opponent, t)}</p>
             )}
           </div>
           <div className={styles.goAction}>
             <button type="button" className="btn btn-wide" disabled={!ready} onClick={onStart}>
-              Write the report
+              {t.writeReport}
             </button>
           </div>
         </div>
@@ -119,10 +123,10 @@ export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, on
   );
 }
 
-function nextStep(player: Candidate | null, opponent: Candidate | null): string {
-  if (!player && !opponent) return "Choose your player to start.";
-  if (player && !opponent) return `Now choose who ${player.name} is facing.`;
-  return "Now choose your player.";
+function nextStep(player: Candidate | null, opponent: Candidate | null, t: T): string {
+  if (!player && !opponent) return t.chooseToStart;
+  if (player && !opponent) return t.chooseWhoFacing(player.name);
+  return t.chooseYourPlayer;
 }
 
 type PlayerLineProps = {
@@ -136,6 +140,7 @@ type PlayerLineProps = {
 };
 
 function PlayerLine({ id, label, help, tone, value, onChange, excludeId }: PlayerLineProps) {
+  const t = useT();
   const helpId = `${id}-help`;
   return (
     <div className={styles.line}>
@@ -147,10 +152,10 @@ function PlayerLine({ id, label, help, tone, value, onChange, excludeId }: Playe
           describedBy={helpId}
           value={value}
           onChange={onChange}
-          placeholder="Search by name"
+          placeholder={t.searchByName}
           excludeId={excludeId}
           tone={tone}
-          changeLabel={`Change ${label.toLowerCase()}`}
+          changeLabel={t.changeWho(label)}
         />
       </div>
     </div>

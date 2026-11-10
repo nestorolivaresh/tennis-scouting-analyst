@@ -1,6 +1,7 @@
 // Calls to the FastAPI service, through this app's /api proxy (next.config.ts). Every failure
 // becomes an ApiFailure with a message safe to show; nothing is turned into empty data.
 
+import type { Locale } from "./i18n.ts";
 import type { PlayerStats } from "./player-stats.ts";
 import { SseParser } from "./sse.ts";
 import type { ApiError, ChatEvent, ChatMessage, ReportEvent, ReportResponse, SearchResult, Surface } from "./types.ts";
@@ -50,11 +51,12 @@ export async function streamChat(
   messages: ChatMessage[],
   onEvent: (event: ChatEvent) => void,
   signal?: AbortSignal,
+  language: Locale = "en",
 ): Promise<void> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, language }),
     signal,
   });
   if (!response.ok || !response.body) throw await failure(response);
@@ -77,7 +79,7 @@ export async function streamChat(
 /** The report with progress: calls onEvent for each step, and resolves with the checked
  * report from the last event. Bad input fails before the stream opens, with the API's message. */
 export async function streamReport(
-  body: { player_id: number; opponent_id: number; surface: Surface },
+  body: { player_id: number; opponent_id: number; surface: Surface; language?: Locale },
   onEvent: (event: ReportEvent) => void,
   signal?: AbortSignal,
 ): Promise<ReportResponse> {

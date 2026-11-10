@@ -78,8 +78,9 @@ uv run --env-file .env python -m evals.run --rescore baseline        # rescore o
 and a surface, watch each lookup as the report is written, read the report, open any key number to see the tool call, filters and sample
 behind it, and ask follow-up questions in a streaming chat. It talks to the API through its
 own server, so the Anthropic key never reaches the browser. A second page, Player stats, shows any
-player's record, serve, return and recent form, with no model involved. Design and checks:
-[D-024 and D-026](docs/decisions.md).
+player's record, serve, return and recent form, with no model involved. The app, its reports and
+the chat are in English, Spanish and French, chosen from the browser's language and switchable in
+the nav. Design and checks: [D-024, D-026 and D-027](docs/decisions.md).
 
 ```bash
 ALLOW_NO_SPEND_CAP=1 uv run --env-file .env uvicorn api.app:app --port 8000   # the API, in one terminal

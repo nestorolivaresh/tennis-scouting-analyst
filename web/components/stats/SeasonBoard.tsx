@@ -1,16 +1,18 @@
 import { Board } from "@/components/ui/Board.tsx";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { type PageQuery, type PlayerStats, seasonNote, seasonRows } from "@/lib/player-stats.ts";
 import styles from "./Stats.module.css";
 
 export function SeasonBoard({ data, query, onPick }: { data: PlayerStats; query: PageQuery; onPick: (season: number | null) => void }) {
+  const t = useT();
   return (
     <Board aria-labelledby="by-season" className={styles.sideBoard}>
       <div className={styles.giltFrame}>
-        <h2 id="by-season" className={styles.giltTitle}>Season by season</h2>
-        <p className={styles.giltNote}>{seasonNote(data.filters)}</p>
+        <h2 id="by-season" className={styles.giltTitle}>{t.seasonBySeason}</h2>
+        <p className={styles.giltNote}>{seasonNote(data.filters, t)}</p>
         <div className={styles.giltRule} aria-hidden="true" />
         <ul className={styles.seasons}>
-          {seasonRows(data.seasons, query).map((row) => (
+          {seasonRows(data.seasons, query, t).map((row) => (
             <li key={row.key}>
               <button type="button" className={`${styles.season}${row.on ? ` ${styles.seasonOn}` : ""}`} aria-pressed={row.on} onClick={() => onPick(row.season)}>
                 <span className={styles.yr}>

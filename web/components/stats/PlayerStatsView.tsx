@@ -7,8 +7,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { Board } from "@/components/ui/Board.tsx";
+import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { PlayerSearch } from "@/components/ui/PlayerSearch.tsx";
 import { ApiFailure, fetchPlayerStats } from "@/lib/api.ts";
+import { type T, failureText } from "@/lib/i18n.ts";
 import {
   type DataWindow,
   type PageQuery,
@@ -39,12 +41,12 @@ type Failure = { message: string; badLink: boolean };
 /** What the last finished request gave. `key` says which request that was. */
 type Settled = { key: string; data: PlayerStats | null; failure: Failure | null };
 
-function describeFailure(error: unknown): Failure {
-  if (error instanceof ApiFailure) return { message: error.message, badLink: isBadLink(error.status) };
-  return { message: "The player stats couldn't be reached. Check your connection and try again.", badLink: false };
+function describeFailure(error: unknown, t: T): Failure {
+  if (error instanceof ApiFailure) return { message: failureText(error.kind, error.message, t), badLink: isBadLink(error.status) };
+  return { message: t.statsUnreachable, badLink: false };
 }
 
-function usePlayerStats(url: string | null) {
+function usePlayerStats(url: string | null, t: T) {
   const [attempt, setAttempt] = useState(0);
   const [settled, setSettled] = useState<Settled | null>(null);
   const key = `${attempt} ${url}`;
@@ -57,11 +59,11 @@ function usePlayerStats(url: string | null) {
         if (!controller.signal.aborted) setSettled({ key, data, failure: null });
       },
       (error: unknown) => {
-        if (!controller.signal.aborted) setSettled((last) => ({ key, data: last?.data ?? null, failure: describeFailure(error) }));
+        if (!controller.signal.aborted) setSettled((last) => ({ key, data: last?.data ?? null, failure: describeFailure(error, t) }));
       },
     );
     return () => controller.abort();
-  }, [url, key]);
+  }, [url, key, t]);
 
   return {
     data: settled?.data ?? null,
@@ -72,11 +74,12 @@ function usePlayerStats(url: string | null) {
 }
 
 function Heading({ coverage, children }: { coverage: DataWindow | null; children?: ReactNode }) {
+  const t = useT();
   return (
     <div className={styles.head}>
       <div className={styles.headText}>
-        <h1 className={styles.title}>Player stats</h1>
-        <p className={styles.lede}>{coverageLine(coverage)}</p>
+        <h1 className={styles.title}>{t.statsTitle}</h1>
+        <p className={styles.lede}>{coverageLine(coverage, t)}</p>
       </div>
       <div className={styles.lookup}>{children}</div>
     </div>
@@ -84,21 +87,23 @@ function Heading({ coverage, children }: { coverage: DataWindow | null; children
 }
 
 function LoadingBoard() {
+  const t = useT();
   return (
-    <Board aria-label="Player stats" aria-busy="true" className={styles.loadingBoard}>
-      <p className={styles.loadingText} role="status">Loading player stats…</p>
+    <Board aria-label={t.statsTitle} aria-busy="true" className={styles.loadingBoard}>
+      <p className={styles.loadingText} role="status">{t.loadingStats}</p>
     </Board>
   );
 }
 
 function FailurePanel({ failure, busy, onRetry }: { failure: Failure; busy: boolean; onRetry: () => void }) {
+  const t = useT();
   return (
     <div className={styles.failure} role="alert" aria-busy={busy}>
-      <h2 className="h2">{failure.badLink ? "This link can't be shown" : "The player stats didn't load"}</h2>
-      <p className={styles.failureText}>{failure.badLink ? "It doesn't point to a player in the data. Try searching for the player instead." : failure.message}</p>
+      <h2 className="h2">{failure.badLink ? t.linkCantShow : t.statsDidntLoad}</h2>
+      <p className={styles.failureText}>{failure.badLink ? t.linkHelp : failure.message}</p>
       {failure.badLink
-        ? <Link className="btn" href="/players">Search for a player</Link>
-        : <button type="button" className="btn" onClick={onRetry} disabled={busy}>{busy ? "Trying again…" : "Try again"}</button>}
+        ? <Link className="btn" href="/players">{t.searchForPlayer}</Link>
+        : <button type="button" className="btn" onClick={onRetry} disabled={busy}>{busy ? t.tryingAgain : t.tryAgain}</button>}
     </div>
   );
 }
@@ -114,9 +119,10 @@ export function PlayerStatsLoading() {
 }
 
 export function PlayerStatsView() {
+  const t = useT();
   const query = parseQuery(useSearchParams());
   const url = query ? statsUrl(query) : null;
-  const { data, failure, busy, retry } = usePlayerStats(url);
+  const { data, failure, busy, retry } = usePlayerStats(url, t);
 
   // Next keeps useSearchParams in step with pushState, with no server round trip and no jump to
   // the top of the page.
@@ -128,17 +134,17 @@ export function PlayerStatsView() {
   return (
     <main className={styles.page}>
       <Heading coverage={query ? (data?.data_window ?? null) : null}>
-        <label htmlFor="who" className={styles.lookupLabel}>Look up a player</label>
+        <label htmlFor="who" className={styles.lookupLabel}>{t.lookUpPlayer}</label>
         <PlayerSearch
           inputId="who"
           value={null}
           onChange={(candidate) => {
             if (candidate) go(query ? withPlayer(query, candidate.player_id) : queryForPlayer(candidate.player_id));
           }}
-          placeholder="Search for a player"
+          placeholder={t.searchForPlayer}
           tone="player"
           showMedal={false}
-          changeLabel="Change player"
+          changeLabel={t.changePlayer}
         />
       </Heading>
 

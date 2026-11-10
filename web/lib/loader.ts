@@ -1,6 +1,7 @@
 // What the loader shows, worked out only from the events of POST /report/stream. Nothing here
 // runs on a timer or estimates progress, so every rule can be tested with a list of events.
 
+import { EN, type T } from "./i18n.ts";
 import { progressSteps, type Step } from "./progress.ts";
 import type { ReportEvent, ReportResponse } from "./types.ts";
 
@@ -26,18 +27,10 @@ const CLEAN_SCORES = ["15", "30", "40", "Game"];
 
 const SCORE: Record<Stage, string> = { look: "15", write: "30", check: "40", deuce: "Deuce", adv: "Ad", done: "Game" };
 
-const TITLE: Record<Exclude<Stage, "deuce">, string> = {
-  look: "Looking up the stats",
-  write: "Writing the report",
-  check: "Checking the numbers",
-  adv: "Checking the numbers again",
-  done: "The report is ready",
-};
-
 /** How long "Game" stays up before a verified report is shown. */
 export const GAME_HOLD_MS = 1_200;
 
-export function loaderState(events: ReportEvent[], final: ReportResponse | null, seconds: number): LoaderState {
+export function loaderState(events: ReportEvent[], final: ReportResponse | null, seconds: number, t: T = EN): LoaderState {
   const { running, corrections } = readEvents(events);
   // Only a report that passed the check may claim that its numbers match.
   const verified = final?.status === "verified" ? final.report : null;
@@ -46,10 +39,8 @@ export function loaderState(events: ReportEvent[], final: ReportResponse | null,
     stage,
     score: SCORE[stage],
     scores: corrections > 0 || running === "adv" ? ALL_SCORES : CLEAN_SCORES,
-    title: stage === "deuce" ? deuceTitle(events) : TITLE[stage],
-    note: verified
-      ? `All ${verified.key_stats.length} key numbers match the stats data.`
-      : `${seconds} ${seconds === 1 ? "second" : "seconds"} so far. The report appears once every key number has been checked against the data.`,
+    title: stage === "deuce" ? deuceTitle(events, t) : t.loaderTitles[stage],
+    note: verified ? t.allKeyNumbersMatch(verified.key_stats.length) : t.secondsSoFar(seconds),
     corrections,
   };
 }
@@ -77,8 +68,8 @@ function readEvents(events: ReportEvent[]): { running: Stage; corrections: numbe
 }
 
 /** Deuce is the one stage titled by what is happening: the check that failed, then the rewrite. */
-function deuceTitle(events: ReportEvent[]): string {
-  const steps = progressSteps(events, new Map()).filter((s) => s.key === "correct" || s.key.startsWith("model-"));
+function deuceTitle(events: ReportEvent[], t: T): string {
+  const steps = progressSteps(events, new Map(), t).filter((s) => s.key === "correct" || s.key.startsWith("model-"));
   return steps[steps.length - 1].text;
 }
 
@@ -99,9 +90,9 @@ export function nextShot(stage: Stage, corrections: number, clipped: number): { 
 }
 
 /** The one line a screen reader hears. It depends on the steps alone, never on the timer. */
-export function loaderStatus(state: LoaderState, steps: Step[]): string {
+export function loaderStatus(state: LoaderState, steps: Step[], t: T = EN): string {
   if (state.stage === "done") return state.title;
-  return steps[steps.length - 1]?.text ?? "Starting";
+  return steps[steps.length - 1]?.text ?? t.starting;
 }
 
 /** Milliseconds to hold on "Game" before showing this report. */

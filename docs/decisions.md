@@ -1000,3 +1000,58 @@ The setup bracket measured 0 px off the courts.
 **Not checked.** The new route on Vercel and its CDN (nothing has been deployed); a real model
 report through the new screens (the stream's format is unchanged); reduced motion in a live browser
 (its CSS and logic are in place and the loader's logic is tested); browsers other than Chromium.
+
+## D-027 Spanish and French
+
+*2026-11-10.*
+
+**Context.** Nestor asked for a language switch between English, Spanish and French, with the
+default set by the visitor's location.
+
+**Chosen.** The default is the visitor's saved choice (a `lang` cookie kept for a year), then the
+first of their browser's languages the app has (`Accept-Language`, by preference, matched on the
+base language, so `es-419` is Spanish), then English. No location or IP is used. A switch in the
+nav (EN, ES, FR, each named in its own language for screen readers) changes the page in place, so
+a report or a chat on screen stays; text the model already wrote stays in the language it was
+written in.
+
+- **Words.** Every word on screen is in `web/lib/messages/en.ts`, `es.ts` and `fr.ts`. English is
+  the reference: the other two have its type, so a missing string or a wrong argument doesn't
+  compile, and a test checks the same at run time. A guard test fails when a component holds words
+  of its own. English output is unchanged, which the existing tests show. No package: the month
+  names are in the messages, decimals use a comma and a space before the percent sign in Spanish
+  and French, and country names come from the browser (`Intl.DisplayNames`). Player and tournament
+  names stay as the data spells them.
+- **Reports and chat.** `POST /report`, `/report/stream` and `/chat` take `language` (`en`, `es` or
+  `fr`, default `en`); anything else is a 422 before any model call. Spanish and French add one
+  rule to the prompt (write the text in that language, with a decimal comma and dates in words);
+  the English prompts are byte-for-byte what they were, so the evals still describe them. Key
+  numbers are checked exactly as before. A figure in the model's text is read as `75.7%` or
+  `75,7 %`.
+- **Rendering.** Pages read the cookie and header on the server, so the first HTML is already in
+  the visitor's language, with no flash of English. They are therefore rendered per request rather
+  than as static files, and served `private, no-store`, so a cache never hands one visitor another's
+  language. On Vercel each page view is now a function call; at this traffic that's well within
+  Hobby.
+
+**Alternatives.** Defaulting by IP (Vercel already sends the visitor's country): Google's guidance
+for multilingual sites advises against adapting content to a guessed location and recommends
+visible links to switch; W3C treats the browser's language as a reasonable first guess when people
+can override it and the choice is saved (both read 2026-11-10). A country isn't a language either:
+Canada and Switzerland have no single answer, and a visitor abroad or on a VPN gets the wrong one.
+A language in the URL (`/es/...`) would make links shareable per language and help search engines,
+but changes every route, which a demo doesn't need. Translating in the browser after the page loads
+would show English first.
+
+**Checked.** 303 Python tests (10 new) and 185 web tests (13 new), the type check and the
+production build. One real report in each language: both verified on the first attempt, 9 tool
+calls each, $0.074 in Spanish and $0.073 in French, with decimal commas and no raw dates or
+unrounded figures. The production build in a browser in all three languages, with a stand-in
+replaying those two reports: the server-chosen language for seven browser settings and cookies,
+the switch, setup, loader, report, source panels, chat, switching in the middle of a report, the
+Player stats page, and 320 and 375 px. That found three layout faults, now fixed: the French
+"Avantage" overflowed its flap, a Spanish button pushed past a phone's width, and the phone
+header wrapped unevenly (its languages now sit beside the emblem, with the sections below).
+
+**Not checked.** A native French speaker hasn't read the French. The evals are in English only. No
+real chat answer in Spanish or French has been run.

@@ -134,6 +134,11 @@
   font-size: 66px;
 }
 
+/* A word longer than "Égalité", such as the French "Avantage". */
+.flapLong {
+  font-size: 52px;
+}
+
 .flapNow {
   transform: rotateX(0deg);
 }
@@ -244,6 +249,10 @@
 
   .flapWord {
     font-size: 44px;
+  }
+
+  .flapLong {
+    font-size: 35px;
   }
 }
 

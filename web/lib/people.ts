@@ -1,10 +1,8 @@
 // How names, dates and the data's tournament and round codes read on screen. Dates are read and
-// written in UTC, so a date never shifts with the viewer's timezone.
+// written in UTC, so a date never shifts with the viewer's timezone. Words come from the language
+// passed in (lib/i18n.ts), English by default.
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { EN, type T } from "./i18n.ts";
 
 const words = (name: string) => name.trim().split(/\s+/).filter(Boolean);
 
@@ -50,15 +48,15 @@ function utcDate(iso: string): Date | null {
 }
 
 /** "17 February 2020". Text that isn't an ISO date comes back unchanged. */
-export function longDate(iso: string): string {
+export function longDate(iso: string, t: T = EN): string {
   const date = utcDate(iso);
-  return date ? `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}` : iso;
+  return date ? t.longDate(date.getUTCDate(), date.getUTCMonth(), date.getUTCFullYear()) : iso;
 }
 
 /** "Oct 2026". Text that isn't an ISO date comes back unchanged. */
-export function monthYear(iso: string): string {
+export function monthYear(iso: string, t: T = EN): string {
   const date = utcDate(iso);
-  return date ? `${MONTHS[date.getUTCMonth()].slice(0, 3)} ${date.getUTCFullYear()}` : iso;
+  return date ? t.monthYear(date.getUTCMonth(), date.getUTCFullYear()) : iso;
 }
 
 const EVENT_NAMES = new Map([
@@ -80,26 +78,14 @@ export function eventName(raw: string): string {
   return EVENT_NAMES.get(name) ?? name;
 }
 
-const ROUNDS = new Map([
-  ["F", "Final"],
-  ["SF", "Semifinal"],
-  ["QF", "Quarterfinal"],
-  ["R16", "Round of 16"],
-  ["R32", "Round of 32"],
-  ["R64", "Round of 64"],
-  ["R128", "Round of 128"],
-  ["RR", "Round robin"],
-  ["BR", "Bronze medal match"],
-]);
-
 /** The round's name; a code this doesn't know comes back unchanged. */
-export function roundName(code: string): string {
-  return ROUNDS.get(code) ?? code;
+export function roundName(code: string, t: T = EN): string {
+  return Object.hasOwn(t.rounds, code) ? t.rounds[code] : code;
 }
 
 /** "right-handed" or "left-handed"; null when the hand isn't known. */
-export function handName(code: string | null | undefined): string | null {
-  if (code === "R") return "right-handed";
-  if (code === "L") return "left-handed";
+export function handName(code: string | null | undefined, t: T = EN): string | null {
+  if (code === "R") return t.rightHanded;
+  if (code === "L") return t.leftHanded;
   return null;
 }

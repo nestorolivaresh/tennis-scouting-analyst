@@ -7,8 +7,10 @@
 // neither loses it nor stops the stream.
 
 import { type FormEvent, type RefObject, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useLanguage, useT } from "@/components/ui/LanguageProvider.tsx";
 import { ApiFailure, streamChat } from "@/lib/api.ts";
-import { CUT_OFF_MESSAGE, type LiveTurn, MAX_CHARS, applyChatEvent, buildHistory, closeTurn, finishedAnnouncement } from "@/lib/chat.ts";
+import { type LiveTurn, MAX_CHARS, applyChatEvent, buildHistory, closeTurn, finishedAnnouncement } from "@/lib/chat.ts";
+import { failureText, surfaceWords } from "@/lib/i18n.ts";
 import type { ChatMessage, Surface } from "@/lib/types.ts";
 import { ChatAnswer } from "./ChatAnswer.tsx";
 import styles from "./ReportChat.module.css";
@@ -24,6 +26,7 @@ function subscribeToWidth(onChange: () => void) {
 }
 
 function useChat(context: ChatMessage[], contextLabel: string | null) {
+  const { t, locale } = useLanguage();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,10 +36,10 @@ function useChat(context: ChatMessage[], contextLabel: string | null) {
 
   useEffect(() => {
     if (contextLabel && contextLabel !== shownLabel.current) {
-      if (shownLabel.current !== null || entries.length) setEntries((all) => [...all, { kind: "note", text: `Now discussing: ${contextLabel}` }]);
+      if (shownLabel.current !== null || entries.length) setEntries((all) => [...all, { kind: "note", text: t.nowDiscussing(contextLabel) }]);
       shownLabel.current = contextLabel;
     }
-  }, [contextLabel, entries.length]);
+  }, [contextLabel, entries.length, t]);
 
   useEffect(() => () => controller.current?.abort(), []);
 
@@ -67,10 +70,10 @@ function useChat(context: ChatMessage[], contextLabel: string | null) {
     const abort = new AbortController();
     controller.current = abort;
     try {
-      await streamChat(history, (e) => updateAnswer((turn) => applyChatEvent(turn, e)), abort.signal);
-      updateAnswer((turn) => closeTurn(turn, CUT_OFF_MESSAGE)); // a stream that ended without saying how
+      await streamChat(history, (e) => updateAnswer((turn) => applyChatEvent(turn, e, t)), abort.signal, locale);
+      updateAnswer((turn) => closeTurn(turn, t.answerCutOff)); // a stream that ended without saying how
     } catch (error) {
-      const message = abort.signal.aborted ? "Stopped." : error instanceof ApiFailure ? error.message : "The chat request failed.";
+      const message = abort.signal.aborted ? t.stopped : error instanceof ApiFailure ? failureText(error.kind, error.message, t) : t.chatFailed;
       updateAnswer((turn) => closeTurn(turn, message));
     } finally {
       sending.current = false;
@@ -118,6 +121,7 @@ function Chips({ chat, chips }: { chat: Chat; chips: string[] }) {
 }
 
 function Conversation({ chat }: { chat: Chat }) {
+  const t = useT();
   const lastAnswer = [...chat.entries].reverse().find((e) => e.kind === "turn" && e.turn.role === "assistant");
   return (
     <>
@@ -131,13 +135,13 @@ function Conversation({ chat }: { chat: Chat }) {
               <ul className={styles.activity}>
                 {turn.activity.map((a) => (
                   <li key={a.id} data-ok={a.ok !== false}>
-                    {a.ok === null ? "Looking up" : a.ok ? "Looked up" : "Couldn't look up"}: {a.label}
+                    {a.ok === null ? t.lookingUp : a.ok ? t.lookedUp : t.couldntLookUp}: {a.label}
                   </li>
                 ))}
               </ul>
             )}
             <ChatAnswer text={turn.content} />
-            {!turn.done && !turn.content && !turn.activity.length && <p className={styles.thinking}>Thinking…</p>}
+            {!turn.done && !turn.content && !turn.activity.length && <p className={styles.thinking}>{t.thinking}</p>}
             {turn.error && <p className={styles.error}>{turn.error}</p>}
           </div>
         );
@@ -149,36 +153,36 @@ function Conversation({ chat }: { chat: Chat }) {
 }
 
 function QuestionForm({ chat }: { chat: Chat }) {
+  const t = useT();
   const inputId = useId();
   return (
     <form className={styles.form} onSubmit={chat.ask}>
       <div className={styles.field}>
-        <label htmlFor={inputId} className={styles.label}>Your question</label>
-        <input id={inputId} className="line-input" type="text" value={chat.question} maxLength={MAX_CHARS} autoComplete="off" onChange={(e) => chat.setQuestion(e.target.value)} placeholder="How did Alcaraz serve on clay in 2025?" />
+        <label htmlFor={inputId} className={styles.label}>{t.yourQuestion}</label>
+        <input id={inputId} className="line-input" type="text" value={chat.question} maxLength={MAX_CHARS} autoComplete="off" onChange={(e) => chat.setQuestion(e.target.value)} placeholder={t.questionPlaceholder} />
       </div>
       {chat.busy
-        ? <button type="button" className="btn" onClick={chat.stop}>Stop</button>
-        : <button type="submit" className="btn" disabled={!chat.question.trim()}>Ask</button>}
+        ? <button type="button" className="btn" onClick={chat.stop}>{t.stop}</button>
+        : <button type="submit" className="btn" disabled={!chat.question.trim()}>{t.ask}</button>}
     </form>
   );
 }
 
 function InlineChat({ chat, chips }: { chat: Chat; chips: string[] }) {
+  const t = useT();
   const log = useRef<HTMLDivElement>(null);
   const onScroll = useFollow(log, chat.entries);
   return (
     <section id="chat" aria-labelledby="chat-title" className={styles.section}>
-      <h2 id="chat-title" className="h2">Ask a follow-up</h2>
+      <h2 id="chat-title" className="h2">{t.askFollowUp}</h2>
       <div className={`courtline ${styles.line}`} aria-hidden="true" />
       <div className={styles.two}>
         <div>
-          <p className={styles.intro}>
-            Ask about any ATP player from 2015 on, for example “How did Alcaraz serve on clay in 2025?” Answers use the stats tools, but their numbers aren&apos;t checked the way a report&apos;s key numbers are.
-          </p>
+          <p className={styles.intro}>{t.chatIntro}</p>
           <Chips chat={chat} chips={chips} />
         </div>
         <div>
-          <div ref={log} className={chat.entries.length ? styles.log : undefined} onScroll={onScroll} tabIndex={chat.entries.length ? 0 : undefined} role={chat.entries.length ? "group" : undefined} aria-label={chat.entries.length ? "Conversation" : undefined}>
+          <div ref={log} className={chat.entries.length ? styles.log : undefined} onScroll={onScroll} tabIndex={chat.entries.length ? 0 : undefined} role={chat.entries.length ? "group" : undefined} aria-label={chat.entries.length ? t.conversation : undefined}>
             <Conversation chat={chat} />
           </div>
           <QuestionForm chat={chat} />
@@ -189,6 +193,7 @@ function InlineChat({ chat, chips }: { chat: Chat; chips: string[] }) {
 }
 
 function PhoneChat({ chat, chips }: { chat: Chat; chips: string[] }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const sheet = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -234,7 +239,7 @@ function PhoneChat({ chat, chips }: { chat: Chat; chips: string[] }) {
             <path d="M8 8c9 8 9 20 0 28" stroke="#17231E" strokeWidth="2" />
             <path d="M36 8c-9 8-9 20 0 28" stroke="#17231E" strokeWidth="2" />
           </svg>
-          Ask a follow-up
+          {t.askFollowUp}
         </button>
       </div>
       <dialog
@@ -247,11 +252,11 @@ function PhoneChat({ chat, chips }: { chat: Chat; chips: string[] }) {
       >
         <div className={styles.sheetInner}>
           <div className={styles.sheetHead}>
-            <h2 id="chat-title" ref={title} tabIndex={-1} className={styles.sheetTitle}>Ask a follow-up</h2>
-            <button type="button" className={styles.close} onClick={() => setOpen(false)}>Close</button>
+            <h2 id="chat-title" ref={title} tabIndex={-1} className={styles.sheetTitle}>{t.askFollowUp}</h2>
+            <button type="button" className={styles.close} onClick={() => setOpen(false)}>{t.close}</button>
           </div>
           <div ref={scroller} className={styles.sheetScroll} onScroll={onScroll}>
-            <p className={styles.sheetIntro}>Answers use the stats tools, but their numbers aren&apos;t checked the way a report&apos;s key numbers are.</p>
+            <p className={styles.sheetIntro}>{t.chatSheetIntro}</p>
             <Chips chat={chat} chips={chips} />
             {chat.entries.length > 0 && <div className={styles.sheetLog}><Conversation chat={chat} /></div>}
           </div>
@@ -265,12 +270,11 @@ function PhoneChat({ chat, chips }: { chat: Chat; chips: string[] }) {
 type Props = { context: ChatMessage[]; contextLabel: string | null; surface: Surface };
 
 export function ReportChat({ context, contextLabel, surface }: Props) {
+  const t = useT();
   const chat = useChat(context, contextLabel);
   const isPhone = useSyncExternalStore(subscribeToWidth, () => window.matchMedia(PHONE).matches, () => false);
-  const word = surface.toLowerCase();
+  const words = surfaceWords(t, surface);
   // These speak of "each player", which means nothing to the model without the report as context.
-  const chips = context.length
-    ? [`How does each player serve on ${word}?`, "Who is better on break points?", `How have their ${word} meetings gone?`]
-    : [];
+  const chips = context.length ? [t.chipServe(words), t.chipBreakPoints, t.chipMeetings(words)] : [];
   return isPhone ? <PhoneChat chat={chat} chips={chips} /> : <InlineChat chat={chat} chips={chips} />;
 }
