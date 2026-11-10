@@ -196,6 +196,10 @@ def main() -> int:
         copy_rows(cur, "players", PLAYER_COLUMNS, players)
         copy_rows(cur, "matches", MATCH_COLUMNS, ([m[c] for c in MATCH_COLUMNS] for m in matches))
         copy_rows(cur, "player_matches", PLAYER_MATCH_COLUMNS, player_matches)
+        # Planner statistics for the new rows, in the same transaction. Without them, the first
+        # queries on a new database can pick plans slow enough to hit the 60-second statement
+        # timeout (found by following the README from a fresh clone, 2026-11-10).
+        cur.execute("ANALYZE")
     print(f"loaded {len(matches):,} matches, {len(player_matches):,} player rows, {len(players):,} players; {len(rejects):,} rejects")
 
     # Rejected rows and removed stats are written out with a reason, never dropped silently.
