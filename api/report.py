@@ -85,8 +85,10 @@ Write the report:
   - label: what it is, whose it is, and the filters, e.g. "{o["name"]}: break points saved, {surface}, {date_from[:4]}-{date_to[:4]}".
 - data_caveats: small samples, matches without stats, excluded matches, and the data's end date.
 
-In the text, write rates as percentages with one decimal and include only numbers that appear
-in tool results."""
+In the text (every field except key_stats), write rates as percentages with one decimal,
+per-match averages with one decimal (4.5, not 4.5312), and dates in words (5 April 2026, or
+April 2026 for a month; never 2026-04-05 or 2026-04). Include only numbers that appear in tool
+results, rounded as above."""
 
 
 def two_years_before(day: dt.date) -> dt.date:
