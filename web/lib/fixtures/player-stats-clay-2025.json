@@ -1,0 +1,766 @@
+{
+ "profile": {
+  "tool": "player_profile",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "hand": "R",
+  "country": "ESP",
+  "height_cm": 183,
+  "matches_loaded": 389,
+  "first_tourney_date": "2020-02-17",
+  "last_match": {
+   "tournament": "Vienna",
+   "round": "F",
+   "result": "W",
+   "result_type": "completed",
+   "tourney_date": "2026-10-26",
+   "match_date": "2026-11-01"
+  },
+  "latest_rank": {
+   "rank": 3,
+   "tournament": "Vienna",
+   "tourney_date": "2026-10-26",
+   "match_date": "2026-11-01"
+  }
+ },
+ "filters": {
+  "surface": "Clay",
+  "season": 2025
+ },
+ "data_window": {
+  "first_tourney_date": "2015-01-04",
+  "last_tourney_date": "2026-10-26",
+  "last_match_date": "2026-11-01"
+ },
+ "seasons": [
+  {
+   "season": 2026,
+   "overall": {
+    "matches": 6,
+    "wins": 5,
+    "losses": 1,
+    "win_rate": {
+     "value": 0.8333,
+     "numerator": 5,
+     "denominator": 6,
+     "unit": "fraction"
+    }
+   }
+  },
+  {
+   "season": 2025,
+   "overall": {
+    "matches": 23,
+    "wins": 22,
+    "losses": 1,
+    "win_rate": {
+     "value": 0.9565,
+     "numerator": 22,
+     "denominator": 23,
+     "unit": "fraction"
+    }
+   }
+  },
+  {
+   "season": 2024,
+   "overall": {
+    "matches": 21,
+    "wins": 17,
+    "losses": 4,
+    "win_rate": {
+     "value": 0.8095,
+     "numerator": 17,
+     "denominator": 21,
+     "unit": "fraction"
+    }
+   }
+  },
+  {
+   "season": 2023,
+   "overall": {
+    "matches": 28,
+    "wins": 25,
+    "losses": 3,
+    "win_rate": {
+     "value": 0.8929,
+     "numerator": 25,
+     "denominator": 28,
+     "unit": "fraction"
+    }
+   }
+  },
+  {
+   "season": 2022,
+   "overall": {
+    "matches": 31,
+    "wins": 27,
+    "losses": 4,
+    "win_rate": {
+     "value": 0.871,
+     "numerator": 27,
+     "denominator": 31,
+     "unit": "fraction"
+    }
+   }
+  },
+  {
+   "season": 2021,
+   "overall": {
+    "matches": 17,
+    "wins": 11,
+    "losses": 6,
+    "win_rate": {
+     "value": 0.6471,
+     "numerator": 11,
+     "denominator": 17,
+     "unit": "fraction"
+    }
+   }
+  },
+  {
+   "season": 2020,
+   "overall": {
+    "matches": 2,
+    "wins": 1,
+    "losses": 1,
+    "win_rate": {
+     "value": 0.5,
+     "numerator": 1,
+     "denominator": 2,
+     "unit": "fraction"
+    }
+   }
+  }
+ ],
+ "by_surface": {
+  "tool": "surface_splits",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": null,
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false
+  },
+  "sample": {
+   "matches_counted": 78,
+   "matches_with_stats": 78,
+   "opponent_retired_or_defaulted": 3,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-01-13",
+   "last_tourney_date": "2025-11-09"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 2,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0
+  },
+  "overall": {
+   "matches": 78,
+   "wins": 70,
+   "losses": 8,
+   "win_rate": {
+    "value": 0.8974,
+    "numerator": 70,
+    "denominator": 78,
+    "unit": "fraction"
+   }
+  },
+  "surfaces": [
+   {
+    "surface": "Hard",
+    "matches": 43,
+    "wins": 37,
+    "losses": 6,
+    "win_rate": {
+     "value": 0.8605,
+     "numerator": 37,
+     "denominator": 43,
+     "unit": "fraction"
+    },
+    "opponent_retired_or_defaulted": 2,
+    "player_retired_or_defaulted": 0
+   },
+   {
+    "surface": "Clay",
+    "matches": 23,
+    "wins": 22,
+    "losses": 1,
+    "win_rate": {
+     "value": 0.9565,
+     "numerator": 22,
+     "denominator": 23,
+     "unit": "fraction"
+    },
+    "opponent_retired_or_defaulted": 1,
+    "player_retired_or_defaulted": 0
+   },
+   {
+    "surface": "Grass",
+    "matches": 12,
+    "wins": 11,
+    "losses": 1,
+    "win_rate": {
+     "value": 0.9167,
+     "numerator": 11,
+     "denominator": 12,
+     "unit": "fraction"
+    },
+    "opponent_retired_or_defaulted": 0,
+    "player_retired_or_defaulted": 0
+   }
+  ]
+ },
+ "record": {
+  "tool": "surface_splits",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false
+  },
+  "sample": {
+   "matches_counted": 23,
+   "matches_with_stats": 23,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-04-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0
+  },
+  "overall": {
+   "matches": 23,
+   "wins": 22,
+   "losses": 1,
+   "win_rate": {
+    "value": 0.9565,
+    "numerator": 22,
+    "denominator": 23,
+    "unit": "fraction"
+   }
+  },
+  "surfaces": [
+   {
+    "surface": "Clay",
+    "matches": 23,
+    "wins": 22,
+    "losses": 1,
+    "win_rate": {
+     "value": 0.9565,
+     "numerator": 22,
+     "denominator": 23,
+     "unit": "fraction"
+    },
+    "opponent_retired_or_defaulted": 1,
+    "player_retired_or_defaulted": 0
+   }
+  ]
+ },
+ "serve_return": {
+  "tool": "serve_return_stats",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false
+  },
+  "sample": {
+   "matches_counted": 23,
+   "matches_with_stats": 23,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-04-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0
+  },
+  "stats": {
+   "first_serve_in": {
+    "value": 0.6628,
+    "numerator": 1262,
+    "denominator": 1904,
+    "unit": "fraction"
+   },
+   "first_serve_points_won": {
+    "value": 0.6878,
+    "numerator": 868,
+    "denominator": 1262,
+    "unit": "fraction"
+   },
+   "second_serve_points_won": {
+    "value": 0.5685,
+    "numerator": 365,
+    "denominator": 642,
+    "unit": "fraction"
+   },
+   "service_points_won": {
+    "value": 0.6476,
+    "numerator": 1233,
+    "denominator": 1904,
+    "unit": "fraction"
+   },
+   "return_points_won": {
+    "value": 0.4493,
+    "numerator": 891,
+    "denominator": 1983,
+    "unit": "fraction"
+   },
+   "aces_per_match": {
+    "value": 2.3043,
+    "numerator": 53,
+    "denominator": 23,
+    "unit": "per_match"
+   }
+  }
+ },
+ "pressure": {
+  "tool": "pressure_stats",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false
+  },
+  "sample": {
+   "matches_counted": 23,
+   "matches_with_stats": 23,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-04-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0
+  },
+  "stats": {
+   "break_points_saved": {
+    "value": 0.6549,
+    "numerator": 93,
+    "denominator": 142,
+    "unit": "fraction"
+   },
+   "break_points_converted": {
+    "value": 0.4496,
+    "numerator": 107,
+    "denominator": 238,
+    "unit": "fraction"
+   }
+  }
+ },
+ "recent_form": {
+  "tool": "recent_form",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false
+  },
+  "sample": {
+   "matches_counted": 10,
+   "matches_with_stats": 10,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-05-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0
+  },
+  "n": 10,
+  "record": {
+   "matches": 10,
+   "wins": 10,
+   "losses": 0,
+   "win_rate": {
+    "value": 1.0,
+    "numerator": 10,
+    "denominator": 10,
+    "unit": "fraction"
+   }
+  },
+  "matches": [
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "F",
+    "result": "W",
+    "score": "4-6 6-7(4) 6-4 7-6(3) 7-6(2)",
+    "rank": 2,
+    "opponent": {
+     "player_id": 206173,
+     "name": "Jannik Sinner",
+     "rank": 1
+    }
+   },
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "SF",
+    "result": "W",
+    "score": "4-6 7-6(3) 6-0 2-0 RET",
+    "rank": 2,
+    "opponent": {
+     "player_id": 207518,
+     "name": "Lorenzo Musetti",
+     "rank": 7
+    }
+   },
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "QF",
+    "result": "W",
+    "score": "6-0 6-1 6-4",
+    "rank": 2,
+    "opponent": {
+     "player_id": 126205,
+     "name": "Tommy Paul",
+     "rank": 12
+    }
+   },
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "R16",
+    "result": "W",
+    "score": "7-6(8) 6-3 4-6 6-4",
+    "rank": 2,
+    "opponent": {
+     "player_id": 210097,
+     "name": "Ben Shelton",
+     "rank": 13
+    }
+   },
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "R32",
+    "result": "W",
+    "score": "6-1 6-3 4-6 6-4",
+    "rank": 2,
+    "opponent": {
+     "player_id": 106000,
+     "name": "Damir Dzumhur",
+     "rank": 69
+    }
+   },
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "R64",
+    "result": "W",
+    "score": "6-1 4-6 6-1 6-2",
+    "rank": 2,
+    "opponent": {
+     "player_id": 206681,
+     "name": "Fabian Marozsan",
+     "rank": 56
+    }
+   },
+   {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "surface": "Clay",
+    "round": "R128",
+    "result": "W",
+    "score": "6-3 6-4 6-2",
+    "rank": 2,
+    "opponent": {
+     "player_id": 206748,
+     "name": "Giulio Zeppieri",
+     "rank": 310
+    }
+   },
+   {
+    "tourney_date": "2025-05-07",
+    "match_date": null,
+    "tournament": "Rome Masters",
+    "surface": "Clay",
+    "round": "F",
+    "result": "W",
+    "score": "7-6(5) 6-1",
+    "rank": 3,
+    "opponent": {
+     "player_id": 206173,
+     "name": "Jannik Sinner",
+     "rank": 1
+    }
+   },
+   {
+    "tourney_date": "2025-05-07",
+    "match_date": null,
+    "tournament": "Rome Masters",
+    "surface": "Clay",
+    "round": "SF",
+    "result": "W",
+    "score": "6-3 7-6(4)",
+    "rank": 3,
+    "opponent": {
+     "player_id": 207518,
+     "name": "Lorenzo Musetti",
+     "rank": 9
+    }
+   },
+   {
+    "tourney_date": "2025-05-07",
+    "match_date": null,
+    "tournament": "Rome Masters",
+    "surface": "Clay",
+    "round": "QF",
+    "result": "W",
+    "score": "6-4 6-4",
+    "rank": 3,
+    "opponent": {
+     "player_id": 207733,
+     "name": "Jack Draper",
+     "rank": 5
+    }
+   }
+  ]
+ },
+ "career": {
+  "serve_return": {
+   "tool": "serve_return_stats",
+   "player": {
+    "player_id": 207989,
+    "name": "Carlos Alcaraz"
+   },
+   "filters": {
+    "surface": null,
+    "date_from": null,
+    "date_to": null,
+    "season": null,
+    "tourney_level": null,
+    "opponent_hand": null,
+    "include_exhibitions": false
+   },
+   "sample": {
+    "matches_counted": 378,
+    "matches_with_stats": 376,
+    "opponent_retired_or_defaulted": 10,
+    "player_retired_or_defaulted": 3,
+    "first_tourney_date": "2020-02-17",
+    "last_tourney_date": "2026-10-26"
+   },
+   "excluded": {
+    "walkovers": 1,
+    "exhibitions": 10,
+    "unknown_results": 0,
+    "unknown_surface": 0,
+    "unknown_opponent_hand": 0
+   },
+   "stats": {
+    "first_serve_in": {
+     "value": 0.6523,
+     "numerator": 19228,
+     "denominator": 29475,
+     "unit": "fraction"
+    },
+    "first_serve_points_won": {
+     "value": 0.7222,
+     "numerator": 13887,
+     "denominator": 19228,
+     "unit": "fraction"
+    },
+    "second_serve_points_won": {
+     "value": 0.5591,
+     "numerator": 5729,
+     "denominator": 10247,
+     "unit": "fraction"
+    },
+    "service_points_won": {
+     "value": 0.6655,
+     "numerator": 19616,
+     "denominator": 29475,
+     "unit": "fraction"
+    },
+    "return_points_won": {
+     "value": 0.417,
+     "numerator": 13269,
+     "denominator": 31818,
+     "unit": "fraction"
+    },
+    "aces_per_match": {
+     "value": 4.4255,
+     "numerator": 1664,
+     "denominator": 376,
+     "unit": "per_match"
+    }
+   }
+  },
+  "pressure": {
+   "tool": "pressure_stats",
+   "player": {
+    "player_id": 207989,
+    "name": "Carlos Alcaraz"
+   },
+   "filters": {
+    "surface": null,
+    "date_from": null,
+    "date_to": null,
+    "season": null,
+    "tourney_level": null,
+    "opponent_hand": null,
+    "include_exhibitions": false
+   },
+   "sample": {
+    "matches_counted": 378,
+    "matches_with_stats": 376,
+    "opponent_retired_or_defaulted": 10,
+    "player_retired_or_defaulted": 3,
+    "first_tourney_date": "2020-02-17",
+    "last_tourney_date": "2026-10-26"
+   },
+   "excluded": {
+    "walkovers": 1,
+    "exhibitions": 10,
+    "unknown_results": 0,
+    "unknown_surface": 0,
+    "unknown_opponent_hand": 0
+   },
+   "stats": {
+    "break_points_saved": {
+     "value": 0.6404,
+     "numerator": 1282,
+     "denominator": 2002,
+     "unit": "fraction"
+    },
+    "break_points_converted": {
+     "value": 0.4188,
+     "numerator": 1464,
+     "denominator": 3496,
+     "unit": "fraction"
+    }
+   }
+  }
+ },
+ "head_to_head": {
+  "tool": "head_to_head",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "opponent": {
+   "player_id": 206173,
+   "name": "Jannik Sinner"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false
+  },
+  "sample": {
+   "matches_counted": 2,
+   "matches_with_stats": 2,
+   "opponent_retired_or_defaulted": 0,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-05-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0
+  },
+  "record": {
+   "matches": 2,
+   "wins": 2,
+   "losses": 0,
+   "win_rate": {
+    "value": 1.0,
+    "numerator": 2,
+    "denominator": 2,
+    "unit": "fraction"
+   }
+  },
+  "by_surface": [
+   {
+    "surface": "Clay",
+    "matches": 2,
+    "wins": 2,
+    "losses": 0,
+    "win_rate": {
+     "value": 1.0,
+     "numerator": 2,
+     "denominator": 2,
+     "unit": "fraction"
+    }
+   }
+  ]
+ }
+}

@@ -9,7 +9,7 @@ function inline(text: string): ReactNode[] {
   );
 }
 
-export function PlainMarkdown({ text }: { text: string }) {
+export function ChatAnswer({ text }: { text: string }) {
   const blocks: ReactNode[] = [];
   let items: string[] = [];
   const flush = () => {

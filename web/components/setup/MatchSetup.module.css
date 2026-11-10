@@ -1,0 +1,298 @@
+.main {
+  position: relative;
+  max-width: var(--page-max);
+  margin: 0 auto clamp(44px, 5vw, 64px);
+  padding: 0 var(--page-gutter);
+}
+
+.intro {
+  padding: clamp(18px, 3vw, 40px) 0 clamp(26px, 3.4vw, 44px);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(38px, 5vw, 66px);
+  line-height: 1.08;
+  color: var(--bottle);
+}
+
+.lede {
+  margin: 12px 0 0;
+  max-width: 560px;
+  font-size: 21px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.alert {
+  margin: 0 0 22px;
+  padding: 14px 18px;
+  background: var(--white);
+  border: 2px solid var(--clay);
+  border-radius: 2px;
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.alert strong {
+  font-weight: 600;
+}
+
+.card {
+  position: relative;
+  padding: clamp(24px, 3.6vw, 48px) clamp(18px, 4vw, 56px);
+  background: var(--white);
+  border: 2px solid var(--bottle);
+  outline: 1px solid var(--bottle);
+  outline-offset: 4px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(27px, 2.8vw, 36px);
+  line-height: 1.2;
+  text-align: center;
+  color: var(--bottle);
+}
+
+.cardLede {
+  max-width: 640px;
+  margin: 8px auto clamp(16px, 2vw, 24px);
+  font-size: 19px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Each player's underline sits on the bottom edge of its block and runs straight into the
+   bracket. The bracket's centre line and the courts' vertical centre both land on --mid. */
+.draw {
+  --block: 116px;
+  --gap: 24px;
+  --court-h: 104px;
+  --mid: calc(var(--block) * 1.5 + var(--gap) / 2);
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) 100px minmax(0, 1fr);
+  align-items: start;
+}
+
+.players {
+  display: grid;
+  grid-template-rows: var(--block) var(--block);
+  row-gap: var(--gap);
+  min-width: 0;
+}
+
+.line {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.lineLabel {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 23px;
+  line-height: 28px;
+  color: var(--bottle);
+}
+
+.lineHelp {
+  display: block;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--muted-2);
+}
+
+.search {
+  margin-top: 8px;
+}
+
+.bracket {
+  position: relative;
+  height: calc(var(--block) * 2 + var(--gap));
+}
+
+.bracket span {
+  position: absolute;
+  display: block;
+  background: var(--bottle);
+}
+
+.bracket .bracketTop {
+  left: 0;
+  top: calc(var(--block) - 2px);
+  width: 42px;
+  height: 2px;
+}
+
+.bracket .bracketBottom {
+  left: 0;
+  top: calc(var(--block) * 2 + var(--gap) - 2px);
+  width: 42px;
+  height: 2px;
+}
+
+.bracket .bracketSpine {
+  left: 40px;
+  top: calc(var(--block) - 2px);
+  width: 2px;
+  height: calc(var(--block) + var(--gap) + 2px);
+}
+
+.bracket .bracketOut {
+  left: 40px;
+  top: calc(var(--mid) - 2px);
+  width: 46px;
+  height: 2px;
+}
+
+.surface {
+  min-width: 0;
+  margin: calc(var(--mid) - 1px - var(--court-h) / 2 - 40px) 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.surface legend {
+  height: 28px;
+  margin-bottom: 12px;
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 23px;
+  line-height: 28px;
+  color: var(--bottle);
+}
+
+.courts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.swatch {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.swatch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.court {
+  position: relative;
+  display: block;
+  height: var(--court-h);
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.swatch input:checked + .court {
+  box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--bottle);
+}
+
+.swatch input:focus-visible + .court {
+  outline: 3px solid var(--bottle);
+  outline-offset: 6px;
+}
+
+.swatch:hover .court {
+  filter: brightness(1.08);
+}
+
+.ball {
+  position: absolute;
+  left: calc(50% - 9px);
+  top: calc(50% - 9px);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ball);
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+.courtName {
+  display: block;
+  margin-top: 8px;
+  min-height: 26px;
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 26px;
+  text-align: center;
+  color: var(--bottle);
+}
+
+.go {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 40px;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--hairline);
+}
+
+.goText {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.goLine {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.goLine strong {
+  font-weight: 600;
+}
+
+.goNote {
+  margin: 4px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--muted-2);
+}
+
+.goAction {
+  flex: 0 1 320px;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .draw {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .players {
+    grid-template-rows: auto auto;
+    row-gap: 26px;
+  }
+
+  .bracket {
+    display: none;
+  }
+
+  .surface {
+    margin-top: 30px;
+  }
+
+  .goAction {
+    flex: 1 1 100%;
+  }
+}

@@ -1,6 +1,7 @@
 // Calls to the FastAPI service, through this app's /api proxy (next.config.ts). Every failure
 // becomes an ApiFailure with a message safe to show; nothing is turned into empty data.
 
+import type { PlayerStats } from "./player-stats.ts";
 import { SseParser } from "./sse.ts";
 import type { ApiError, ChatEvent, ChatMessage, ReportEvent, ReportResponse, SearchResult, Surface } from "./types.ts";
 
@@ -33,6 +34,13 @@ async function failure(response: Response): Promise<ApiFailure> {
 
 export async function searchPlayers(q: string, signal?: AbortSignal): Promise<SearchResult> {
   const response = await fetch(`/api/players/search?q=${encodeURIComponent(q)}`, { signal });
+  if (!response.ok) throw await failure(response);
+  return response.json();
+}
+
+/** The Player stats page's data, from an address built by statsUrl. */
+export async function fetchPlayerStats(url: string, signal?: AbortSignal): Promise<PlayerStats> {
+  const response = await fetch(url, { signal });
   if (!response.ok) throw await failure(response);
   return response.json();
 }

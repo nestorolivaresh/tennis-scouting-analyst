@@ -1,0 +1,86 @@
+.site {
+  /* Above any court artwork a page draws behind the header. */
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 12px var(--page-gutter);
+}
+
+.brand,
+.brand:hover {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  color: var(--bottle);
+  text-decoration: none;
+}
+
+.emblem {
+  flex: none;
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-size: 23px;
+  line-height: 1.1;
+}
+
+.nav {
+  display: flex;
+  flex: none;
+  gap: clamp(18px, 2.6vw, 34px);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--muted-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link[aria-current] {
+  color: var(--bottle);
+}
+
+@media (max-width: 520px) {
+  .site {
+    gap: 12px;
+    padding: 6px 16px;
+  }
+
+  .brandName {
+    display: none;
+  }
+
+  .emblem {
+    width: 24px;
+    height: 36px;
+    stroke-width: 1.8;
+  }
+
+  .net {
+    stroke-width: 2.8;
+  }
+
+  .nav {
+    gap: 20px;
+  }
+
+  .link {
+    --serve-size: 9px;
+    gap: 8px;
+    font-size: 19px;
+  }
+}

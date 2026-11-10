@@ -945,3 +945,50 @@ imports the app. That simulation found that excluding `ingest/` would have crash
 since `api/stats.py` imports from it; a test now guards this. Each spend and role rule was broken
 on purpose and a test failed. **Not yet checked:** anything on Vercel or Neon themselves, since
 nothing has been deployed.
+
+## D-026 The Clubhouse redesign and the Player stats page
+
+*2026-11-10, after Milestone 6. Decided by Nestor; changes the spec's Frontend section and D-024's
+design, typefaces and charts. Scouting stays the main product.*
+
+**Screens.** Match setup, the loader and the report stay on `/`, as one client flow. `/players` is
+new: one player's record by surface and by season, serve and return, break points, the last 10
+matches and a head-to-head, with filters kept in the URL. It needs no model, so it costs nothing
+per view and keeps working when the daily spend cap is reached. It starts empty until a player is
+chosen. "Scout this player" and "Scout this match-up" carry the players to match setup through
+`sessionStorage`.
+
+**Player stats API.** `GET /players/{id}/stats` (`api/player_stats.py`) composes the existing tools
+unchanged, so there is no new SQL and no new stat definition (D-014). The whole response reads one
+snapshot, drops `birth_date`, and is cached (`public, max-age=300, s-maxage=3600`), since the data
+only changes on a reload. It is the fifth public API route, after D-025's four. The per-IP limit
+covers only report and chat, so varying the query string can reach the database uncached.
+
+**Design.** Bottle green and chalk, Marcellus and Spectral through `next/font`, with a scoreboard
+and an honours board. The loader's court takes the chosen surface's colour. Its score, net clip and
+final state follow the stream's real events (`web/lib/loader.ts`); nothing is timed or estimated
+except a 1.2-second pause on "Game" after a verified report.
+
+**Charts.** The approved design draws the serve table and surface comparison in plain HTML and CSS,
+which also reads better for screen readers. No component used Recharts any more, so it was removed.
+`web/` now depends only on Next.js and React, with TypeScript for development.
+
+**Numbers on screen.** D-024's rule stands. Two additions: percentages are computed from each
+rate's counts, because the tool's `value` is already rounded and rounding it again could be 0.1 out
+(37 of 43 showed 86.1%, and is 86.0%). And a game plan or note shows a large figure only when that
+exact value is among the report's checked values; the rest of the text is shown as the model's prose.
+
+**Flags.** Inline SVGs for the 41 most common countries in the data. A country without one shows
+the monogram alone, so a flag is never wrong.
+
+**How it was built and checked.** Five agents worked in separate worktrees on separate files (the
+API, the shared foundation, setup and loader, report, Player stats), and were combined and tested
+in one checkout. The combined app ran in a browser against the real API and database, with a
+stand-in for the two model endpoints: search, keyboard selection, a clean report, a correction
+(Deuce, net clip, Ad, Game), a failed report, leaving mid-report, source panels, chat, every filter,
+Back and Forward, a bad link, the handoff to match setup, and 375 px with no sideways scrolling.
+The setup bracket measured 0 px off the courts.
+
+**Not checked.** The new route on Vercel and its CDN (nothing has been deployed); a real model
+report through the new screens (the stream's format is unchanged); reduced motion in a live browser
+(its CSS and logic are in place and the loader's logic is tested); browsers other than Chromium.

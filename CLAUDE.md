@@ -30,7 +30,7 @@
   reads only `raw` tables; a test enforces both. Expected numbers are never typed into
   `evals/cases.py`; the truth SQL computes them. A full live run costs about $0.80: rerun only
   the failing questions with `--only`, and use `--rescore` (free) after changing the scorer.
-- The frontend is `web/` (D-024): Next.js, React, Recharts and TypeScript only, pinned exactly;
+- The frontend is `web/` (D-024, D-026): Next.js, React and TypeScript only, pinned exactly;
   ask before adding any other package. Anything shown on screen must come from the run's
   evidence (`web/lib/evidence.ts`), never from the model's text, and a missing value is shown as
   missing, not 0. Check with `npm --prefix web test` and `npm --prefix web run build`.

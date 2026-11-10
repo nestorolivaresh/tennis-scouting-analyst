@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Archivo, Newsreader } from "next/font/google";
+import { Marcellus, Spectral } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { SiteFooter } from "@/components/ui/SiteFooter.tsx";
+import { SiteNav } from "@/components/ui/SiteNav.tsx";
 
-// Archivo's width axis gives condensed, scoreboard-like names and numbers; Newsreader sets
-// the written report. Both are downloaded at build time and served from this app.
-const sans = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-sans", display: "swap" });
-const serif = Newsreader({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
+// Downloaded at build time and served from this app.
+const marcellus = Marcellus({ weight: "400", subsets: ["latin"], variable: "--font-marcellus", display: "swap" });
+const spectral = Spectral({
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-spectral",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Tennis Scouting Analyst",
@@ -15,8 +22,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${marcellus.variable} ${spectral.variable}`}>
+      <body>
+        <SiteNav />
+        <div className="site-main">{children}</div>
+        <SiteFooter />
+      </body>
     </html>
   );
 }

@@ -1,0 +1,276 @@
+.stage {
+  position: relative;
+  height: 216px;
+  overflow: hidden;
+  perspective: 820px;
+  perspective-origin: calc(50% + 146.4px) -4px;
+}
+
+.plane {
+  position: absolute;
+  left: max(10px, calc(7% - 22px));
+  right: calc(max(10px, calc(7% - 22px)) + 44px);
+  bottom: 30px;
+  height: 290px;
+  transform-origin: 50% 100%;
+  transform: rotateX(90deg);
+}
+
+.along,
+.across {
+  position: absolute;
+  background: var(--chalk);
+}
+
+.along {
+  left: 0;
+  right: 0;
+  height: 12px;
+}
+
+.across {
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.farSideline {
+  top: 0;
+}
+
+.farSingles {
+  top: 12.5%;
+}
+
+.nearSingles {
+  bottom: 12.5%;
+}
+
+.leftBaseline {
+  left: 0;
+}
+
+.rightBaseline {
+  right: 0;
+}
+
+.leftService {
+  left: 23.07%;
+  top: 12.5%;
+  bottom: 12.5%;
+}
+
+.rightService {
+  right: 23.07%;
+  top: 12.5%;
+  bottom: 12.5%;
+}
+
+.centreService {
+  left: 23.07%;
+  right: 23.07%;
+  top: calc(50% - 6px);
+}
+
+.leftMark {
+  right: auto;
+  width: 1.4%;
+  top: calc(50% - 6px);
+}
+
+.rightMark {
+  left: auto;
+  width: 1.4%;
+  top: calc(50% - 6px);
+}
+
+/* The near line. */
+.chalk {
+  position: absolute;
+  left: max(10px, calc(7% - 22px));
+  right: calc(max(10px, calc(7% - 22px)) + 44px);
+  bottom: 28px;
+  height: 4px;
+  background: var(--chalk);
+}
+
+.net {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  margin-left: -27px;
+  transform-origin: 50% 100%;
+}
+
+/* With reduced motion none of the shots below run, and this is where the ball rests. */
+.flight {
+  position: absolute;
+  left: 34%;
+  bottom: 59px;
+  width: 0;
+  height: 0;
+}
+
+.ballHop {
+  position: absolute;
+  left: -13px;
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.ballSquash {
+  width: 26px;
+  height: 26px;
+  transform-origin: 50% 100%;
+}
+
+.ballShadow {
+  position: absolute;
+  left: -16px;
+  bottom: -6px;
+  width: 32px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(15, 14, 10, 0.55);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ballRally .flight {
+    animation: rally-x 2.4s linear infinite;
+  }
+
+  .ballRally .ballHop {
+    animation: rally-y 2.4s infinite;
+  }
+
+  .ballRally .ballSquash {
+    animation: rally-squash 2.4s infinite;
+  }
+
+  .ballRally .ballShadow {
+    animation: rally-shade 2.4s infinite;
+  }
+
+  .ballClip .flight {
+    animation: clip-x 2.4s linear both;
+  }
+
+  .ballClip .ballHop {
+    animation: clip-y 2.4s both;
+  }
+
+  .ballClip .ballShadow {
+    animation: clip-shade 2.4s both;
+  }
+
+  .ballClip .net {
+    animation: net-shake 2.4s linear both;
+  }
+
+  .ballFinish .flight {
+    animation: finish-x 2.4s linear both;
+  }
+
+  .ballFinish .ballHop {
+    animation: finish-y 2.4s both;
+  }
+
+  .ballFinish .ballShadow {
+    animation: finish-shade 2.4s both;
+  }
+}
+
+@keyframes rally-x {
+  0%, 100% { left: -6%; }
+  35.09% { left: 79%; }
+  50% { left: 106%; }
+  85.09% { left: 21%; }
+}
+
+@keyframes rally-y {
+  0%, 50%, 100% { transform: translateY(-58px); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  14.38%, 64.38% { transform: translateY(-112px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  35.09%, 85.09% { transform: translateY(0); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+}
+
+@keyframes rally-squash {
+  0%, 33%, 37.5%, 50%, 83%, 87.5%, 100% { transform: scale(1, 1); }
+  35.09%, 85.09% { transform: scale(1.22, 0.74); }
+}
+
+@keyframes rally-shade {
+  0%, 50%, 100% { transform: scale(0.69); opacity: 0.61; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  14.38%, 64.38% { transform: scale(0.4); opacity: 0.3; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  35.09%, 85.09% { transform: scale(1); opacity: 0.95; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+}
+
+@keyframes clip-x {
+  0% { left: -6%; opacity: 1; }
+  25.54% { left: calc(50% - 8px); }
+  48.38% { left: calc(50% - 40px); }
+  62.79% { left: calc(50% - 52px); }
+  70.5%, 91.33% { left: calc(50% - 58px); opacity: 1; }
+  100% { left: calc(50% - 58px); opacity: 0; }
+}
+
+@keyframes clip-y {
+  0% { transform: translateY(-56px); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  10.17% { transform: translateY(-84px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  25.54% { transform: translateY(-20px); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  35.33% { transform: translateY(-46px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  48.38% { transform: translateY(0); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  55.58% { transform: translateY(-14px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  62.79% { transform: translateY(0); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  66.67% { transform: translateY(-4px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  70.5%, 100% { transform: translateY(0); }
+}
+
+@keyframes clip-shade {
+  0% { transform: scale(0.71); opacity: 0.64; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  10.17% { transform: scale(0.57); opacity: 0.48; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  25.54% { transform: scale(0.9); opacity: 0.84; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  35.33% { transform: scale(0.76); opacity: 0.69; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  48.38%, 62.79% { transform: scale(1); opacity: 0.95; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  55.58% { transform: scale(0.93); opacity: 0.87; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  66.67% { transform: scale(0.98); opacity: 0.93; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  70.5%, 100% { transform: scale(1); opacity: 0.95; }
+}
+
+@keyframes net-shake {
+  0%, 25.5%, 47%, 100% { transform: skewX(0); }
+  28.5% { transform: skewX(-3.5deg); }
+  33.5% { transform: skewX(2.5deg); }
+  39.5% { transform: skewX(-1deg); }
+}
+
+@keyframes finish-x {
+  0% { left: -6%; }
+  35.08% { left: 79%; }
+  61.17% { left: 82%; }
+  76.58% { left: 83.5%; }
+  84.25% { left: 84%; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+  100% { left: 84.5%; }
+}
+
+@keyframes finish-y {
+  0% { transform: translateY(-58px); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  14.38% { transform: translateY(-112px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  35.08% { transform: translateY(0); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  48.13% { transform: translateY(-46px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  61.17% { transform: translateY(0); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  68.88% { transform: translateY(-16px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  76.58% { transform: translateY(0); animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  80.42% { transform: translateY(-4px); animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  84.25%, 100% { transform: translateY(0); }
+}
+
+@keyframes finish-shade {
+  0% { transform: scale(0.69); opacity: 0.61; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  14.38% { transform: scale(0.4); opacity: 0.3; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  35.08%, 61.17%, 76.58% { transform: scale(1); opacity: 0.95; animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1); }
+  48.13% { transform: scale(0.76); opacity: 0.69; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  68.88% { transform: scale(0.92); opacity: 0.86; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  80.42% { transform: scale(0.98); opacity: 0.93; animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333); }
+  84.25%, 100% { transform: scale(1); opacity: 0.95; }
+}

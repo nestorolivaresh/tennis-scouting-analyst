@@ -74,11 +74,12 @@ uv run --env-file .env python -m evals.run --rescore baseline        # rescore o
 
 ## Web app
 
-`web/` is the coach's screen (Next.js, TypeScript, Recharts): pick the opponent, your player
+`web/` is the coach's screen (Next.js, TypeScript): pick your player, the opponent
 and a surface, watch each lookup as the report is written, read the report, open any key number to see the tool call, filters and sample
 behind it, and ask follow-up questions in a streaming chat. It talks to the API through its
-own server, so the Anthropic key never reaches the browser. Design and checks:
-[D-024](docs/decisions.md).
+own server, so the Anthropic key never reaches the browser. A second page, Player stats, shows any
+player's record, serve, return and recent form, with no model involved. Design and checks:
+[D-024 and D-026](docs/decisions.md).
 
 ```bash
 ALLOW_NO_SPEND_CAP=1 uv run --env-file .env uvicorn api.app:app --port 8000   # the API, in one terminal

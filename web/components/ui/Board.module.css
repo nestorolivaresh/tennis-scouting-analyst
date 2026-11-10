@@ -1,0 +1,26 @@
+.board {
+  position: relative;
+  padding: var(--board-pad, 16px);
+  background: var(--bottle);
+  border-radius: 3px;
+}
+
+.topLeft {
+  top: var(--rivet-inset, 5px);
+  left: var(--rivet-inset, 5px);
+}
+
+.topRight {
+  top: var(--rivet-inset, 5px);
+  right: var(--rivet-inset, 5px);
+}
+
+.bottomLeft {
+  bottom: var(--rivet-inset, 5px);
+  left: var(--rivet-inset, 5px);
+}
+
+.bottomRight {
+  bottom: var(--rivet-inset, 5px);
+  right: var(--rivet-inset, 5px);
+}

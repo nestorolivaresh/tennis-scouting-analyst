@@ -1,0 +1,16 @@
+.footer {
+  background: var(--bottle);
+  color: var(--on-green-text);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 26px var(--page-gutter) 32px;
+}
+
+.credits {
+  margin: 0;
+}

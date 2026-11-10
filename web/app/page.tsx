@@ -1,162 +1,149 @@
 "use client";
 
-// Match setup, report and chat on one page. The setup reads as a sentence: who is being
-// scouted, for whom, on which surface.
+// The scouting flow on one route: match setup, the loader while the report is written, then the
+// report. A failed report comes back to setup with the choices kept.
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChatPanel } from "@/components/ChatPanel.tsx";
-import { PlayerPicker } from "@/components/PlayerPicker.tsx";
-import { ReportView } from "@/components/ReportView.tsx";
+import { useEffect, useRef, useState } from "react";
+import { Loader } from "@/components/loader/Loader.tsx";
+import { ReportView } from "@/components/report/ReportView.tsx";
+import { MatchSetup } from "@/components/setup/MatchSetup.tsx";
 import { ApiFailure, streamReport } from "@/lib/api.ts";
-import { progressSteps } from "@/lib/progress.ts";
-import type { ChatMessage, PlayerRef, ReportEvent, ReportResponse, Surface } from "@/lib/types.ts";
-import { SURFACES } from "@/lib/types.ts";
+import { BACK_TO_SETUP, takeHandoff } from "@/lib/handoff.ts";
+import { reportHold } from "@/lib/loader.ts";
+import type { Candidate, ReportEvent, ReportResponse, Surface } from "@/lib/types.ts";
 
-type ReportState =
-  | { state: "idle" }
-  | { state: "working"; started: number; events: ReportEvent[]; names: Map<number, string> }
-  | { state: "done"; data: ReportResponse }
-  | { state: "error"; message: string };
+type Phase =
+  | { phase: "idle" }
+  | {
+      phase: "working";
+      player: Candidate;
+      opponent: Candidate;
+      surface: Surface;
+      started: number;
+      events: ReportEvent[];
+      names: Map<number, string>;
+      final: ReportResponse | null;
+    }
+  | { phase: "done"; data: ReportResponse }
+  | { phase: "error"; message: string };
 
 export default function Home() {
-  const [player, setPlayer] = useState<PlayerRef | null>(null);
-  const [opponent, setOpponent] = useState<PlayerRef | null>(null);
-  const [surface, setSurface] = useState<Surface>("Hard");
-  const [report, setReport] = useState<ReportState>({ state: "idle" });
+  const [player, setPlayer] = useState<Candidate | null>(null);
+  const [opponent, setOpponent] = useState<Candidate | null>(null);
+  const [surface, setSurface] = useState<Surface>("Clay");
+  const [phase, setPhase] = useState<Phase>({ phase: "idle" });
   const controller = useRef<AbortController | null>(null);
+  const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const view = useRef<HTMLDivElement>(null);
+  const shownPhase = useRef(phase.phase);
 
-  const samePlayer = player && opponent && player.player_id === opponent.player_id;
-  const ready = player && opponent && !samePlayer && report.state !== "working";
+  useEffect(() => {
+    const handoff = takeHandoff();
+    if (!handoff) return; // also StrictMode's second run, which finds it already taken
+    if (handoff.player) setPlayer(handoff.player);
+    if (handoff.opponent) setOpponent(handoff.opponent);
+  }, []);
+
+  // Leaving the page stops the work, and the model calls behind it.
+  useEffect(
+    () => () => {
+      controller.current?.abort();
+      if (hold.current) clearTimeout(hold.current);
+    },
+    [],
+  );
+
+  // The nav's Scouting link, used from the loader or a report. Stopping the stream stops the
+  // model calls behind it; the chosen players stay.
+  useEffect(() => {
+    const backToSetup = () => {
+      controller.current?.abort();
+      if (hold.current) clearTimeout(hold.current);
+      setPhase({ phase: "idle" });
+    };
+    window.addEventListener(BACK_TO_SETUP, backToSetup);
+    return () => window.removeEventListener(BACK_TO_SETUP, backToSetup);
+  }, []);
+
+  useEffect(() => {
+    if (shownPhase.current === phase.phase) return;
+    shownPhase.current = phase.phase;
+    window.scrollTo(0, 0);
+    // The control that was in use has gone with the last view, so focus moves to the new one.
+    const heading = view.current?.querySelector("h1");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }, [phase.phase]);
 
   async function writeReport() {
-    if (!player || !opponent) return;
+    if (!player || !opponent || player.player_id === opponent.player_id) return;
     controller.current?.abort();
-    controller.current = new AbortController();
+    const run = new AbortController();
+    controller.current = run;
     const names = new Map([[player.player_id, player.name], [opponent.player_id, opponent.name]]);
-    setReport({ state: "working", started: Date.now(), events: [], names });
+    setPhase({ phase: "working", player, opponent, surface, started: Date.now(), events: [], names, final: null });
     try {
       const data = await streamReport(
         { player_id: player.player_id, opponent_id: opponent.player_id, surface },
-        (event) => setReport((r) => (r.state === "working" ? { ...r, events: [...r.events, event] } : r)),
-        controller.current.signal,
+        (event) => setPhase((p) => (p.phase === "working" ? { ...p, events: [...p.events, event] } : p)),
+        run.signal,
       );
-      setReport({ state: "done", data });
+      if (run.signal.aborted) return;
+      showReport(data);
     } catch (error) {
-      if (controller.current.signal.aborted) return;
-      setReport({ state: "error", message: error instanceof ApiFailure ? error.message : "The report request failed." });
+      if (run.signal.aborted) return;
+      setPhase({ phase: "error", message: error instanceof ApiFailure ? error.message : "The report request failed. Try again." });
     }
   }
 
-  const context = useMemo(() => (report.state === "done" ? reportContext(report.data) : []), [report]);
+  function showReport(data: ReportResponse) {
+    const wait = reportHold(data, window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    if (wait === 0) {
+      setPhase({ phase: "done", data });
+      return;
+    }
+    setPhase((p) => (p.phase === "working" ? { ...p, final: data } : p));
+    hold.current = setTimeout(() => setPhase({ phase: "done", data }), wait);
+  }
 
   return (
-    <main className="page">
-      <header className="masthead">
-        <strong>Tennis Scouting Analyst</strong>
-        <span>ATP tour-level singles, 2015 on. Numbers come from tested stats tools, not the model’s memory.</span>
-      </header>
-
-      <div className="workspace">
-        <div>
-          <section className="setup" aria-label="Match setup">
-            <div className="setup-sentence">
-              <span className="setup-word">Scout</span>
-              <PlayerPicker side="opponent" label="Opponent to scout" placeholder="an opponent" value={opponent} onChange={setOpponent} />
-              <span className="setup-word">for</span>
-              <PlayerPicker side="player" label="Your player" placeholder="your player" value={player} onChange={setPlayer} />
-              <span className="setup-word">on</span>
-              <fieldset className="surfaces">
-                <legend className="visually-hidden">Surface</legend>
-                {SURFACES.map((s) => (
-                  <label key={s}>
-                    <input type="radio" name="surface" value={s} checked={surface === s} onChange={() => setSurface(s)} />
-                    {s.toLowerCase()}
-                  </label>
-                ))}
-              </fieldset>
-            </div>
-            <div className="setup-actions">
-              <button type="button" className="primary" disabled={!ready} onClick={writeReport}>
-                Write the report
-              </button>
-              <span className="hint">
-                {samePlayer ? "Pick two different players." : "Uses the two years up to the newest tournament in the data."}
-              </span>
-            </div>
-          </section>
-
-          {report.state === "working" && <Working started={report.started} events={report.events} names={report.names} />}
-          {report.state === "error" && (
-            <div className="status" data-kind="error" role="alert">
-              <strong>The report couldn't be written.</strong> {report.message}
-            </div>
-          )}
-          {report.state === "done" && <ReportView data={report.data} />}
-          {report.state === "idle" && (
-            <p className="hint">Pick an opponent and your player to write a scouting report. It takes 15 to 40 seconds.</p>
-          )}
-        </div>
-
-        <ChatPanel context={context} contextLabel={report.state === "done" ? contextLabel(report.data) : null} />
-      </div>
-
-      <footer className="credits">
-        <p>
-          Match data for 2015 to 2025 and player details: “Tennis databases, files, and algorithms” by Jeff Sackmann /{" "}
-          <a href="https://www.tennisabstract.com/">Tennis Abstract</a>, licensed under{" "}
-          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. Season 2026: the{" "}
-          <a href="https://stats.tennismylife.org/tennis-match-database">TennisMyLife ATP match database</a>, for
-          non-commercial use. This app reshapes and checks the data; its derived data is shared under CC BY-NC-SA 4.0.
-          The full terms are in the project's DATA_LICENSE.md. A non-commercial portfolio project.
-        </p>
-      </footer>
-    </main>
-  );
-}
-
-function Working({ started, events, names }: { started: number; events: ReportEvent[]; names: Map<number, string> }) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  const steps = progressSteps(events, names);
-  const current = steps[steps.length - 1];
-  return (
-    <div className="working">
-      <p>
-        <strong>Writing the report.</strong> <span aria-hidden="true">{Math.round((now - started) / 1000)} seconds so far.</span> The
-        report appears once every key number has been checked against the data.
-      </p>
-      {/* Screen readers hear each new step once, not the ticking timer. */}
-      <p className="visually-hidden" role="status">{current?.text ?? "Starting"}</p>
-      <ol className="progress" aria-label="Progress">
-        {steps.map((step) => (
-          <li key={step.key} data-state={step.state}>{step.text}</li>
-        ))}
-      </ol>
+    <div ref={view}>
+      {(phase.phase === "idle" || phase.phase === "error") && (
+        <MatchSetup
+          player={player}
+          opponent={opponent}
+          surface={surface}
+          onPlayer={setPlayer}
+          onOpponent={setOpponent}
+          onSurface={setSurface}
+          onStart={writeReport}
+          error={phase.phase === "error" ? phase.message : null}
+        />
+      )}
+      {phase.phase === "working" && (
+        <Loader
+          player={phase.player.name}
+          opponent={phase.opponent.name}
+          surface={phase.surface}
+          started={phase.started}
+          events={phase.events}
+          names={phase.names}
+          final={phase.final}
+        />
+      )}
+      {phase.phase === "done" && (
+        <ReportView data={phase.data} countries={countriesOf(player, opponent)} onNewReport={() => setPhase({ phase: "idle" })} />
+      )}
     </div>
   );
 }
 
-function contextLabel(data: ReportResponse): string {
-  const { player, opponent, surface } = data.request;
-  return `${opponent.name} for ${player.name}, ${surface.toLowerCase()}`;
-}
-
-/** The report as a first exchange, so follow-up questions have context. */
-function reportContext(data: ReportResponse): ChatMessage[] {
-  if (!data.report) return [];
-  const { player, opponent, surface } = data.request;
-  const r = data.report;
-  const text = [
-    r.summary,
-    `${opponent.name}'s strengths: ${r.strengths.join(" ")}`,
-    `${opponent.name}'s weaknesses: ${r.weaknesses.join(" ")}`,
-    `Game plan for ${player.name}: ${r.game_plan.join(" ")}`,
-  ].join("\n\n").slice(0, 3_900);
-  return [
-    { role: "user", content: `Write a scouting report on ${opponent.name} for ${player.name}, on ${surface.toLowerCase()}.` },
-    { role: "assistant", content: text },
-  ];
+function countriesOf(...players: (Candidate | null)[]): Record<number, string | null> {
+  const countries: Record<number, string | null> = {};
+  for (const p of players) {
+    if (p) countries[p.player_id] = p.country;
+  }
+  return countries;
 }
