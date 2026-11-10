@@ -966,9 +966,11 @@ chosen. "Scout this player" and "Scout this match-up" carry the players to match
 
 **Player stats API.** `GET /players/{id}/stats` (`api/player_stats.py`) composes the existing tools
 unchanged, so there is no new SQL and no new stat definition (D-014). The whole response reads one
-snapshot, drops `birth_date`, and is cached (`public, max-age=300, s-maxage=3600`), since the data
+snapshot and is cached (`public, max-age=300, s-maxage=3600`), since the data
 only changes on a reload. It is the fifth public API route, after D-025's four. The per-IP limit
 covers only report and chat, so varying the query string can reach the database uncached.
+`player_profile` returns no birth date: a tool result reaches the model, and through a report's
+evidence the browser, and some players are minors (D-013).
 
 **Design.** Bottle green and chalk, Marcellus and Spectral through `next/font`, with a scoreboard
 and an honours board. The loader's court takes the chosen surface's colour. Its score, net clip and

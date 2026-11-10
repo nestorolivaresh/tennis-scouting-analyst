@@ -48,7 +48,6 @@ def compose(
         # First, so a bad opponent stops the request before the other queries run.
         h2h = None if opponent_id is None else stats.head_to_head(conn, pid, opponent_id, filters)
         profile = stats.player_profile(conn, pid)
-        del profile["birth_date"]
         return {
             "profile": profile,
             "filters": {"surface": filters.surface, "season": filters.season},

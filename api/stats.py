@@ -277,7 +277,7 @@ LIMIT %(limit)s
 """
 
 PLAYER_SQL = """
-SELECT p.player_id, p.full_name, p.hand, p.birth_date, p.country, p.height_cm,
+SELECT p.player_id, p.full_name, p.hand, p.country, p.height_cm,
        count(pm.match_id) AS matches_loaded, min(m.tourney_date) AS first_tourney_date
 FROM players p
 LEFT JOIN player_matches pm ON pm.player_id = p.player_id
@@ -504,7 +504,6 @@ def player_profile(conn: psycopg.Connection, player_id: Any) -> dict[str, Any]:
         "tool": "player_profile",
         "player": {"player_id": player["player_id"], "name": player["full_name"]},
         "hand": player["hand"],
-        "birth_date": _iso(player["birth_date"]),
         "country": player["country"],
         "height_cm": player["height_cm"],
         "matches_loaded": player["matches_loaded"],

@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 
 from api import app as app_module
 from api import spend, stats
-from api.agent import Settings
+from api.agent import Settings, execute_tool
 from api.db import connect
 from ingest.download import SACKMANN_SEASONS, TML_SEASON
 
@@ -64,7 +64,6 @@ def keys_in(value):
 def expected_blocks(conn, player_id, filters, opponent_id):
     season_only = {"season": filters["season"]} if "season" in filters else {}
     profile = stats.player_profile(conn, player_id)
-    del profile["birth_date"]
     return {
         "profile": profile,
         "data_window": stats.data_window(conn),
@@ -115,12 +114,37 @@ def test_the_whole_response_reads_one_snapshot(http, monkeypatch):
 # ---------- birth date ----------
 
 
+def real_birth_date(conn, player_id):
+    """Read from the table, since no tool returns it. Not None, or the checks below prove nothing."""
+    born = conn.execute("SELECT birth_date FROM players WHERE player_id = %s", (player_id,)).fetchone()["birth_date"]
+    assert born is not None
+    return born.isoformat()
+
+
 def test_the_birth_date_appears_nowhere(http, conn):
     response = get(http, surface="Clay", opponent_id=SINNER)
     assert "birth_date" not in set(keys_in(response.json()))
     for player_id in (ALCARAZ, SINNER):
-        born = stats.player_profile(conn, player_id)["birth_date"]
-        assert born is not None and born not in response.text  # or this wouldn't exercise the rule
+        assert real_birth_date(conn, player_id) not in response.text
+
+
+@pytest.mark.parametrize(
+    "tool, args",
+    [
+        ("resolve_player", {"name": "Carlos Alcaraz"}),
+        ("player_profile", {"player_id": ALCARAZ}),
+        ("surface_splits", {"player_id": ALCARAZ}),
+        ("serve_return_stats", {"player_id": ALCARAZ}),
+        ("pressure_stats", {"player_id": ALCARAZ}),
+        ("recent_form", {"player_id": ALCARAZ}),
+        ("head_to_head", {"player_id": ALCARAZ, "opponent_id": SINNER}),
+    ],
+)
+def test_no_model_tool_returns_a_birth_date(conn, tool, args):
+    """A tool result reaches the model, and through a report's evidence the browser (D-013)."""
+    result = execute_tool(conn, tool, args)
+    assert "birth_date" not in set(keys_in(result))
+    assert real_birth_date(conn, ALCARAZ) not in json.dumps(result, default=str)
 
 
 # ---------- seasons ----------
