@@ -933,6 +933,12 @@ checklist tests it. It keeps IP addresses out of our own database.
 **Database role.** The API connects as `tennis_app` (`infra/neon_setup.sql`), which can read the
 stats tables and write only `api_requests`. A test applies the script in a rolled-back
 transaction and confirms what the role can and can't do. This closes the Milestone 3 item.
+The role is created by `python -m infra.neon_setup`, in one transaction with that script. Neon
+adds any role made in its Console, CLI or API to `neon_superuser`, which can write to every
+table, and its SQL Editor keeps statements, passwords included, in the query history (Neon's
+docs, checked 2026-11-09). The first version of the deploy guide used the Console; re-checking
+it against the docs caught this before anything was created. The script now stops if the role
+has more access than it should.
 
 **Credentials.** `ANTHROPIC_API_KEY` and `DATABASE_URL` live in Vercel's environment variables,
 with master copies in 1Password. Nestor enters them and runs the production data load: under his

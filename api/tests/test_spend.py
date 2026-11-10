@@ -17,11 +17,12 @@ from api import app as app_module
 from api import spend
 from api.agent import Settings
 from api.tests.fake_model import FakeClient, message, text, tool_results, tool_use
+from infra import neon_setup
 
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
 
 SETUP_SQL = (Path(__file__).parents[2] / "infra" / "neon_setup.sql").read_text()
-TABLE_SQL = SETUP_SQL[: SETUP_SQL.index("GRANT USAGE")]  # the request log, without the grants
+TABLE_SQL = SETUP_SQL[SETUP_SQL.index("CREATE TABLE") : SETUP_SQL.index("GRANT USAGE")]  # the request log, without the grants
 SINNER, ALCARAZ = 206173, 207989  # hand 9
 REPORT = {"player_id": SINNER, "opponent_id": ALCARAZ, "surface": "Clay"}
 CHAT = {"messages": [{"role": "user", "content": "hi"}]}
@@ -268,8 +269,8 @@ def test_the_production_role_can_only_read_stats_and_log_requests():
     conn = psycopg.connect(os.environ["DATABASE_URL"], row_factory=dict_row)
     try:
         conn.execute("DROP ROLE IF EXISTS tennis_app")
-        conn.execute("CREATE ROLE tennis_app LOGIN")
-        conn.execute(SETUP_SQL)
+        neon_setup.apply(conn, "a quote' in the password")
+        assert conn.execute("SELECT rolpassword IS NOT NULL AS has_password, rolcanlogin FROM pg_authid WHERE rolname = 'tennis_app'").fetchone() == {"has_password": True, "rolcanlogin": True}
         conn.execute("CREATE TABLE created_after_setup (id int)")  # as a data load would
         conn.execute("SET LOCAL ROLE tennis_app")
 
@@ -289,6 +290,27 @@ def test_the_production_role_can_only_read_stats_and_log_requests():
         refused("DELETE FROM api_requests")
         refused("SELECT * FROM raw.matches")
         refused("DROP TABLE players")
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@pytest.mark.parametrize(
+    "extra_access",
+    [
+        "CREATE ROLE neon_superuser_stand_in NOLOGIN; GRANT neon_superuser_stand_in TO tennis_app",  # a role made in Neon's Console
+        "ALTER ROLE tennis_app CREATEROLE",
+    ],
+)
+def test_the_setup_script_refuses_a_role_with_more_access(extra_access):
+    """Neon's docs: a role made in its Console joins neon_superuser, which can write every table."""
+    conn = psycopg.connect(os.environ["DATABASE_URL"], row_factory=dict_row)
+    try:
+        conn.execute("DROP ROLE IF EXISTS tennis_app")
+        conn.execute("CREATE ROLE tennis_app LOGIN")
+        conn.execute(extra_access)
+        with pytest.raises(psycopg.errors.RaiseException, match="more access"):
+            conn.execute(SETUP_SQL)
     finally:
         conn.rollback()
         conn.close()

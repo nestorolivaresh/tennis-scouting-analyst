@@ -1,9 +1,19 @@
--- One-time setup of the production database (docs/deploy.md, D-025). Run it in the Neon SQL
--- editor as the database owner, after loading the data and creating the role `tennis_app` in
--- Neon's console (Neon generates its password). Safe to run again.
+-- One-time setup of the production database (docs/deploy.md, D-025), applied as the database
+-- owner by `python -m infra.neon_setup`, which creates the role `tennis_app` first.
 --
 -- The API connects as tennis_app, which can read the stats tables and record its own requests,
 -- and nothing else: it can't change the data, and it can't read the raw source tables.
+
+-- Neon adds a role made in its Console to neon_superuser, which can write to every table, so
+-- none of the limits below would hold. Stop here if the role has any access beyond them.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_auth_members WHERE member = 'tennis_app'::regrole)
+     OR EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tennis_app'
+                AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls OR rolreplication)) THEN
+    RAISE EXCEPTION 'tennis_app has more access than the API should have. Drop it and create it with SQL (docs/deploy.md, step 3).';
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS api_requests (
   request_id  TEXT PRIMARY KEY,
