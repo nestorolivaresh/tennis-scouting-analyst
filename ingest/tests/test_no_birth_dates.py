@@ -35,7 +35,10 @@ def test_committed_files_contain_no_player_birth_dates():
     for name in listed:
         if name == "uv.lock":  # package hashes, not data
             continue
-        text = (ROOT / name).read_text(encoding="utf-8", errors="ignore")
+        path = ROOT / name
+        if not path.is_file():  # deleted but not yet committed, or a nested git worktree
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
         for number, line in enumerate(text.splitlines(), start=1):
             hits += [f"{name}:{number}: {token}" for token in DATE_TOKEN.findall(line) if token in birth_dates]
     assert not hits, "player birth dates in committed files:\n" + "\n".join(hits)
