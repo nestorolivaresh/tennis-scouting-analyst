@@ -31,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LOCK_PATH = ROOT / "ingest" / "data.lock.json"
 RAW_DIR = ROOT / "data" / "raw"
-USER_AGENT = "tennis-scouting-analyst/0.1 (non-commercial portfolio project)"
+USER_AGENT = "tennis-scouting-analyst/0.1 (non-commercial personal project)"
 
 # Which seasons come from which source (D-001). Every module imports these.
 SACKMANN_SEASONS = range(2015, 2026)

@@ -320,7 +320,7 @@ their public terms already allow non-commercial use); publish the player files w
 birth dates (convenient for review, but it republishes part of TML's player file, and some
 players are minors).
 
-**Why.** A learning and portfolio project fits both sources' non-commercial terms. A notice
+**Why.** A personal project, built for fun and learning, fits both sources' non-commercial terms. A notice
 can't grant rights, but it documents that the use fits the terms and gives rights holders a
 clear way to ask for changes. Keeping personal data out of the repo is cheap, and it's the
 kind of judgment the project should show.

@@ -1,7 +1,7 @@
 # Data sources and licenses
 
-This is a non-commercial learning and portfolio project. It has no ads, payments or paid
-features, and it isn't meant to make money. Nothing in this repository is offered for
+This is a non-commercial personal project, built for fun and to explore new tools. It has no
+ads, payments or paid features, and it isn't meant to make money. Nothing in this repository is offered for
 commercial use.
 
 ## Sources

@@ -22,7 +22,7 @@ The build stops after Milestone 2 so you can check the data foundation yourself.
 
 ## Goal and scope
 
-A coach picks a player, an opponent and a surface, then gets a scouting report and can ask follow-up questions. This is a portfolio project, so correctness, evals and clear trade-offs matter more than feature count.
+A coach picks a player, an opponent and a surface, then gets a scouting report and can ask follow-up questions. This is a personal project, built for fun and to explore new tools. Correctness, evals and clear trade-offs matter more than feature count.
 
 **User:** a coach preparing a player for an ATP match. Example questions:
 
