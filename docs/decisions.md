@@ -1055,3 +1055,28 @@ header wrapped unevenly (its languages now sit beside the emblem, with the secti
 
 **Not checked.** A native French speaker hasn't read the French. The evals are in English only. No
 real chat answer in Spanish or French has been run.
+
+## D-028 Milestone 7: a README a stranger can follow
+
+*2026-11-10.*
+
+**Chosen.** The README now walks a stranger from `git clone` to a running app, and
+`docs/case-study.md` and `docs/demo.md` complete the milestone (spec). Each number in the case
+study comes from this log or from the committed results in `evals/results/`.
+
+**Checked by doing it.** The README was followed from a fresh clone of the public repository,
+with its own Postgres container on another port, so the working database was never touched. That
+found two problems:
+- **The 2026 files no longer match.** TennisMyLife had changed `2025.csv` and `2026.csv` since
+  the snapshot of 7 November, so the download stops with a mismatch, as designed (D-002). The
+  README now gives the steps that accept a newer snapshot (`--relock`, then `ingest.players`),
+  and names the five tests that pin 2026 dates or counts and so fail on it. The other 298 pass.
+  The raw files can't be redistributed (D-013), so the original snapshot can't be shipped.
+- **The first test run on a new database timed out.** Right after a load, Postgres has no
+  planner statistics for the new rows, and the evals' check that compares the ground truth with
+  the loader on every match hit its 60-second statement timeout (73 seconds, failed). The load
+  now runs `ANALYZE` in its transaction: the same sequence then passed that check in 21 seconds,
+  and the whole suite in 39. The load itself takes about 6 seconds.
+
+**Not checked.** The README on another machine or operating system, and with Node.js versions
+other than 23.11.
