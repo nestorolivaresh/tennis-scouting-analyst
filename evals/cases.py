@@ -21,9 +21,12 @@ MURRAY, ISNER, KYRGIOS, FRITZ, RUBLEV = 104918, 104545, 106401, 126203, 126094
 NAMES = {SINNER: "Sinner", ALCARAZ: "Alcaraz", DJOKOVIC: "Djokovic", NADAL: "Nadal", FEDERER: "Federer",
          MEDVEDEV: "Medvedev", ZVEREV: "Zverev", THIEM: "Thiem", TSITSIPAS: "Tsitsipas", RUUD: "Ruud",
          MURRAY: "Murray", ISNER: "Isner", KYRGIOS: "Kyrgios", FRITZ: "Fritz", RUBLEV: "Rublev"}  # fmt: skip
-STATS_TOOLS = ("player_profile", "surface_splits", "serve_return_stats", "pressure_stats", "head_to_head", "recent_form")
+STATS_TOOLS = ("player_profile", "surface_splits", "serve_return_stats", "pressure_stats", "head_to_head", "recent_form",
+               "set_patterns", "tour_comparison", "shot_patterns")
 
 COUNTS = {"matches", "wins", "losses"}  # checked exactly; every other stat is a rate or average
+# Milestones 8 and 9 (D-029, D-030): evals/truth.py's pattern_value computes these and says
+# which are counts. "tour_rank:<stat>" is a rank, "tour_players:<stat>" how many were ranked.
 
 
 @dataclass(frozen=True)
@@ -234,7 +237,7 @@ CASES: tuple[Case, ...] = (
          refusal=Refusal(must=(r"rally", NEGATION))),
     Case("R02", "refuse_or_caveat", "How well did Roger Federer serve in 2022?",
          tools=(ToolCheck("serve_return_stats", FEDERER, {"season": 2022}),),
-         refusal=Refusal(must=(r"(\bno (counted |tour-level |official |singles |regular )?matches\b|\b0 matches\b|\bzero matches\b"
+         refusal=Refusal(must=(r"(\bno (2022 )?(counted |tour-level |official |singles |regular )?matches\b|\b0 matches\b|\bzero matches\b"
                                r"|\bdid(n't|n’t| not) play\b|\bno (2022 )?(serve )?(data|stats)\b)",))),
     Case("R03", "refuse_or_caveat", "What was Rafael Nadal's win-loss record on clay in 2013?",
          refusal=Refusal(must=(r"2015", NEGATION + r"|\bonly\b|\bbefore\b|\bbegins?\b|\bstarts?\b"))),
@@ -248,4 +251,35 @@ CASES: tuple[Case, ...] = (
     Case("R06", "refuse_or_caveat", "What is the probability that Jannik Sinner beats Carlos Alcaraz in their next match?",
          refusal=Refusal(must=(r"predict|probabilit|forecast|odds", NEGATION),
                          must_not=(PROBABILITY_GIVEN,))),
+    # Serve direction is charted, but not split by score: nothing says where he served on break points.
+    Case("R07", "refuse_or_caveat", "Where did Jannik Sinner aim his serve on break points in 2024?",
+         refusal=Refusal(must=(r"break point", NEGATION))),
+    # ---------- scouting patterns (D-029) and charted shot patterns (D-030) ----------
+    Case("P01", "scouting_pattern", "What was Jannik Sinner's tiebreak record in 2024?",
+         (Expect("tiebreaks_won_count", SINNER, season(2024)), Expect("tiebreaks_played", SINNER, season(2024))),
+         (ToolCheck("set_patterns", SINNER, {"season": 2024}),)),
+    Case("P02", "scouting_pattern", "How often did Novak Djokovic win deciding sets in 2023?",
+         (Expect("deciding_sets_won", DJOKOVIC, season(2023)),),
+         (ToolCheck("set_patterns", DJOKOVIC, {"season": 2023}),)),
+    Case("P03", "scouting_pattern", "In 2022, how often did Rafael Nadal go on to win a match after losing the first set?",
+         (Expect("won_after_losing_first_set", NADAL, season(2022)),),
+         (ToolCheck("set_patterns", NADAL, {"season": 2022}),)),
+    Case("P04", "scouting_pattern", "What was Carlos Alcaraz's win-loss record against top-10 opponents in 2023?",
+         (Expect("wins", ALCARAZ, season(2023, opponent_rank_max=10)), Expect("losses", ALCARAZ, season(2023, opponent_rank_max=10))),
+         (ToolCheck("surface_splits", ALCARAZ, {"season": 2023, "opponent_rank_max": 10}),)),
+    Case("P05", "scouting_pattern",
+         "Among players with at least 10 matches with stats on grass in 2023, where did Carlos Alcaraz rank for service points won?",
+         (Expect("tour_rank:service_points_won", ALCARAZ, season(2023, surface="Grass")),
+          Expect("tour_players:service_points_won", ALCARAZ, season(2023, surface="Grass"))),
+         (ToolCheck("tour_comparison", ALCARAZ, {"season": 2023, "surface": "Grass"}),)),
+    Case("P06", "scouting_pattern",
+         "In Jannik Sinner's charted Grand Slam matches on clay in 2024, what share of his first serves in went wide on the deuce court?",
+         (Expect("dir_first_deuce_wide", SINNER, season(2024, levels=("G",), surface="Clay")),
+          Expect("charted_matches", SINNER, season(2024, levels=("G",), surface="Clay"))),
+         (ToolCheck("shot_patterns", SINNER, {"season": 2024, "surface": "Clay"}),)),
+    Case("P07", "scouting_pattern",
+         "In Carlos Alcaraz's charted clay matches in 2023, what percentage of points with rallies of 10 or more shots did he win?",
+         (Expect("rally_10_plus_won", ALCARAZ, season(2023, surface="Clay")),
+          Expect("charted_matches", ALCARAZ, season(2023, surface="Clay"))),
+         (ToolCheck("shot_patterns", ALCARAZ, {"season": 2023, "surface": "Clay"}),)),
 )

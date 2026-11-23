@@ -88,7 +88,10 @@ Gather, for both players (call tools for both in parallel where you can):
   fewer than {SMALL_SAMPLE} matches with stats there, also get serve_return_stats without the
   surface filter (same dates), and say in data_caveats which one you used.
 - recent_form with n = 10.
-Then call head_to_head once for the pair, with no filters.
+Then call head_to_head once for the pair, with no filters. For {o["name"]} only, also call
+set_patterns and shot_patterns with filters {{"date_from": "{date_from}", "date_to": "{date_to}"}}
+(every surface: charted matches are few). Use their figures where the samples allow, and
+say how many charted matches serve direction and rally length rest on.
 
 Write the report:
 - summary: two or three sentences on the matchup.
@@ -101,7 +104,9 @@ Write the report:
   - field: the dotted path to it in that result, such as "stats.first_serve_in.value",
     "surfaces.0.win_rate.value" or "record.wins",
   - sample_matches: the matches it is based on (sample.matches_with_stats for serve and
-    pressure stats; the record's matches for win-loss records),
+    pressure stats; the record's matches for win-loss records; for set_patterns, the
+    `matches` in the stat, the completed matches it was read from; for shot_patterns, the
+    `matches` of the block the value is in, such as serve_direction.matches),
   - label: what it is, whose it is, and the filters, e.g. "{o["name"]}: break points saved, {surface}, {date_from[:4]}-{date_to[:4]}".
 - data_caveats: small samples, matches without stats, excluded matches, and the data's end date.
 

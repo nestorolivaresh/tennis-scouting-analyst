@@ -120,3 +120,94 @@ awk -F, -v P="Novak Djokovic" -v X="$EXCLUDE" -v E="$EXHIBITION" '
     hand = ($11 == P ? $20 : $12); if (hand != "R" && hand != "L") { hand = "unknown"; who = ($11 == P ? $19 : $11) }
     if ($11 == P) w[hand]++; else l[hand]++; seen[hand] = 1 }
   END { for (h in seen) printf "%s %d-%d\n", h, w[h], l[h]; print "unknown-hand opponent:", who }' "$S/atp_matches_2024.csv" | sort
+
+# ---------- Milestones 8 and 9 (D-029, D-030). Columns are looked up by header name. ----------
+
+echo "== 21. Sinner 2024 set patterns, completed matches only (D-029)"
+awk -F, -v P="Jannik Sinner" -v E="$EXHIBITION" '
+  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  ($c["winner_name"] == P || $c["loser_name"] == P) && $c["tourney_name"] !~ E {
+    s = toupper($c["score"]); if (s ~ /RET|DEF/) { early++; next }; if (s ~ /W\/O|WALKOVER|ABD/ || s == "") next
+    n = split($c["score"], t, " "); me = ($c["winner_name"] == P); ws = 0; ls = 0
+    for (k = 1; k <= n; k++) if (t[k] !~ /^(\[[0-9]+-[0-9]+\]|[0-9]+-[0-9]+(\([0-9]+\))?)$/) next
+    for (k = 1; k <= n; k++) {
+      x = t[k]; gsub(/[][]/, "", x); sub(/\(.*/, "", x); split(x, g, "-"); a = g[1] + 0; b = g[2] + 0
+      if (a > b) ws++; else ls++
+      mine[k] = me ? a : b; theirs[k] = me ? b : a
+      tb[k] = (t[k] ~ /\(/ || (a == 7 && b == 6) || (a == 6 && b == 7)) }
+    if (ws <= ls) next  # a score that contradicts the winner is an unknown result (D-007)
+    for (k = 1; k <= n; k++) if (tb[k]) { tbp++; if (mine[k] > theirs[k]) tbw++ }
+    if (n == $c["best_of"]) { dp++; if (me) dw++ }  # all sets played: the last one decided it
+    if (mine[1] > theirs[1]) { w1p++; if (me) w1w++ } else { l1p++; if (me) l1w++ }
+    done++ }
+  END { printf "completed %d, ended early %d; tiebreaks %d/%d; deciding sets %d/%d; after winning set 1 %d/%d; after losing set 1 %d/%d\n",
+               done, early, tbw, tbp, dw, dp, w1w, w1p, l1w, l1p }' "$S/atp_matches_2024.csv"
+
+echo "== 22. Djokovic 2024 against opponents ranked 10 or better at the time, and opponents with no ranking"
+awk -F, -v P="Novak Djokovic" -v X="$EXCLUDE" -v E="$EXHIBITION" '
+  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E {
+    r = ($c["winner_name"] == P ? $c["loser_rank"] : $c["winner_rank"])
+    if (r == "") { unknown++; who = ($c["winner_name"] == P ? $c["loser_name"] : $c["winner_name"]); next }
+    if (r + 0 <= 10) { if ($c["winner_name"] == P) w++; else l++ } }
+  END { printf "top 10: %d-%d; unranked opponents: %d (%s)\n", w, l, unknown, who }' "$S/atp_matches_2024.csv"
+
+echo "== 23. Sinner's last 10 counted matches in TML 2026: minutes (tourney_date is the match date in TML)"
+awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" -v E="$EXHIBITION" '
+  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E {
+    print $c["tourney_date"], ($c["minutes"] == "" ? "none" : $c["minutes"]) }' "$T" | sort -r | head -10 |
+  awk '{ if ($2 == "none") missing++; else { n++; total += $2; if ($2 > longest) longest = $2 } }
+       END { printf "with minutes %d, missing %d, total %d, longest %d\n", n, missing, total, longest }'
+
+echo "== 24. Grass 2023, service points won by player, players with 10+ matches with stats (no 2023 stats were removed by D-008)"
+awk -F, -v X="$EXCLUDE" -v E="$EXHIBITION" '
+  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  $c["surface"] == "Grass" && index($c["score"], X) == 0 && $c["tourney_name"] !~ E && $c["w_svpt"] != "" && $c["l_svpt"] != "" {
+    s = toupper($c["score"]); if (s ~ /ABD/ || s == "") next
+    w = $c["winner_name"]; l = $c["loser_name"]
+    n[w]++; won[w] += $c["w_1stWon"] + $c["w_2ndWon"]; pts[w] += $c["w_svpt"]
+    n[l]++; won[l] += $c["l_1stWon"] + $c["l_2ndWon"]; pts[l] += $c["l_svpt"] }
+  END { for (p in n) if (n[p] >= 10) printf "%.6f %d/%d %d %s\n", won[p] / pts[p], won[p], pts[p], n[p], p }' "$S/atp_matches_2023.csv" |
+  sort -rn | awk '{ print NR ". " $0 }'
+
+C=data/raw/charting
+echo "== 26. Sinner's charted Roland Garros 2024 matches: serve direction, rally length, net points (D-030)"
+awk -F, -v P="Jannik Sinner" '
+  FILENAME ~ /matches/ { if ($1 ~ /^2024[0-9]*-M-Roland_Garros-/ && ($2 == P || $3 == P)) { id[$1] = 1; first[$1] = ($2 == P) } ; next }
+  FILENAME ~ /ServeDirection/ && ($1 in id) && $2 == P && ($3 == "1" || $3 == "2") {
+    for (k = 4; k <= 9; k++) d[$3, k] += $k }
+  FILENAME ~ /Rally/ && ($1 in id) && $4 ~ /^(1-3|4-6|7-9|10|Total)$/ {
+    played[$4] += $5; won[$4] += (first[$1] ? $6 : $10) }
+  FILENAME ~ /NetPoints/ && ($1 in id) && $2 == P && $3 == "NetPoints" { net += $4; netwon += $5 }
+  END {
+    printf "charted matches %d\n", length(id)
+    printf "first serves in  deuce wide %d body %d T %d; ad wide %d body %d T %d\n", d[1,4], d[1,5], d[1,6], d[1,7], d[1,8], d[1,9]
+    printf "second serves    deuce wide %d body %d T %d; ad wide %d body %d T %d\n", d[2,4], d[2,5], d[2,6], d[2,7], d[2,8], d[2,9]
+    printf "rally points won 1-3 %d/%d, 4-6 %d/%d, 7-9 %d/%d, 10+ %d/%d, all %d/%d\n", won["1-3"], played["1-3"], won["4-6"], played["4-6"],
+           won["7-9"], played["7-9"], won["10"], played["10"], won["Total"], played["Total"]
+    printf "net points won %d/%d\n", netwon, net }' "$C/charting-m-matches.csv" "$C/charting-m-stats-ServeDirection.csv" \
+  "$C/charting-m-stats-Rally.csv" "$C/charting-m-stats-NetPoints.csv"
+
+echo "== 25. Sinner's 2023 Davis Cup matches: minutes (the match files have none for these)"
+awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" '
+  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_level"] == "D" {
+    n++; if ($c["minutes"] == "") missing++; else { timed++; total += $c["minutes"] } }
+  END { printf "matches %d, with minutes %d, missing %d, total %d\n", n, timed, missing, total }' "$S/atp_matches_2023.csv"
+
+echo "== 27. The 2025 Roland Garros final as the file writes it (winner first), to read from Sinner's side by hand"
+awk -F, 'NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  $c["tourney_name"] == "Roland Garros" && $c["round"] == "F" { print $c["winner_name"], "d.", $c["loser_name"], $c["score"] }' "$S/atp_matches_2025.csv"
+
+echo "== 28. Laaksonen 2015 tiebreaks: his Davis Cup match against Bemelmans has a bare 6-7 set (no tiebreak score)"
+awk -F, -v P="Henri Laaksonen" -v E="$EXHIBITION" '
+  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  ($c["winner_name"] == P || $c["loser_name"] == P) && $c["tourney_name"] !~ E {
+    s = toupper($c["score"]); if (s ~ /RET|DEF|W\/O|WALKOVER|ABD/ || s == "") next
+    n = split($c["score"], t, " "); me = ($c["winner_name"] == P)
+    for (k = 1; k <= n; k++) {
+      x = t[k]; gsub(/[][]/, "", x); sub(/\(.*/, "", x); split(x, g, "-"); a = g[1] + 0; b = g[2] + 0
+      if (t[k] ~ /\(/ || (a == 7 && b == 6) || (a == 6 && b == 7)) { played++; if ((me ? a : b) > (me ? b : a)) won++
+        if (t[k] !~ /\(/) print "bare:", $c["tourney_name"], $c["score"] } } }
+  END { printf "tiebreaks %d/%d\n", won, played }' "$S/atp_matches_2015.csv"

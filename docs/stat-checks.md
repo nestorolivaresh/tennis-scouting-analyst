@@ -41,6 +41,14 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | `head_to_head` | Sinner v Alcaraz record and by surface | 7-10; Hard 3-7, Clay 2-3, Grass 2-0 | Hand 5 | match |
 | `head_to_head` | Newest meeting | 2026 Monte Carlo final, Sinner won | Hand 5 | match |
 | `recent_form` | Sinner's last 5 matches | Wimbledon 2026 R32 to F, all wins (Brooksby, Mochizuki, Struff, Djokovic, Zverev), final on 2026-07-12 | Hand 6 | match |
+| all stats tools | Djokovic 2024 against opponents ranked 10 or better; unranked opponents excluded (D-029) | 2-4; 1 excluded (Matthew Ebden) | Hand 22 | match |
+| `head_to_head` | The 2025 Roland Garros final from Sinner's side (`player_score`) | written "4-6 6-7(4) 6-4 7-6(3) 7-6(2)"; Sinner's side "6-4 7-6(4) 4-6 6-7(3) 6-7(2)" | Hand 27 | match |
+| `recent_form` | Sinner's last 10 matches in 2026: minutes on court | 10 with minutes, 1,592 in total, longest 226 | Hand 23 | match |
+| `recent_form` | Sinner's 2023 Davis Cup matches: no durations | 3 matches, none with minutes, so no total (never 0) | Hand 25 | match |
+| `set_patterns` | Sinner 2024: tiebreaks, deciding sets, after winning / losing the first set | 24/32, 13/19, 62/66, 10/12; 78 completed, 1 ended early | Hand 21 | match |
+| `set_patterns` | Laaksonen 2015: tiebreaks, including a bare "6-7" set | 2/3 | Hand 28 | match |
+| `tour_comparison` | Grass 2023, service points won, players with 10+ matches with stats: Alcaraz's rank, players, median; Sinner's rank | 5th of 10, median of the 5th and 6th (0.6815); Sinner 1st | Hand 24 | match |
+| `shot_patterns` | Sinner's charted Roland Garros 2024: serve direction, rally length, net points | first serves in deuce 80/29/69, ad 96/21/51; second serves deuce 22/49/39, ad 42/45/11; rallies 350/646, 152/269, 80/138, 67/123; net 107/147; 6 matches, 1,176 points | Hand 26 | match |
 
 Also cross-checked on Tennis Abstract on 2026-11-07: Sinner's latest match listed there is the
 Wimbledon 2026 final, the same as in the TML data, so the gap from July to November is real
@@ -69,6 +77,28 @@ below was broken on purpose in a copy of `api/`, and the test suite was run agai
 | Session not read-only; no statement timeout | `test_connection_is_read_only_outside_tool_transactions` |
 | `match_date` dropped from the match order | **Not caught.** In the pinned TML file, match numbers already follow match dates in every round robin, so the order is the same either way (D-014). |
 
+### Milestones 8 and 9 (D-029, D-030), 2026-11-23
+
+| Bug put back | Caught by |
+| --- | --- |
+| Opponents with no ranking counted under the ranking filter | `test_opponent_rank_filter_counts_unranked_opponents_as_excluded` |
+| Ranking filter "better than N" instead of "N or better" | `test_opponent_rank_filter_counts_unranked_opponents_as_excluded` |
+| The loser's score not swapped (`player_score`) | `test_scores_read_from_the_asked_players_side`, `test_a_score_from_the_losers_side_keeps_tiebreak_points_and_words` |
+| A missing duration counted as 0 minutes | `test_missing_minutes_are_missing_not_zero` |
+| Sets not swapped for the loser | `test_set_patterns_sinner_2024` |
+| Retired matches read for set patterns | `test_set_patterns_sinner_2024` |
+| A deciding set taken to mean a third set | `test_set_patterns_sinner_2024` |
+| A bare "7-6" not taken as a tiebreak | `test_tiebreaks_are_read_from_the_tiebreak_score_or_a_seven_six_set` |
+| Tour threshold "more than" instead of "at least" | `test_tour_comparison_grass_2023` |
+| Equal values given the worse rank | `test_rank_among_shares_the_better_rank_on_ties` |
+| First and second serves swapped | `test_shot_patterns_sinner_roland_garros_2024` |
+| Rally points read from the wrong player's side | `test_stats_are_read_for_both_players_from_player_ones_rally_rows` |
+| Link window ending 2 days, not 3, before a tournament starts | `test_the_date_window_runs_from_14_days_after_the_start_to_3_days_before_it` |
+| No preference for the event that had started | `test_back_to_back_events_link_to_the_one_that_had_started` |
+| Davis Cup ties needing the same round | `test_a_different_round_does_not_link_except_for_a_davis_cup_tie` |
+| A tour match charted twice keeping both charts | `test_a_tour_match_charted_twice_keeps_neither_chart` |
+| A set pattern's completed-match count not citable as a report's sample | `test_new_tools_samples_can_be_cited` (a live report hit this, D-029) |
+
 ## Can the eval checks fail?
 
 The same test for the evals (D-023), on 2026-11-09: each rule below was broken in
@@ -95,6 +125,20 @@ The same test for the evals (D-023), on 2026-11-09: each rule below was broken i
 | Records ("3-3") never checked as pairs | `test_pairs_must_appear_as_pairs` |
 | Counts ("10 of 14") never checked as pairs | `test_pairs_must_appear_as_pairs` |
 | Claims in words left out of the pass rule | `test_who_leads`, `test_who_is_better`. **Not caught at first**: those tests checked the claim result but not the pass; fixed. |
+
+For Milestones 8 and 9, on 2026-11-23, each new rule was broken in `evals/truth.py`:
+
+| Bug put back | Caught by |
+| --- | --- |
+| A bare "7-6" not taken as a tiebreak | `test_set_patterns_match_named_sources` (hand 28) |
+| A deciding set taken to mean a third set | `test_every_case_matches_the_stats_layer` (P02) |
+| The first set read from the winner's side | `test_every_case_matches_the_stats_layer` (P03) |
+| Unranked opponents counted under the ranking filter | `test_every_case_matches_the_stats_layer` (P04) |
+| Tour threshold "more than" instead of "at least" | `test_every_case_matches_the_stats_layer` (P05) |
+| Link window ending 2 days after the chart | `test_chart_links_agree_with_the_loader` |
+| A tour match charted twice counted | `test_chart_links_agree_with_the_loader` |
+| Rally points always read from Player 1's side | `test_every_case_matches_the_stats_layer` (P07) |
+| Rally bands not required to add up to the match total | **Not caught.** No linked chart has bands that don't add up (the two that don't are a 1985 match and an ITF qualifying match), so the rule changes nothing in the pinned files. The loader's version is unit-tested. |
 
 The review's examples of wrong answers that passed, and right answers that failed, are tests
 too (`test_review_*`, `test_who_leads`, `test_who_is_better`, `test_refusals_from_review`); the

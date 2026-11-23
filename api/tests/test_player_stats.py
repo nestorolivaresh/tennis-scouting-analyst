@@ -74,6 +74,9 @@ def expected_blocks(conn, player_id, filters, opponent_id):
         "recent_form": stats.recent_form(conn, player_id, 10, filters),
         "career": {"serve_return": stats.serve_return_stats(conn, player_id), "pressure": stats.pressure_stats(conn, player_id)},
         "head_to_head": stats.head_to_head(conn, player_id, opponent_id, filters) if opponent_id else None,
+        "set_patterns": stats.set_patterns(conn, player_id, filters),  # D-029
+        "tour": stats.tour_comparison(conn, player_id, filters),
+        "shots": stats.shot_patterns(conn, player_id, filters),  # D-030
     }
 
 

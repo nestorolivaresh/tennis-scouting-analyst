@@ -2,7 +2,7 @@
 
 Scouting reports on ATP players where every number comes from tested code, not from a language
 model's memory. A coach picks a player, an opponent and a surface. An agent built on Claude looks
-up what it needs through seven tested stats tools, then writes a report and a game plan. Every key
+up what it needs through ten tested stats tools, then writes a report and a game plan. Every key
 number is checked against the tool result it came from before the report is shown. Evals with
 independent ground truth measure whether the answers are right.
 
@@ -87,8 +87,17 @@ spend cap. Never set it in a deployment: there, the API refuses model calls unle
 
 ### Stats tools
 
-`api/stats.py` holds the seven tools the agent calls: `resolve_player`, `player_profile`,
-`surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head` and `recent_form`.
+`api/stats.py` holds the ten tools the agent calls: `resolve_player`, `player_profile`,
+`surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head`, `recent_form`, and three
+for scouting patterns ([D-029, D-030](docs/decisions.md)):
+- `set_patterns`: tiebreaks, deciding sets, and results after winning or losing the first set;
+- `tour_comparison`: a player's serve, return and break-point rates ranked against every player
+  under the same filters;
+- `shot_patterns`: serve direction, points won by rally length and net points, from matches
+  charted shot by shot by the Match Charting Project's volunteers.
+
+Every tool also takes an `opponent_rank_max` filter ("against the top 10"), and match lists give
+each score from the asked player's side as well as the winner's.
 Each is a plain function over Postgres that returns JSON, with the sample it was computed from:
 matches counted, matches with stats, what was excluded and why, and the dates covered. Their
 results match Tennis Abstract and hand calculations from the raw CSV files
@@ -130,8 +139,8 @@ A report costs about $0.07 and a chat answer a few cents.
 
 ### Evals
 
-`evals/` asks the agent 43 questions: the spec's 40 in five categories, plus one for each bug
-found by hand. Answers are scored against ground truth computed by separate SQL over the raw
+`evals/` asks the agent 51 questions: the spec's 40 in five categories, one for each bug found
+by hand, and eight for the scouting patterns. Answers are scored against ground truth computed by separate SQL over the raw
 source files, never by the stats layer. Scoring needs no model:
 - each expected number must appear in the answer (counts exactly, rates within 0.5 percentage
   points);
@@ -139,14 +148,14 @@ source files, never by the stats layer. Scoring needs no model:
 - numbers, records ("11-8") and counts ("905 of 1,774") must match the run's tool results;
 - head-to-head and comparison answers must not name the wrong leader.
 
-The latest run passed 42 of 43 ([case study](docs/case-study.md#eval-results),
-[D-023](docs/decisions.md)). Every answer is in `evals/results/`.
+The latest run, `m8-m9`, passed 51 of 51 after one scorer fix ([D-029](docs/decisions.md),
+[case study](docs/case-study.md#eval-results)). Every answer is in `evals/results/`.
 
 ```bash
 uv run --env-file .env python -m evals.run --dry-run                 # ground truth only, free
 uv run --env-file .env python -m evals.run --label myrun             # all questions, about $0.80
 uv run --env-file .env python -m evals.run --label myrun --only S01,H04
-uv run --env-file .env python -m evals.run --rescore final-v2        # rescore saved answers, free
+uv run --env-file .env python -m evals.run --rescore m8-m9           # rescore saved answers, free
 ```
 
 `--rescore` works only on the data snapshot the saved answers were run on, and refuses any other.
@@ -196,8 +205,11 @@ This is a non-commercial personal project: no ads, payments or paid features.
   (`712be0c`, 8 June 2026), fetched from forks and verified against that commit's file hashes.
 - **Season 2026:** [TennisMyLife](https://stats.tennismylife.org/tennis-match-database), for
   personal, educational and non-commercial research use.
+- **Shot-level patterns:** [The Tennis Abstract Match Charting Project](https://github.com/JeffSackmann/tennis_MatchChartingProject),
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), at commit `1813a13`
+  (18 September 2026).
 
-Raw data is never committed. Data derived from Sackmann's files is shared under CC BY-NC-SA 4.0,
+Raw data is never committed. Data derived from Sackmann's and the Match Charting Project's files is shared under CC BY-NC-SA 4.0,
 and what comes from TennisMyLife stays under its own terms. Committed files contain no player
 birth dates. [DATA_LICENSE.md](DATA_LICENSE.md) has the details, the changes made to the data,
 and how to ask for a correction or removal. The code's license hasn't been chosen yet.

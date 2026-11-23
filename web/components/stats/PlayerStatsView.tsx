@@ -33,6 +33,8 @@ import { PlayerBoard } from "./PlayerBoard.tsx";
 import { RecentMatches } from "./RecentMatches.tsx";
 import { SeasonBoard } from "./SeasonBoard.tsx";
 import { ServeReturn } from "./ServeReturn.tsx";
+import { SetsAndTour } from "./SetsAndTour.tsx";
+import { ShotPatterns } from "./ShotPatterns.tsx";
 import styles from "./Stats.module.css";
 import { SurfaceRecord } from "./SurfaceRecord.tsx";
 
@@ -167,6 +169,8 @@ export function PlayerStatsView() {
               />
             </div>
           </div>
+          <SetsAndTour data={data} />
+          <ShotPatterns data={data} />
           <RecentMatches form={data.recent_form} />
         </div>
       )}

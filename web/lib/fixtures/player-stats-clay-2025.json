@@ -147,7 +147,8 @@
    "season": 2025,
    "tourney_level": null,
    "opponent_hand": null,
-   "include_exhibitions": false
+   "include_exhibitions": false,
+   "opponent_rank_max": null
   },
   "sample": {
    "matches_counted": 78,
@@ -162,7 +163,8 @@
    "exhibitions": 2,
    "unknown_results": 0,
    "unknown_surface": 0,
-   "unknown_opponent_hand": 0
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
   },
   "overall": {
    "matches": 78,
@@ -233,7 +235,8 @@
    "season": 2025,
    "tourney_level": null,
    "opponent_hand": null,
-   "include_exhibitions": false
+   "include_exhibitions": false,
+   "opponent_rank_max": null
   },
   "sample": {
    "matches_counted": 23,
@@ -248,7 +251,8 @@
    "exhibitions": 0,
    "unknown_results": 0,
    "unknown_surface": 0,
-   "unknown_opponent_hand": 0
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
   },
   "overall": {
    "matches": 23,
@@ -291,7 +295,8 @@
    "season": 2025,
    "tourney_level": null,
    "opponent_hand": null,
-   "include_exhibitions": false
+   "include_exhibitions": false,
+   "opponent_rank_max": null
   },
   "sample": {
    "matches_counted": 23,
@@ -306,7 +311,8 @@
    "exhibitions": 0,
    "unknown_results": 0,
    "unknown_surface": 0,
-   "unknown_opponent_hand": 0
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
   },
   "stats": {
    "first_serve_in": {
@@ -360,7 +366,8 @@
    "season": 2025,
    "tourney_level": null,
    "opponent_hand": null,
-   "include_exhibitions": false
+   "include_exhibitions": false,
+   "opponent_rank_max": null
   },
   "sample": {
    "matches_counted": 23,
@@ -375,7 +382,8 @@
    "exhibitions": 0,
    "unknown_results": 0,
    "unknown_surface": 0,
-   "unknown_opponent_hand": 0
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
   },
   "stats": {
    "break_points_saved": {
@@ -405,7 +413,8 @@
    "season": 2025,
    "tourney_level": null,
    "opponent_hand": null,
-   "include_exhibitions": false
+   "include_exhibitions": false,
+   "opponent_rank_max": null
   },
   "sample": {
    "matches_counted": 10,
@@ -420,7 +429,8 @@
    "exhibitions": 0,
    "unknown_results": 0,
    "unknown_surface": 0,
-   "unknown_opponent_hand": 0
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
   },
   "n": 10,
   "record": {
@@ -448,7 +458,9 @@
      "player_id": 206173,
      "name": "Jannik Sinner",
      "rank": 1
-    }
+    },
+    "player_score": "4-6 6-7(4) 6-4 7-6(3) 7-6(2)",
+    "minutes": 329
    },
    {
     "tourney_date": "2025-05-26",
@@ -463,7 +475,9 @@
      "player_id": 207518,
      "name": "Lorenzo Musetti",
      "rank": 7
-    }
+    },
+    "player_score": "4-6 7-6(3) 6-0 2-0 RET",
+    "minutes": null
    },
    {
     "tourney_date": "2025-05-26",
@@ -478,7 +492,9 @@
      "player_id": 126205,
      "name": "Tommy Paul",
      "rank": 12
-    }
+    },
+    "player_score": "6-0 6-1 6-4",
+    "minutes": null
    },
    {
     "tourney_date": "2025-05-26",
@@ -493,7 +509,9 @@
      "player_id": 210097,
      "name": "Ben Shelton",
      "rank": 13
-    }
+    },
+    "player_score": "7-6(8) 6-3 4-6 6-4",
+    "minutes": null
    },
    {
     "tourney_date": "2025-05-26",
@@ -508,7 +526,9 @@
      "player_id": 106000,
      "name": "Damir Dzumhur",
      "rank": 69
-    }
+    },
+    "player_score": "6-1 6-3 4-6 6-4",
+    "minutes": null
    },
    {
     "tourney_date": "2025-05-26",
@@ -523,7 +543,9 @@
      "player_id": 206681,
      "name": "Fabian Marozsan",
      "rank": 56
-    }
+    },
+    "player_score": "6-1 4-6 6-1 6-2",
+    "minutes": null
    },
    {
     "tourney_date": "2025-05-26",
@@ -538,7 +560,9 @@
      "player_id": 206748,
      "name": "Giulio Zeppieri",
      "rank": 310
-    }
+    },
+    "player_score": "6-3 6-4 6-2",
+    "minutes": null
    },
    {
     "tourney_date": "2025-05-07",
@@ -553,7 +577,9 @@
      "player_id": 206173,
      "name": "Jannik Sinner",
      "rank": 1
-    }
+    },
+    "player_score": "7-6(5) 6-1",
+    "minutes": 103
    },
    {
     "tourney_date": "2025-05-07",
@@ -568,7 +594,9 @@
      "player_id": 207518,
      "name": "Lorenzo Musetti",
      "rank": 9
-    }
+    },
+    "player_score": "6-3 7-6(4)",
+    "minutes": 123
    },
    {
     "tourney_date": "2025-05-07",
@@ -583,9 +611,22 @@
      "player_id": 207733,
      "name": "Jack Draper",
      "rank": 5
-    }
+    },
+    "player_score": "6-4 6-4",
+    "minutes": 97
    }
-  ]
+  ],
+  "time_on_court": {
+   "matches_with_minutes": 4,
+   "total_minutes": 652,
+   "minutes_per_match": {
+    "value": 163.0,
+    "numerator": 652,
+    "denominator": 4,
+    "unit": "per_match"
+   },
+   "longest_match_minutes": 329
+  }
  },
  "career": {
   "serve_return": {
@@ -601,7 +642,8 @@
     "season": null,
     "tourney_level": null,
     "opponent_hand": null,
-    "include_exhibitions": false
+    "include_exhibitions": false,
+    "opponent_rank_max": null
    },
    "sample": {
     "matches_counted": 378,
@@ -616,7 +658,8 @@
     "exhibitions": 10,
     "unknown_results": 0,
     "unknown_surface": 0,
-    "unknown_opponent_hand": 0
+    "unknown_opponent_hand": 0,
+    "unknown_opponent_rank": 0
    },
    "stats": {
     "first_serve_in": {
@@ -670,7 +713,8 @@
     "season": null,
     "tourney_level": null,
     "opponent_hand": null,
-    "include_exhibitions": false
+    "include_exhibitions": false,
+    "opponent_rank_max": null
    },
    "sample": {
     "matches_counted": 378,
@@ -685,7 +729,8 @@
     "exhibitions": 10,
     "unknown_results": 0,
     "unknown_surface": 0,
-    "unknown_opponent_hand": 0
+    "unknown_opponent_hand": 0,
+    "unknown_opponent_rank": 0
    },
    "stats": {
     "break_points_saved": {
@@ -720,7 +765,8 @@
    "season": 2025,
    "tourney_level": null,
    "opponent_hand": null,
-   "include_exhibitions": false
+   "include_exhibitions": false,
+   "opponent_rank_max": null
   },
   "sample": {
    "matches_counted": 2,
@@ -735,7 +781,8 @@
    "exhibitions": 0,
    "unknown_results": 0,
    "unknown_surface": 0,
-   "unknown_opponent_hand": 0
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
   },
   "record": {
    "matches": 2,
@@ -762,5 +809,374 @@
     }
    }
   ]
+ },
+ "set_patterns": {
+  "tool": "set_patterns",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false,
+   "opponent_rank_max": null
+  },
+  "sample": {
+   "matches_counted": 23,
+   "matches_with_stats": 23,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-04-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
+  },
+  "scores_read": {
+   "completed_matches": 22,
+   "ended_early": 1,
+   "unreadable_scores": 0
+  },
+  "stats": {
+   "tiebreaks_won": {
+    "value": 0.8,
+    "numerator": 8,
+    "denominator": 10,
+    "unit": "fraction",
+    "matches": 22
+   },
+   "deciding_sets_won": {
+    "value": 1.0,
+    "numerator": 5,
+    "denominator": 5,
+    "unit": "fraction",
+    "matches": 22
+   },
+   "won_after_winning_first_set": {
+    "value": 1.0,
+    "numerator": 17,
+    "denominator": 17,
+    "unit": "fraction",
+    "matches": 22
+   },
+   "won_after_losing_first_set": {
+    "value": 0.8,
+    "numerator": 4,
+    "denominator": 5,
+    "unit": "fraction",
+    "matches": 22
+   }
+  }
+ },
+ "tour": {
+  "tool": "tour_comparison",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false,
+   "opponent_rank_max": null
+  },
+  "sample": {
+   "matches_counted": 23,
+   "matches_with_stats": 23,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-04-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
+  },
+  "tour": {
+   "min_matches": 10,
+   "qualifying_players": 66,
+   "player_qualifies": true
+  },
+  "stats": {
+   "first_serve_in": {
+    "value": {
+     "value": 0.6628,
+     "numerator": 1262,
+     "denominator": 1904,
+     "unit": "fraction"
+    },
+    "rank": 12,
+    "players_ranked": 66,
+    "tour_median": 0.6218
+   },
+   "first_serve_points_won": {
+    "value": {
+     "value": 0.6878,
+     "numerator": 868,
+     "denominator": 1262,
+     "unit": "fraction"
+    },
+    "rank": 44,
+    "players_ranked": 66,
+    "tour_median": 0.7043
+   },
+   "second_serve_points_won": {
+    "value": {
+     "value": 0.5685,
+     "numerator": 365,
+     "denominator": 642,
+     "unit": "fraction"
+    },
+    "rank": 3,
+    "players_ranked": 66,
+    "tour_median": 0.5062
+   },
+   "service_points_won": {
+    "value": {
+     "value": 0.6476,
+     "numerator": 1233,
+     "denominator": 1904,
+     "unit": "fraction"
+    },
+    "rank": 20,
+    "players_ranked": 66,
+    "tour_median": 0.6295
+   },
+   "return_points_won": {
+    "value": {
+     "value": 0.4493,
+     "numerator": 891,
+     "denominator": 1983,
+     "unit": "fraction"
+    },
+    "rank": 1,
+    "players_ranked": 66,
+    "tour_median": 0.3859
+   },
+   "aces_per_match": {
+    "value": {
+     "value": 2.3043,
+     "numerator": 53,
+     "denominator": 23,
+     "unit": "per_match"
+    },
+    "rank": 54,
+    "players_ranked": 66,
+    "tour_median": 4.697
+   },
+   "break_points_saved": {
+    "value": {
+     "value": 0.6549,
+     "numerator": 93,
+     "denominator": 142,
+     "unit": "fraction"
+    },
+    "rank": 12,
+    "players_ranked": 66,
+    "tour_median": 0.618
+   },
+   "break_points_converted": {
+    "value": {
+     "value": 0.4496,
+     "numerator": 107,
+     "denominator": 238,
+     "unit": "fraction"
+    },
+    "rank": 15,
+    "players_ranked": 66,
+    "tour_median": 0.4
+   }
+  }
+ },
+ "shots": {
+  "tool": "shot_patterns",
+  "player": {
+   "player_id": 207989,
+   "name": "Carlos Alcaraz"
+  },
+  "filters": {
+   "surface": "Clay",
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false,
+   "opponent_rank_max": null
+  },
+  "sample": {
+   "matches_counted": 23,
+   "matches_with_stats": 23,
+   "opponent_retired_or_defaulted": 1,
+   "player_retired_or_defaulted": 0,
+   "first_tourney_date": "2025-04-07",
+   "last_tourney_date": "2025-05-26"
+  },
+  "excluded": {
+   "walkovers": 0,
+   "exhibitions": 0,
+   "unknown_results": 0,
+   "unknown_surface": 0,
+   "unknown_opponent_hand": 0,
+   "unknown_opponent_rank": 0
+  },
+  "charting": {
+   "charted_matches": 16,
+   "points_charted": 2748,
+   "player_charts_not_linked_all_dates": {
+    "charted_twice": 2,
+    "no_tour_match": 5
+   },
+   "about": "Charted by volunteers for the Match Charting Project: a sample weighted toward top players and big matches, not every match played."
+  },
+  "serve_direction": {
+   "matches": 16,
+   "first_serves_in": {
+    "deuce": {
+     "wide": {
+      "value": 0.596,
+      "numerator": 267,
+      "denominator": 448,
+      "unit": "fraction"
+     },
+     "body": {
+      "value": 0.1272,
+      "numerator": 57,
+      "denominator": 448,
+      "unit": "fraction"
+     },
+     "t": {
+      "value": 0.2768,
+      "numerator": 124,
+      "denominator": 448,
+      "unit": "fraction"
+     }
+    },
+    "ad": {
+     "wide": {
+      "value": 0.6291,
+      "numerator": 268,
+      "denominator": 426,
+      "unit": "fraction"
+     },
+     "body": {
+      "value": 0.1103,
+      "numerator": 47,
+      "denominator": 426,
+      "unit": "fraction"
+     },
+     "t": {
+      "value": 0.2606,
+      "numerator": 111,
+      "denominator": 426,
+      "unit": "fraction"
+     }
+    }
+   },
+   "second_serves": {
+    "deuce": {
+     "wide": {
+      "value": 0.2771,
+      "numerator": 69,
+      "denominator": 249,
+      "unit": "fraction"
+     },
+     "body": {
+      "value": 0.2771,
+      "numerator": 69,
+      "denominator": 249,
+      "unit": "fraction"
+     },
+     "t": {
+      "value": 0.4458,
+      "numerator": 111,
+      "denominator": 249,
+      "unit": "fraction"
+     }
+    },
+    "ad": {
+     "wide": {
+      "value": 0.6398,
+      "numerator": 135,
+      "denominator": 211,
+      "unit": "fraction"
+     },
+     "body": {
+      "value": 0.1848,
+      "numerator": 39,
+      "denominator": 211,
+      "unit": "fraction"
+     },
+     "t": {
+      "value": 0.1754,
+      "numerator": 37,
+      "denominator": 211,
+      "unit": "fraction"
+     }
+    }
+   }
+  },
+  "rally_length": {
+   "matches": 16,
+   "points_won": {
+    "1_3": {
+     "value": 0.5379,
+     "numerator": 808,
+     "denominator": 1502,
+     "unit": "fraction"
+    },
+    "4_6": {
+     "value": 0.5894,
+     "numerator": 402,
+     "denominator": 682,
+     "unit": "fraction"
+    },
+    "7_9": {
+     "value": 0.5072,
+     "numerator": 177,
+     "denominator": 349,
+     "unit": "fraction"
+    },
+    "10_plus": {
+     "value": 0.5395,
+     "numerator": 116,
+     "denominator": 215,
+     "unit": "fraction"
+    }
+   }
+  },
+  "net_points": {
+   "matches": 16,
+   "net_points_won": {
+    "value": 0.7138,
+    "numerator": 222,
+    "denominator": 311,
+    "unit": "fraction"
+   },
+   "share_of_points_at_net": {
+    "value": 0.1132,
+    "numerator": 311,
+    "denominator": 2748,
+    "unit": "fraction"
+   }
+  }
  }
 }

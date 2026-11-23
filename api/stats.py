@@ -17,11 +17,14 @@ from __future__ import annotations
 import dataclasses
 import datetime as dt
 import re
-from collections.abc import Mapping
+import statistics
+from collections.abc import Iterable, Mapping
+from fractions import Fraction
 from typing import Any
 
 import psycopg
 
+from api.scores import player_sets, score_from_side
 from ingest.players import name_tokens
 
 SURFACES = ("Hard", "Clay", "Grass", "Carpet")
@@ -32,6 +35,8 @@ MAX_NAME_LENGTH = 100  # longer names are refused before any query; trigram cost
 MAX_CANDIDATES = 10
 MAX_PLAYER_ID = 2_147_483_647  # Postgres INTEGER
 SEASON_RANGE = (1900, 2100)  # a valid season outside the data gives an empty sample, not an error
+MAX_RANK = 5000  # opponent_rank_max: the lowest ranking in the loaded data is 2,202
+DEFAULT_MIN_MATCHES, MAX_MIN_MATCHES = 10, 200  # tour_comparison: who counts as a tour player
 
 
 class ToolInputError(ValueError):
@@ -59,7 +64,8 @@ def parse_player_id(value: Any, name: str = "player_id") -> int:
 
 @dataclasses.dataclass(frozen=True)
 class Filters:
-    """The shared filters (spec, Tools), plus `season` (D-010) and `include_exhibitions` (D-006)."""
+    """The shared filters (spec, Tools), plus `season` (D-010), `include_exhibitions` (D-006)
+    and `opponent_rank_max` (D-029)."""
 
     surface: str | None = None
     date_from: dt.date | None = None
@@ -68,6 +74,7 @@ class Filters:
     tourney_level: tuple[str, ...] | None = None
     opponent_hand: str | None = None
     include_exhibitions: bool = False
+    opponent_rank_max: int | None = None
 
     @classmethod
     def parse(cls, raw: Mapping[str, Any] | None) -> Filters:
@@ -117,7 +124,13 @@ class Filters:
         if not isinstance(include_exhibitions, bool):
             raise ToolInputError("include_exhibitions must be true or false")
 
-        return cls(surface, date_from, date_to, season, levels, hand, include_exhibitions)
+        rank_max = raw.get("opponent_rank_max")
+        if rank_max is not None:
+            rank_max = _whole_number(
+                rank_max, 1, MAX_RANK, f"opponent_rank_max must be a ranking from 1 to {MAX_RANK}, such as 10 for the top 10"
+            )
+
+        return cls(surface, date_from, date_to, season, levels, hand, include_exhibitions, rank_max)
 
     def params(self) -> dict[str, Any]:
         return {
@@ -128,6 +141,7 @@ class Filters:
             "levels": list(self.tourney_level) if self.tourney_level else None,
             "opponent_hand": self.opponent_hand,
             "include_exhibitions": self.include_exhibitions,
+            "opponent_rank_max": self.opponent_rank_max,
         }
 
     def describe(self) -> dict[str, Any]:
@@ -140,6 +154,7 @@ class Filters:
             "tourney_level": list(self.tourney_level) if self.tourney_level else None,
             "opponent_hand": self.opponent_hand,
             "include_exhibitions": self.include_exhibitions,
+            "opponent_rank_max": self.opponent_rank_max,
         }
 
 
@@ -184,12 +199,13 @@ def rate(numerator: int | None, denominator: int | None, unit: str = "fraction")
 # One row per match of the player within the filters, with the opponent's serve stats for
 # return numbers, and `excluded_as` naming why a match doesn't count (NULL = it counts):
 # exhibitions unless asked for (D-006), walkovers (spec), unknown results (D-007), and, only
-# when filtering by surface or opponent hand, matches where that value is unknown.
+# when filtering by surface, opponent hand or opponent ranking, matches where that value is
+# unknown (D-029). The opponent's ranking is the one in the match file, at the time.
 SCOPE_SQL = """
 WITH scope AS (
   SELECT m.match_id, m.tourney_name, m.tourney_level, m.tourney_date, m.match_date, m.surface,
          m.round, m.round_order, m.match_num, m.score, m.result_type, m.has_stats, m.season,
-         pm.won, pm.rank, pm.opponent_id, o.full_name AS opponent_name, opp.rank AS opponent_rank,
+         m.best_of, m.minutes, pm.player_id, pm.won, pm.rank, pm.opponent_id, o.full_name AS opponent_name, opp.rank AS opponent_rank,
          pm.aces, pm.serve_points, pm.first_in, pm.first_won, pm.second_won, pm.bp_saved, pm.bp_faced,
          opp.serve_points AS opp_serve_points, opp.first_won AS opp_first_won,
          opp.second_won AS opp_second_won, opp.bp_saved AS opp_bp_saved, opp.bp_faced AS opp_bp_faced,
@@ -199,6 +215,7 @@ WITH scope AS (
            WHEN m.result_type = 'unknown' THEN 'unknown_results'
            WHEN %(surface)s::text IS NOT NULL AND m.surface IS NULL THEN 'unknown_surface'
            WHEN %(opponent_hand)s::text IS NOT NULL AND o.hand IS NULL THEN 'unknown_opponent_hand'
+           WHEN %(opponent_rank_max)s::int IS NOT NULL AND opp.rank IS NULL THEN 'unknown_opponent_rank'
          END AS excluded_as
   FROM player_matches pm
   JOIN matches m ON m.match_id = pm.match_id
@@ -212,8 +229,15 @@ WITH scope AS (
     AND (%(season)s::int IS NULL OR m.season = %(season)s)
     AND (%(levels)s::text[] IS NULL OR m.tourney_level = ANY(%(levels)s))
     AND (%(opponent_hand)s::text IS NULL OR o.hand IS NULL OR o.hand = %(opponent_hand)s)
+    AND (%(opponent_rank_max)s::int IS NULL OR opp.rank IS NULL OR opp.rank <= %(opponent_rank_max)s)
 )
 """
+
+# Every player's matches under the same rules, for tour_comparison (D-029): SCOPE_SQL with its
+# one-player condition removed. Built from SCOPE_SQL so the rules can't drift apart.
+_ONE_PLAYER = "  WHERE pm.player_id = %(player_id)s\n"
+assert SCOPE_SQL.count(_ONE_PLAYER) == 1, "SCOPE_SQL's player condition changed; update TOUR_SCOPE_SQL"
+TOUR_SCOPE_SQL = SCOPE_SQL.replace(_ONE_PLAYER, "  WHERE TRUE\n")
 
 # In a retirement or default, the player who quit is always the loser.
 SAMPLE_SQL = SCOPE_SQL + """
@@ -230,6 +254,7 @@ SELECT count(*) FILTER (WHERE excluded_as IS NULL) AS matches_counted,
        count(*) FILTER (WHERE excluded_as = 'unknown_results') AS unknown_results,
        count(*) FILTER (WHERE excluded_as = 'unknown_surface') AS unknown_surface,
        count(*) FILTER (WHERE excluded_as = 'unknown_opponent_hand') AS unknown_opponent_hand,
+       count(*) FILTER (WHERE excluded_as = 'unknown_opponent_rank') AS unknown_opponent_rank,
        (SELECT min(tourney_date) FROM matches) AS data_first_tourney_date,
        (SELECT max(tourney_date) FROM matches) AS data_last_tourney_date,
        (SELECT max(match_date) FROM matches) AS data_last_match_date
@@ -269,12 +294,79 @@ NEWEST_FIRST = "tourney_date DESC, match_date DESC NULLS LAST, round_order DESC,
 
 MATCH_LIST_SQL = SCOPE_SQL + f"""
 SELECT match_id, tourney_date, match_date, tourney_name, tourney_level, surface, round, score,
-       result_type, won, rank, opponent_id, opponent_name, opponent_rank, has_stats
+       result_type, won, rank, opponent_id, opponent_name, opponent_rank, has_stats, minutes
 FROM scope
 WHERE excluded_as IS NULL
 ORDER BY {NEWEST_FIRST}
 LIMIT %(limit)s
 """
+
+# The counted matches' scores, for set_patterns (D-029).
+SET_PATTERNS_SQL = SCOPE_SQL + """
+SELECT score, won, result_type, best_of
+FROM scope
+WHERE excluded_as IS NULL
+"""
+
+# Each player's summed serve, return and pressure counts under the filters, for players with
+# enough matches with stats, plus the asked player whatever their count (tour_comparison).
+TOUR_SQL = TOUR_SCOPE_SQL + """
+SELECT player_id,
+       count(*) FILTER (WHERE excluded_as IS NULL AND has_stats) AS matches_with_stats,
+       sum(aces) FILTER (WHERE excluded_as IS NULL AND has_stats) AS aces,
+       sum(serve_points) FILTER (WHERE excluded_as IS NULL AND has_stats) AS serve_points,
+       sum(first_in) FILTER (WHERE excluded_as IS NULL AND has_stats) AS first_in,
+       sum(first_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS first_won,
+       sum(second_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS second_won,
+       sum(opp_serve_points) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_serve_points,
+       sum(opp_first_won + opp_second_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_serve_points_won,
+       sum(bp_saved) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_saved,
+       sum(bp_faced) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_faced,
+       sum(opp_bp_faced - opp_bp_saved) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_converted,
+       sum(opp_bp_faced) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_chances
+FROM scope
+GROUP BY player_id
+HAVING count(*) FILTER (WHERE excluded_as IS NULL AND has_stats) >= %(min_matches)s OR player_id = %(player_id)s
+"""
+
+# Charted matches (D-030) among the counted tour matches: the scope decides which tour matches
+# count, and the charting tables add the shot-level totals of those that were charted.
+COURTS, DIRECTIONS = ("deuce", "ad"), ("wide", "body", "t")
+RALLY_LENGTHS = (("1_3", "1_3"), ("4_6", "4_6"), ("7_9", "7_9"), ("10_plus", "10"))  # (output name, column)
+_SERVE_SUMS = ",\n       ".join(
+    f"sum(s.{serve}_{court}_{side}) AS {serve}_{court}_{side}"
+    for serve in ("first", "second") for court in COURTS for side in DIRECTIONS
+)  # fmt: skip
+_RALLY_SUMS = ",\n       ".join(
+    f"sum(s.rally_{column}_played) AS rally_{column}_played, sum(s.rally_{column}_won) AS rally_{column}_won"
+    for _, column in RALLY_LENGTHS
+)  # fmt: skip
+SHOT_PATTERNS_SQL = SCOPE_SQL + f"""
+SELECT count(*) AS charted_matches,
+       count(*) FILTER (WHERE s.first_deuce_wide IS NOT NULL) AS serve_matches,
+       {_SERVE_SUMS},
+       count(*) FILTER (WHERE s.points_played IS NOT NULL) AS rally_matches,
+       {_RALLY_SUMS},
+       sum(s.points_played) AS points_charted,
+       count(*) FILTER (WHERE s.net_points IS NOT NULL) AS net_matches,
+       sum(s.net_points) AS net_points, sum(s.net_points_won) AS net_points_won,
+       sum(s.net_points) FILTER (WHERE s.points_played IS NOT NULL) AS net_points_timed,
+       sum(s.points_played) FILTER (WHERE s.net_points IS NOT NULL) AS points_with_net
+FROM scope
+JOIN charting_player_stats s ON s.match_id = scope.match_id AND s.player_id = scope.player_id
+WHERE scope.excluded_as IS NULL
+"""
+
+# The player's charted matches that aren't linked to a tour match, by reason, over all dates.
+CHARTS_NOT_LINKED_SQL = """
+SELECT link, count(*) AS charts
+FROM charting_matches
+WHERE %(player_id)s IN (player1_id, player2_id) AND link <> 'linked'
+GROUP BY link
+"""
+
+TOUR_SQL_SUMS = ("aces", "serve_points", "first_in", "first_won", "second_won", "opp_serve_points",
+                 "opp_serve_points_won", "bp_saved", "bp_faced", "bp_converted", "bp_chances")  # fmt: skip
 
 PLAYER_SQL = """
 SELECT p.player_id, p.full_name, p.hand, p.country, p.height_cm,
@@ -370,6 +462,7 @@ def _sample(conn: psycopg.Connection, params: dict[str, Any]) -> dict[str, Any]:
             "unknown_results": row["unknown_results"],
             "unknown_surface": row["unknown_surface"],
             "unknown_opponent_hand": row["unknown_opponent_hand"],
+            "unknown_opponent_rank": row["unknown_opponent_rank"],
         },
         "data_window": {
             "first_tourney_date": _iso(row["data_first_tourney_date"]),
@@ -399,11 +492,34 @@ def _match_entry(row: dict[str, Any]) -> dict[str, Any]:
         "surface": row["surface"],
         "round": row["round"],
         "result": "W" if row["won"] else "L",
-        "score": row["score"],
+        "score": row["score"],  # as the source writes it: the winner's games first
+        "player_score": score_from_side(row["score"], row["won"]),  # the asked player's games first (D-029)
         "result_type": row["result_type"],
+        "minutes": row["minutes"],
         "rank": row["rank"],
         "opponent": {"player_id": row["opponent_id"], "name": row["opponent_name"], "rank": row["opponent_rank"]},
         "has_stats": row["has_stats"],
+    }
+
+
+def _serve_return_rates(s: Mapping[str, Any], matches_with_stats: int) -> dict[str, Any]:
+    """The spec's serve and return stats from summed counts (never averaged per match)."""
+    serve_points, first_in = int(s["serve_points"] or 0), int(s["first_in"] or 0)
+    opp_points = int(s["opp_serve_points"] or 0)
+    return {
+        "first_serve_in": rate(first_in, serve_points),
+        "first_serve_points_won": rate(s["first_won"], first_in),
+        "second_serve_points_won": rate(s["second_won"], serve_points - first_in),
+        "service_points_won": rate(int(s["first_won"] or 0) + int(s["second_won"] or 0), serve_points),
+        "return_points_won": rate(opp_points - int(s["opp_serve_points_won"] or 0), opp_points),
+        "aces_per_match": rate(s["aces"], matches_with_stats, unit="per_match"),
+    }
+
+
+def _pressure_rates(s: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "break_points_saved": rate(s["bp_saved"], s["bp_faced"]),
+        "break_points_converted": rate(s["bp_converted"], s["bp_chances"]),
     }
 
 
@@ -568,16 +684,7 @@ def serve_return_stats(
         params = _scope_params(player, parsed)
         sample = _sample(conn, params)
         s = conn.execute(SERVE_RETURN_SQL, params).fetchone()
-    serve_points, first_in = int(s["serve_points"] or 0), int(s["first_in"] or 0)
-    opp_points = int(s["opp_serve_points"] or 0)
-    stats = {
-        "first_serve_in": rate(first_in, serve_points),
-        "first_serve_points_won": rate(s["first_won"], first_in),
-        "second_serve_points_won": rate(s["second_won"], serve_points - first_in),
-        "service_points_won": rate(int(s["first_won"] or 0) + int(s["second_won"] or 0), serve_points),
-        "return_points_won": rate(opp_points - int(s["opp_serve_points_won"] or 0), opp_points),
-        "aces_per_match": rate(s["aces"], sample["sample"]["matches_with_stats"], unit="per_match"),
-    }
+    stats = _serve_return_rates(s, sample["sample"]["matches_with_stats"])
     return _envelope("serve_return_stats", player, parsed, sample, stats=stats)
 
 
@@ -589,11 +696,7 @@ def pressure_stats(conn: psycopg.Connection, player_id: Any, filters: Filters | 
         params = _scope_params(player, parsed)
         sample = _sample(conn, params)
         s = conn.execute(PRESSURE_SQL, params).fetchone()
-    stats = {
-        "break_points_saved": rate(s["bp_saved"], s["bp_faced"]),
-        "break_points_converted": rate(s["bp_converted"], s["bp_chances"]),
-    }
-    return _envelope("pressure_stats", player, parsed, sample, stats=stats)
+    return _envelope("pressure_stats", player, parsed, sample, stats=_pressure_rates(s))
 
 
 def head_to_head(
@@ -651,6 +754,163 @@ def recent_form(
         "first_tourney_date": _iso(rows[-1]["tourney_date"]) if rows else None,
         "last_tourney_date": _iso(rows[0]["tourney_date"]) if rows else None,
     }
+    timed = [r["minutes"] for r in rows if r["minutes"] is not None]
+    time_on_court = {  # a missing duration is missing, never 0 (D-029)
+        "matches_with_minutes": len(timed),
+        "total_minutes": sum(timed) if timed else None,
+        "minutes_per_match": rate(sum(timed), len(timed), unit="per_match"),
+        "longest_match_minutes": max(timed) if timed else None,
+    }
     return _envelope(
-        "recent_form", player, parsed, sample, n=n, record=_record(rows), matches=[_match_entry(r) for r in rows]
+        "recent_form",
+        player,
+        parsed,
+        sample,
+        n=n,
+        record=_record(rows),
+        time_on_court=time_on_court,
+        matches=[_match_entry(r) for r in rows],
     )
+
+
+def set_patterns(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:
+    """Tiebreaks, deciding sets, and results after winning or losing the first set, read from
+    the scores of the counted matches that were completed (D-029). Retirements and defaults
+    are left out, because their last set wasn't finished, and counted."""
+    pid, parsed = parse_player_id(player_id), _filters(filters)
+    with conn.transaction():
+        player = _player(conn, pid)
+        params = _scope_params(player, parsed)
+        sample = _sample(conn, params)
+        rows = conn.execute(SET_PATTERNS_SQL, params).fetchall()
+    counts = dict.fromkeys(
+        ("tb_won", "tb_played", "dec_won", "dec_played", "w1_won", "w1_played", "l1_won", "l1_played"), 0
+    )
+    completed = ended_early = unreadable = 0
+    for row in rows:
+        if row["result_type"] in ("retired", "defaulted"):
+            ended_early += 1
+            continue
+        sets = player_sets(row["score"], row["won"])
+        if sets is None:
+            unreadable += 1
+            continue
+        completed += 1
+        for one in sets:
+            if one.tiebreak:
+                counts["tb_played"] += 1
+                counts["tb_won"] += one.won
+        if len(sets) == row["best_of"]:  # the match used all its sets: the last one decided it
+            counts["dec_played"] += 1
+            counts["dec_won"] += sets[-1].won
+        side = "w1" if sets[0].won else "l1"
+        counts[f"{side}_played"] += 1
+        counts[f"{side}_won"] += row["won"]
+    # Each rate carries the completed matches it was read from, so a report can cite that
+    # count as its sample (D-018).
+    stats = {
+        "tiebreaks_won": {**rate(counts["tb_won"], counts["tb_played"]), "matches": completed},
+        "deciding_sets_won": {**rate(counts["dec_won"], counts["dec_played"]), "matches": completed},
+        "won_after_winning_first_set": {**rate(counts["w1_won"], counts["w1_played"]), "matches": completed},
+        "won_after_losing_first_set": {**rate(counts["l1_won"], counts["l1_played"]), "matches": completed},
+    }
+    scores_read = {"completed_matches": completed, "ended_early": ended_early, "unreadable_scores": unreadable}
+    return _envelope("set_patterns", player, parsed, sample, scores_read=scores_read, stats=stats)
+
+
+def shot_patterns(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:
+    """Serve direction, points won by rally length, and net points, from the counted matches
+    that the Match Charting Project charted (D-030). Charted matches are a sample chosen by
+    volunteers, weighted toward top players and big matches."""
+    pid, parsed = parse_player_id(player_id), _filters(filters)
+    with conn.transaction():
+        player = _player(conn, pid)
+        params = _scope_params(player, parsed)
+        sample = _sample(conn, params)
+        s = conn.execute(SHOT_PATTERNS_SQL, params).fetchone()
+        not_linked = {row["link"]: row["charts"] for row in conn.execute(CHARTS_NOT_LINKED_SQL, params).fetchall()}
+
+    def directions(serve: str) -> dict[str, Any]:
+        out = {}
+        for court in COURTS:
+            counts = {side: int(s[f"{serve}_{court}_{side}"] or 0) for side in DIRECTIONS}
+            out[court] = {side: rate(n, sum(counts.values())) for side, n in counts.items()}
+        return out
+
+    charting = {
+        "charted_matches": s["charted_matches"],
+        "points_charted": int(s["points_charted"] or 0),
+        "player_charts_not_linked_all_dates": not_linked,
+        "about": "Charted by volunteers for the Match Charting Project: a sample weighted toward top players "
+        "and big matches, not every match played.",
+    }
+    return _envelope(
+        "shot_patterns",
+        player,
+        parsed,
+        sample,
+        charting=charting,
+        serve_direction={
+            "matches": s["serve_matches"],
+            "first_serves_in": directions("first"),
+            "second_serves": directions("second"),
+        },
+        rally_length={
+            "matches": s["rally_matches"],
+            "points_won": {name: rate(s[f"rally_{column}_won"], s[f"rally_{column}_played"]) for name, column in RALLY_LENGTHS},
+        },
+        net_points={
+            "matches": s["net_matches"],
+            "net_points_won": rate(s["net_points_won"], s["net_points"]),
+            "share_of_points_at_net": rate(s["net_points_timed"], s["points_with_net"]),
+        },
+    )
+
+
+def rank_among(value: Fraction, values: Iterable[Fraction]) -> int:
+    """1 for the highest value; players with the same value share the better rank (D-029)."""
+    return 1 + sum(1 for other in values if other > value)
+
+
+def tour_comparison(
+    conn: psycopg.Connection,
+    player_id: Any,
+    filters: Filters | Mapping | None = None,
+    min_matches: Any = DEFAULT_MIN_MATCHES,
+) -> dict[str, Any]:
+    """The player's serve, return and pressure rates next to every player's under the same
+    filters (D-029). Players with at least `min_matches` matches with stats are ranked: 1 is
+    the highest value, and players with the same value share the better rank."""
+    minimum = _whole_number(
+        min_matches, 1, MAX_MIN_MATCHES, f"min_matches must be a whole number from 1 to {MAX_MIN_MATCHES}"
+    )
+    pid, parsed = parse_player_id(player_id), _filters(filters)
+    with conn.transaction():
+        player = _player(conn, pid)
+        params = _scope_params(player, parsed)
+        sample = _sample(conn, params)
+        rows = conn.execute(TOUR_SQL, {**params, "min_matches": minimum}).fetchall()
+    rates = {
+        row["player_id"]: {**_serve_return_rates(row, row["matches_with_stats"]), **_pressure_rates(row)}
+        for row in rows
+        if row["matches_with_stats"] >= minimum
+    }
+    own_row = next((row for row in rows if row["player_id"] == pid), None)
+    empty = {key: 0 for key in TOUR_SQL_SUMS}
+    own = {**_serve_return_rates(own_row or empty, own_row["matches_with_stats"] if own_row else 0),
+           **_pressure_rates(own_row or empty)}  # fmt: skip
+    qualifies = pid in rates
+    stats = {}
+    for name, value in own.items():
+        exact = {other: Fraction(r[name]["numerator"], r[name]["denominator"]) for other, r in rates.items()
+                 if r[name]["denominator"]}  # fmt: skip
+        mine = exact.get(pid)
+        median = statistics.median(exact.values()) if exact else None
+        stats[name] = {
+            "value": value,
+            "rank": rank_among(mine, exact.values()) if qualifies and mine is not None else None,
+            "players_ranked": len(exact),
+            "tour_median": round(float(median), 4) if median is not None else None,
+        }
+    tour = {"min_matches": minimum, "qualifying_players": len(rates), "player_qualifies": qualifies}
+    return _envelope("tour_comparison", player, parsed, sample, tour=tour, stats=stats)

@@ -6,6 +6,7 @@ import { describeExcluded, describeFilters, formatValue, sampleLine } from "./ev
 import type { Handoff } from "./handoff.ts";
 import { EN, type T, surfaceWords } from "./i18n.ts";
 import { eventName, handName, lastName, longDate, monthYear, roundName } from "./people.ts";
+import type { SetPatterns, ShotPatterns, TourComparison } from "./patterns.ts";
 import type { Candidate, PlayerRef, Rate, Sample, SearchResult } from "./types.ts";
 
 // ---------- the response ----------
@@ -46,7 +47,8 @@ export interface MatchEntry {
   surface: string | null;
   round: string;
   result: "W" | "L";
-  score: string | null;
+  score: string | null; // as the source writes it: the winner's games first
+  player_score?: string | null; // the same score from this player's side (D-029)
   rank: number | null;
   opponent: PlayerRef & { rank: number | null };
 }
@@ -97,6 +99,9 @@ export interface PlayerStats {
   recent_form: RecentForm;
   career: { serve_return: StatBlock; pressure: StatBlock };
   head_to_head: HeadToHead | null;
+  set_patterns: SetPatterns;
+  tour: TourComparison;
+  shots: ShotPatterns;
 }
 
 // ---------- the URL ----------
@@ -485,7 +490,7 @@ export function formView(form: Pick<RecentForm, "n" | "filters" | "record" | "ma
       opponent: m.opponent.name,
       rank: m.opponent.rank ? t.rankNumber(m.opponent.rank) : t.noRanking,
       won: m.result === "W",
-      score: m.score ?? t.noScore,
+      score: m.player_score ?? m.score ?? t.noScore, // this player's games first
     };
   });
   return {

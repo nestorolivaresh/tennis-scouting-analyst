@@ -24,6 +24,7 @@ from pathlib import Path
 import psycopg
 from psycopg import sql
 
+from ingest import charting
 from ingest import players as player_files
 from ingest import quality
 from ingest.download import LOCK_PATH, RAW_DIR, SACKMANN_SEASONS, TML_SEASON, verify
@@ -176,6 +177,29 @@ def main() -> int:
             row = player_row(player_id, p["player"], p["hand"], p["birthdate"], p["ioc"], p["height"])
         players.append((*row, " ".join(player_files.name_tokens(row[1]))))  # search_name
 
+    # Charted matches (D-030): link each to a tour match, then read its per-match stats.
+    chart_dir = RAW_DIR / "charting"
+    chart_files = {
+        "charting-m-matches.csv": charting.MATCH_FIELDS,
+        "charting-m-stats-ServeDirection.csv": charting.SERVE_DIRECTION_COLUMNS,
+        "charting-m-stats-Rally.csv": charting.RALLY_COLUMNS,
+        "charting-m-stats-NetPoints.csv": charting.NET_POINTS_COLUMNS,
+    }
+    chart_data = {}
+    for name, expected in chart_files.items():
+        rows = player_files.read_rows(chart_dir / name)
+        missing = set(expected) - set(rows[0])
+        if missing:
+            print(f"charting/{name} lacks columns the load reads: {sorted(missing)}", file=sys.stderr)
+            return 1
+        chart_data[name] = rows
+    chart_rows = chart_data["charting-m-matches.csv"]
+    serve_rows = chart_data["charting-m-stats-ServeDirection.csv"]
+    rally_rows = chart_data["charting-m-stats-Rally.csv"]
+    net_rows = chart_data["charting-m-stats-NetPoints.csv"]
+    links = charting.link_charts(chart_rows, [(p[0], p[1]) for p in players], matches)
+    charted = charting.player_stats(links, serve_rows, rally_rows, net_rows)
+
     with psycopg.connect(database_url) as conn, conn.cursor() as cur:  # one transaction
         cur.execute(SCHEMA_PATH.read_text())
         copy_rows(
@@ -196,11 +220,23 @@ def main() -> int:
         copy_rows(cur, "players", PLAYER_COLUMNS, players)
         copy_rows(cur, "matches", MATCH_COLUMNS, ([m[c] for c in MATCH_COLUMNS] for m in matches))
         copy_rows(cur, "player_matches", PLAYER_MATCH_COLUMNS, player_matches)
+        copy_rows(cur, "raw.charting_matches", charting.RAW_MATCH_COLUMNS,
+                  ((i, *(r.get(f) for f in charting.MATCH_FIELDS)) for i, r in enumerate(chart_rows, start=1)))  # fmt: skip
+        for table, columns, rows in (
+            ("raw.charting_serve_direction", charting.SERVE_DIRECTION_COLUMNS, serve_rows),
+            ("raw.charting_rally", charting.RALLY_COLUMNS, rally_rows),
+            ("raw.charting_net_points", charting.NET_POINTS_COLUMNS, net_rows),
+        ):
+            copy_rows(cur, table, columns, ([r.get(c) for c in columns] for r in rows))
+        copy_rows(cur, "charting_matches", charting.CHART_COLUMNS, charted.charts)
+        copy_rows(cur, "charting_player_stats", charting.STATS_COLUMNS, charted.stats)
         # Planner statistics for the new rows, in the same transaction. Without them, the first
         # queries on a new database can pick plans slow enough to hit the 60-second statement
         # timeout (found by following the README from a fresh clone, 2026-11-10).
         cur.execute("ANALYZE")
     print(f"loaded {len(matches):,} matches, {len(player_matches):,} player rows, {len(players):,} players; {len(rejects):,} rejects")
+    links_by_status = collections.Counter(link["link"] for link in links)
+    print("charted matches: " + ", ".join(f"{status} {n:,}" for status, n in links_by_status.most_common()))
 
     # Rejected rows and removed stats are written out with a reason, never dropped silently.
     REJECTS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -223,6 +259,7 @@ def main() -> int:
         ),
         crosswalk_methods=collections.Counter(r["method"] for r in crosswalk_rows if r["tml_id"] in tml_ids_used),
         review_decisions=collections.Counter(r["decision"] or "pending" for r in review_rows),
+        charting_empty=charted.empty_categories,
     )  # fmt: skip
     with psycopg.connect(database_url) as conn:
         report = quality.build_report(conn, summary, generated_on=dt.date.today())

@@ -455,12 +455,20 @@ test("no matches says so, with or without a filter", () => {
 
 test("missing match details are said to be missing", () => {
   const form = clone().recent_form;
-  form.matches[0] = { ...form.matches[0], surface: null, score: null, opponent: { ...form.matches[0].opponent, rank: null } };
+  form.matches[0] = { ...form.matches[0], surface: null, score: null, player_score: null, opponent: { ...form.matches[0].opponent, rank: null } };
   const [first] = formView(form).rows;
   assert.equal(first.surface, "unknown surface");
   assert.equal(first.swatch, null);
   assert.equal(first.rank, "No ranking in the data");
   assert.equal(first.score, "No score in the data");
+});
+
+test("a recent match's score reads from this player's side (D-029)", () => {
+  const form = clone().recent_form;
+  // A loss as the API returns it: the source's score is the winner's, player_score this player's.
+  form.matches[0] = { ...form.matches[0], result: "L", score: "6-4 7-6(5)", player_score: "4-6 6-7(5)" };
+  assert.equal(formView(form).rows[0].score, "4-6 6-7(5)");
+  assert.equal(formView(form).rows[1].score, form.matches[1].player_score);
 });
 
 test("a match on a surface with no swatch has none", () => {

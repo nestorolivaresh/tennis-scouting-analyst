@@ -9,7 +9,8 @@
   `uv run python -m ingest.download`, which verifies the hashes in `ingest/data.lock.json`.
   Never commit raw data. Re-locking TML data changes eval ground truth; do it only when asked.
 - Seasons 2015-2025 come from Sackmann's final commit and 2026 from TennisMyLife. Never mix
-  sources within a season (D-001).
+  sources within a season (D-001). Shot-level patterns come from the Match Charting Project at a
+  pinned commit; `ingest/charting.py` links each chart to one tour match (D-030).
 - `ingest/player_merges.csv`, `ingest/player_crosswalk.csv`, `ingest/player_review.csv` and
   `ingest/special_events.csv` are reviewed files with manual rows and decisions. Never delete
   and regenerate them; `ingest.players` only appends (D-009, D-010).

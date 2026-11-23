@@ -109,13 +109,44 @@ def test_rules_agree_with_the_loader_on_every_match(conn):
 # ---------- 3. the cases ----------
 
 
+NOT_A_PATTERN = object()
+
+
+def pattern_tool_value(stats, conn, expect, filters):
+    """The Milestone 8 and 9 numbers (D-029, D-030), from the tool a correct answer would call."""
+    stat = expect.stat
+    if stat in ("tiebreaks_won_count", "tiebreaks_played"):
+        rate = stats.set_patterns(conn, expect.player, filters)["stats"]["tiebreaks_won"]
+        return rate["numerator"] if stat == "tiebreaks_won_count" else rate["denominator"]
+    if stat in ("tiebreaks_won", "deciding_sets_won", "won_after_winning_first_set", "won_after_losing_first_set"):
+        return stats.set_patterns(conn, expect.player, filters)["stats"][stat]["value"]
+    if stat.startswith(("tour_rank:", "tour_players:")):
+        kind, measure = stat.split(":")
+        line = stats.tour_comparison(conn, expect.player, filters)["stats"][measure]
+        return line["rank"] if kind == "tour_rank" else line["players_ranked"]
+    if stat == "charted_matches":
+        return stats.shot_patterns(conn, expect.player, filters)["charting"]["charted_matches"]
+    if stat.startswith(("dir_first_", "dir_second_")):
+        block = "first_serves_in" if stat.startswith("dir_first_") else "second_serves"
+        court, side = stat.removeprefix("dir_first_").removeprefix("dir_second_").split("_")
+        return stats.shot_patterns(conn, expect.player, filters)["serve_direction"][block][court][side]["value"]
+    if stat.startswith("rally_"):
+        band = stat.removeprefix("rally_").removesuffix("_won")
+        return stats.shot_patterns(conn, expect.player, filters)["rally_length"]["points_won"][band]["value"]
+    return NOT_A_PATTERN
+
+
 def stats_tool_value(stats, conn, expect):
     """The same number from the stats layer, through the tool a correct answer would call."""
     f = expect.filters
     filters = {key: value for key, value in {
         "season": f.season, "date_from": f.date_from, "date_to": f.date_to, "surface": f.surface,
         "tourney_level": list(f.levels) if f.levels else None, "opponent_hand": f.opponent_hand,
+        "opponent_rank_max": f.opponent_rank_max,
     }.items() if value is not None}  # fmt: skip
+    pattern = pattern_tool_value(stats, conn, expect, filters)
+    if pattern is not NOT_A_PATTERN:
+        return pattern
     if expect.opponent:
         record = stats.head_to_head(conn, expect.player, expect.opponent, filters)["record"]
         return record[expect.stat] if expect.stat in COUNTS else record[expect.stat]["value"]
@@ -136,7 +167,10 @@ def test_every_case_matches_the_stats_layer(conn):
     for case in CASES:
         for expect in case.expects:
             t = totals(conn, expect.player, expect.filters, expect.opponent)
-            ours = getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)
+            if expect.stat in COUNTS or expect.stat in truth.TOTALS_STATS:
+                ours = getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)
+            else:
+                ours = truth.pattern_value(conn, expect.stat, expect.player, expect.filters)[0]
             theirs = stats_tool_value(stats, api_conn, expect)
             assert ours is not None, (case.id, expect)
             if theirs is None or abs(ours - theirs) > 5e-5:  # the stats layer rounds rates to 4 places
@@ -147,12 +181,13 @@ def test_every_case_matches_the_stats_layer(conn):
 
 def test_cases_are_well_formed():
     ids = [case.id for case in CASES]
-    assert len(ids) == len(set(ids)) == 43  # the spec's 40, plus 3 from bugs found by hand
+    assert len(ids) == len(set(ids)) == 51  # the spec's 40, 3 from bugs found by hand, 8 for D-029 and D-030
     counts = {}
     for case in CASES:
         counts[case.category] = counts.get(case.category, 0) + 1
         assert case.expects or case.refusal, case.id
-    assert counts == {"single_stat": 10, "filtered_stat": 10, "head_to_head": 11, "comparison": 6, "refuse_or_caveat": 6}
+    assert counts == {"single_stat": 10, "filtered_stat": 10, "head_to_head": 11, "comparison": 6, "refuse_or_caveat": 7,
+                      "scouting_pattern": 7}  # fmt: skip
 
 
 @needs_db
@@ -182,10 +217,46 @@ def test_truth_is_independent_of_the_stats_layer_and_loader():
         elif isinstance(node, ast.ImportFrom):
             imported.add((node.module or "").split(".")[0])
     assert not imported & {"api", "ingest"}
-    ctes = {"src", "tokens", "sets", "typed", "sides", "side_ok", "match_stats", "pm", "scoped"}
-    sql = truth.PLAYER_MATCHES_SQL + truth.TOTALS_SQL
+    ctes = {"src", "tokens", "sets", "typed", "sides", "side_ok", "match_stats", "pm", "scoped", "set_tokens", "per_match",
+            "charts", "chart_keys", "tour", "fits", "g", "chosen", "d", "linked", "mine"}  # fmt: skip
+    sql = truth.PLAYER_MATCHES_SQL + truth.TOTALS_SQL + truth.SET_PATTERNS_SQL + truth.TOUR_TOTALS_SQL + truth.CHARTS_SQL
     tables = set(re.findall(r"\b(?:FROM|JOIN)\s+([\w.\"]+)", sql, re.IGNORECASE))
     assert {t for t in tables if t not in ctes and not t.startswith("raw.")} == set()
     # Comma joins too ("FROM src s, public.matches m"): any schema-qualified name is raw.
     assert set(re.findall(r"\b(\w+)\.\w+\b(?=\s+\w+\s*(?:,|ON|WHERE|$|\)))", sql, re.MULTILINE)) <= {"raw"} | ctes
     assert not re.search(r"(?:FROM|JOIN|,)\s+(?:public\.)?(?:matches|player_matches|players)\b", sql, re.IGNORECASE)
+
+
+# ---------- 5. Milestones 8 and 9 (D-029, D-030) ----------
+
+
+@needs_db
+def test_chart_links_agree_with_the_loader(conn):
+    """Two implementations of D-030's link rule: the loader's, by player ID, and this SQL, by the
+    names in the raw match files. They must link the same charts to the same matches, except
+    where only the reviewed player files know two spellings are one player (D-009, D-012)."""
+    ours = {
+        (r["chart_id"], r["season"], r["row_num"])
+        for r in conn.execute(truth.CHARTS_SQL + "SELECT chart_id, season, row_num FROM linked",
+                              {"player": None, "opponent": None, **F().params()}).fetchall()
+    }  # fmt: skip
+    loaded = {
+        (r["chart_id"], r["season"], r["source_row"])
+        for r in conn.execute("SELECT c.chart_id, m.season, m.source_row FROM charting_matches c "
+                              "JOIN matches m USING (match_id) WHERE m.source = 'sackmann'").fetchall()
+    }  # fmt: skip
+    assert len(ours) > 4000
+    # Coleman Wong is "Chak Lam Coleman Wong" in the 2024 match file; the merge file joins the two.
+    assert loaded - ours == {("20240102-M-Hong_Kong-R32-Coleman_Wong-Lorenzo_Musetti", 2024, 81)}
+    assert ours - loaded == set()
+
+
+@needs_db
+def test_set_patterns_match_named_sources(conn):
+    """Hand checks 21 and 28: the second has the data's only bare 6-7 set, which is a tiebreak."""
+    sinner = truth.set_totals(conn, 206173, F(season=2024))
+    assert (sinner["tiebreaks_won_count"], sinner["tiebreaks_played"]) == (24, 32)
+    assert (sinner["deciding_won"], sinner["deciding_played"]) == (13, 19)
+    assert (sinner["after_win_won"], sinner["after_win_played"], sinner["after_loss_won"], sinner["after_loss_played"]) == (62, 66, 10, 12)
+    laaksonen = truth.set_totals(conn, 105967, F(season=2015))
+    assert (laaksonen["tiebreaks_won_count"], laaksonen["tiebreaks_played"]) == (2, 3)

@@ -34,11 +34,11 @@ from api.chat import chat_system_prompt
 from api.db import connect as connect_api
 from evals import score
 from evals.cases import CASES, COUNTS, NAMES, Case, Expect
-from evals.truth import Totals, connect as connect_truth, totals
+from evals.truth import TOTALS_STATS, Totals, connect as connect_truth, pattern_value, totals
 
 RESULTS_DIR = Path(__file__).parent / "results"
 DATA_LOCK = Path(__file__).parent.parent / "ingest" / "data.lock.json"
-CATEGORIES = ("single_stat", "filtered_stat", "head_to_head", "comparison", "refuse_or_caveat")
+CATEGORIES = ("single_stat", "filtered_stat", "head_to_head", "comparison", "refuse_or_caveat", "scouting_pattern")
 FIELDS = [
     "label", "id", "category", "passed", "outcome", "numbers_ok", "tools_ok", "invented_ok", "refusal_ok", "claims_ok",
     "missing_numbers", "missing_tools", "invented_numbers", "failed_claims", "expected", "tool_calls", "model",
@@ -62,11 +62,14 @@ def expected_values(conn, case: Case) -> list[dict[str, Any]]:
     values = []
     for expect in case.expects:
         t: Totals = totals(conn, expect.player, expect.filters, expect.opponent)
-        value = getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)
+        if expect.stat in COUNTS or expect.stat in TOTALS_STATS:
+            value, value_kind = (getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)), kind(expect)
+        else:  # the Milestone 8 and 9 numbers (D-029, D-030)
+            value, value_kind = pattern_value(conn, expect.stat, expect.player, expect.filters)
         if value is None:
             raise ValueError(f"{case.id}: {expect.stat} has no value (no matches?); fix the case")
         values.append({"stat": expect.stat, "player": expect.player, "opponent": expect.opponent,
-                       "value": value, "kind": kind(expect), "matches": t.matches,
+                       "value": value, "kind": value_kind, "matches": t.matches,
                        "matches_with_stats": t.matches_with_stats})  # fmt: skip
     return values
 

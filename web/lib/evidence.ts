@@ -87,6 +87,8 @@ export function describeStat(stat: KeyStat, source: Evidence | undefined, t: T =
   const parts = stat.field.split(".");
   const key = parts.find((p) => p in STAT_NAMES && p !== "matches") ?? parts[parts.length - 1];
   let measure = (Object.hasOwn(t.stats, key) ? t.stats[key] : undefined) ?? stat.field;
+  if (source.tool === "tour_comparison" && parts[0] === "stats") measure = tourMeasure(measure, parts[2], t);
+  if (source.tool === "shot_patterns") measure = shotMeasure(parts, t) ?? measure;
   const listName = parts[0];
   if ((listName === "surfaces" || listName === "by_surface") && /^\d+$/.test(parts[1] ?? "")) {
     const row = (result[listName] as { surface?: string }[] | undefined)?.[Number(parts[1])];
@@ -97,6 +99,27 @@ export function describeStat(stat: KeyStat, source: Evidence | undefined, t: T =
   const who = result.opponent ? t.playerAgainst(result.player?.name, result.opponent.name) : (result.player?.name ?? "");
   const title = `${who}: ${measure.charAt(0).toLowerCase()}${measure.slice(1)}`;
   return { title, filters: describeFilters(result.filters as Record<string, unknown> | undefined, t) };
+}
+
+/** What a tour_comparison field is: the player's figure, their rank, the median, or the count. */
+function tourMeasure(measure: string, field: string | undefined, t: T): string {
+  if (field === "rank") return t.measureTourRank(measure);
+  if (field === "tour_median") return t.measureTourMedian(measure);
+  if (field === "players_ranked") return t.measurePlayersRanked(measure);
+  return measure;
+}
+
+/** What a shot_patterns field is, from its path: "serve_direction.first_serves_in.deuce.wide.value",
+ * "rally_length.points_won.10_plus.value", "net_points.net_points_won.value". Null when the path
+ * is none of these. */
+function shotMeasure(parts: string[], t: T): string | null {
+  const [block, kind, a, b] = parts;
+  if (block === "serve_direction" && (a === "deuce" || a === "ad") && (b === "wide" || b === "body" || b === "t")) {
+    return t.measureDirection(kind === "first_serves_in", a, b);
+  }
+  if (block === "rally_length" && kind === "points_won" && a && Object.hasOwn(t.rallyBands, a)) return t.measureRally(t.rallyBands[a]);
+  if ((block === "net_points" || block === "charting") && kind && Object.hasOwn(t.stats, kind)) return t.stats[kind];
+  return null;
 }
 
 /** The filters a tool call used, in words. Only the ones that were set. */
@@ -115,6 +138,7 @@ export function describeFilters(filters: Record<string, unknown> | undefined, t:
   if (filters.opponent_hand === "L") out.push(t.leftHandedOpponents);
   if (filters.opponent_hand === "R") out.push(t.rightHandedOpponents);
   if (filters.include_exhibitions) out.push(t.exhibitionsIncluded);
+  if (typeof filters.opponent_rank_max === "number") out.push(t.opponentRankMax(filters.opponent_rank_max));
   return out;
 }
 
@@ -137,7 +161,7 @@ function callsFor(evidence: Evidence[], tool: string, who: PlayerRef, window: Wi
     const f = (e.result?.filters ?? {}) as Record<string, unknown>;
     return e.tool === tool && !e.error && e.result && e.result.player?.player_id === who.player_id
       && f.date_from === window.date_from && f.date_to === window.date_to && !f.season && !f.tourney_level
-      && !f.opponent_hand && !f.include_exhibitions;
+      && !f.opponent_hand && !f.include_exhibitions && !f.opponent_rank_max;
   });
 }
 
@@ -352,7 +376,7 @@ function headToHeadCalls(evidence: Evidence[], player: PlayerRef, opponent: Play
     const forward = a === player.player_id && b === opponent.player_id;
     if (!forward && !(a === opponent.player_id && b === player.player_id)) return [];
     const f = (result.filters ?? {}) as Record<string, unknown>;
-    if (f.date_from || f.date_to || f.season || f.tourney_level || f.opponent_hand || f.include_exhibitions) return [];
+    if (f.date_from || f.date_to || f.season || f.tourney_level || f.opponent_hand || f.include_exhibitions || f.opponent_rank_max) return [];
     return [{ result, forward }];
   });
 }
@@ -549,7 +573,7 @@ export interface KeyStatGroup {
   rows: { stat: KeyStat; index: number }[];
 }
 
-const GROUP_ORDER = ["Win rate", "Serve", "Return", "Pressure", "Head-to-head", "Recent form", "Other"];
+const GROUP_ORDER = ["Win rate", "Serve", "Return", "Pressure", "Patterns", "Charted", "Head-to-head", "Recent form", "Other"];
 
 function groupName(stat: KeyStat, source: Evidence | undefined): string {
   switch (source?.result ? source.tool : null) {
@@ -558,6 +582,9 @@ function groupName(stat: KeyStat, source: Evidence | undefined): string {
     case "pressure_stats": return "Pressure";
     case "head_to_head": return "Head-to-head";
     case "recent_form": return "Recent form";
+    case "set_patterns": return "Patterns";
+    case "tour_comparison": return "Patterns";
+    case "shot_patterns": return "Charted";
     default: return "Other";
   }
 }
@@ -573,7 +600,9 @@ export function groupKeyStats(stats: KeyStat[], evidence: Evidence[]): KeyStatGr
 /** Under 10 matches: for a figure built from match stats, under 10 matches that have them. */
 export function isSmallKeyStat(stat: KeyStat, check: StatCheck): boolean {
   if (check.sample === null) return false;
-  const withStats = stat.field.startsWith("stats.") ? check.evidence?.result?.sample?.matches_with_stats : undefined;
+  // Serve, return and pressure figures (and their tour ranks) rest on the matches with stats.
+  const fromMatchStats = ["serve_return_stats", "pressure_stats", "tour_comparison"].includes(check.evidence?.tool ?? "");
+  const withStats = fromMatchStats && stat.field.startsWith("stats.") ? check.evidence?.result?.sample?.matches_with_stats : undefined;
   return isSmallSample(Math.min(check.sample, withStats ?? check.sample));
 }
 
@@ -595,8 +624,13 @@ export function describeValue(stat: KeyStat, check: StatCheck, t: T = EN): strin
   const key = parts.find((p) => p in COUNTED || p === "win_rate" || p === "aces_per_match") ?? parts[parts.length - 1];
   const shown = formatValue(check.value, check.rate, t);
   const headToHead = check.evidence?.tool === "head_to_head";
+  if (check.evidence?.tool === "tour_comparison" && parts[parts.length - 1] === "rank") {
+    const line = resolvePath(result, parts.slice(0, -1).join(".")).value as { players_ranked?: number } | undefined;
+    return isNumber(line?.players_ranked) ? t.valueRank(check.value, line.players_ranked) : null;
+  }
   if (check.rate) {
     const { numerator: n, denominator: d } = check.rate;
+    if (["set_patterns", "shot_patterns"].includes(check.evidence?.tool ?? "")) return t.valueOf(n, d, shown);
     if (key in COUNTED) return t.valueCounted(n, d, t.counted[key], shown);
     if (key === "win_rate") return t.valueWinRate(n, headToHead ? t.meetingCount(d) : t.matchCount(d), shown);
     if (key === "aces_per_match") return t.valueAces(n, t.matchCount(d), shown);

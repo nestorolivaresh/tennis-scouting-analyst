@@ -7,6 +7,11 @@ import { type Locale, type SurfaceWords, enFormat, lowerFirst } from "./format.t
 const { int } = enFormat;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const matchCount = (n: number) => `${int(n)} ${n === 1 ? "match" : "matches"}`;
+const ordinal = (n: number) => {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th";
+  return `${int(n)}${suffix}`;
+};
 const meetingCount = (n: number) => `${int(n)} ${n === 1 ? "meeting" : "meetings"}`;
 
 const surface = (name: string): SurfaceWords => {
@@ -45,6 +50,8 @@ export const en = {
   footerSeason: "Season 2026:",
   footerTml: "TennisMyLife ATP match database",
   footerEnd: "for non-commercial use. A non-commercial project; full terms in DATA_LICENSE.md.",
+  footerCharting: "Shot-level patterns from",
+  footerChartingLink: "The Tennis Abstract Match Charting Project",
 
   // ---------- shared ----------
   noData: "No data",
@@ -135,6 +142,9 @@ export const en = {
     pressure_stats: "Break points",
     head_to_head: "Head-to-head",
     recent_form: "Recent form",
+    set_patterns: "Set patterns",
+    tour_comparison: "Tour comparison",
+    shot_patterns: "Charted shot patterns",
   } as Record<string, string>,
   stats: {
     first_serve_in: "First serve in",
@@ -149,16 +159,29 @@ export const en = {
     wins: "Wins",
     losses: "Losses",
     matches: "Matches",
+    tiebreaks_won: "Tiebreaks won",
+    deciding_sets_won: "Deciding sets won",
+    won_after_winning_first_set: "Won after winning the first set",
+    won_after_losing_first_set: "Won after losing the first set",
+    net_points_won: "Net points won",
+    share_of_points_at_net: "Points played at the net",
+    charted_matches: "Charted matches",
   } as Record<string, string>,
   levels: { G: "Grand Slams", M: "Masters 1000", A: "ATP 250 and 500", F: "Tour Finals", D: "Davis Cup", O: "Olympics" } as Record<string, string>,
   groups: {
     "Win rate": "Win rate", Serve: "Serve", Return: "Return", Pressure: "Pressure", "Head-to-head": "Head-to-head",
-    "Recent form": "Recent form", Other: "Other",
+    "Recent form": "Recent form", Patterns: "Patterns", Charted: "Charted shots", Other: "Other",
   } as Record<string, string>,
   toolCallMissing: (id: string) => `Tool call ${id} (not in this report's results)`,
   measureOnSurface: (measure: string, w: SurfaceWords) => `${w.name} ${measure.toLowerCase()}`,
   measureHeadToHead: (measure: string) => `head-to-head ${lowerFirst(measure)}`,
   measureRecent: (measure: string, n: string) => `${measure} in the last ${n} matches`,
+  measureTourRank: (measure: string) => `rank for ${lowerFirst(measure)} among tour players`,
+  measureTourMedian: (measure: string) => `tour median for ${lowerFirst(measure)}`,
+  measurePlayersRanked: (measure: string) => `players ranked for ${lowerFirst(measure)}`,
+  measureDirection: (first: boolean, court: "deuce" | "ad", side: "wide" | "body" | "t") =>
+    `${first ? "first serves in" : "second serves"} on the ${court} court going ${({ wide: "wide", body: "at the body", t: "down the T" })[side]}`,
+  measureRally: (band: string) => `points won in rallies of ${lowerFirst(band)}`,
   playerAgainst: (a: string | undefined, b: string) => `${a} against ${b}`,
   seasonFilter: (season: string) => `${season} season`,
   tournamentsBetween: (a: string, b: string) => `Tournaments starting ${a} to ${b}`,
@@ -167,12 +190,14 @@ export const en = {
   leftHandedOpponents: "Left-handed opponents",
   rightHandedOpponents: "Right-handed opponents",
   exhibitionsIncluded: "Exhibitions included",
+  opponentRankMax: (n: number) => `Opponents ranked ${int(n)} or better`,
   excludedNames: {
     walkovers: ["walkover", "walkovers"],
     exhibitions: ["exhibition", "exhibitions"],
     unknown_results: ["match with an unclear result", "matches with an unclear result"],
     unknown_surface: ["match with no surface recorded", "matches with no surface recorded"],
     unknown_opponent_hand: ["match against an opponent of unknown hand", "matches against opponents of unknown hand"],
+    unknown_opponent_rank: ["match against an unranked opponent", "matches against unranked opponents"],
   } as Record<string, [one: string, many: string]>,
   surfacesMissing: (name: string) => `${name}'s win-loss by surface isn't in this report's results.`,
   notLookedUp: (name: string, list: string) => `${name}: ${list} not looked up in this report.`,
@@ -199,6 +224,8 @@ export const en = {
   valueCounted: (n: number, d: number, noun: string, shown: string) => `${int(n)} of ${int(d)} ${noun}, ${shown}`,
   valueWinRate: (n: number, of: string, shown: string) => `${int(n)} ${n === 1 ? "win" : "wins"} from ${of}, ${shown}`,
   valueAces: (n: number, of: string, shown: string) => `${int(n)} aces over ${of}, ${shown} per match`,
+  valueOf: (n: number, d: number, shown: string) => `${int(n)} of ${int(d)}, ${shown}`,
+  valueRank: (rank: number, players: number) => `${ordinal(rank)} of ${int(players)} players`,
   sampleOf: (n: number, headToHead: boolean, w: SurfaceWords | null) =>
     `${int(n)} ${w ? `${w.lower} ` : ""}${headToHead ? (n === 1 ? "meeting" : "meetings") : n === 1 ? "match" : "matches"}`,
   valueRecord: (key: "wins" | "losses", v: number, of: string) =>
@@ -386,6 +413,43 @@ export const en = {
   colScore: "Score",
   won: "Won",
   lost: "Lost",
+
+  // ---------- scouting patterns (D-029) and charted shots (D-030) ----------
+  setsTitle: "Sets and tiebreaks",
+  setUnits: {
+    tiebreaks_won: "tiebreaks",
+    deciding_sets_won: "deciding sets",
+    won_after_winning_first_set: "matches",
+    won_after_losing_first_set: "matches",
+  } as Record<string, string>,
+  setNote: (completed: number, early: number) =>
+    `Read from the scores of ${int(completed)} completed ${completed === 1 ? "match" : "matches"}${early ? `; ${int(early)} ${early === 1 ? "retirement or default" : "retirements and defaults"} left out` : ""}.`,
+  noneToCount: "Nothing to count for this filter",
+  tourTitle: "Against the tour",
+  tourNote: (min: number, players: number) =>
+    `Ranked among the ${int(players)} players with at least ${matchCount(min)} with stats under the same filters. 1st is the highest figure.`,
+  tourNoteBelow: (min: number, players: number) =>
+    `Fewer than ${matchCount(min)} with stats here, so no rank. ${int(players)} ${players === 1 ? "player qualifies" : "players qualify"}.`,
+  notRanked: "Not ranked",
+  rankOf: (rank: number, players: number) => `${ordinal(rank)} of ${int(players)}`,
+  colStat: "Stat",
+  colFigure: "Figure",
+  colRank: "Rank",
+  colMedian: "Tour median",
+  shotsTitle: "Charted shot patterns",
+  chartedNote: (n: number, points: number) =>
+    `From ${int(n)} charted ${n === 1 ? "match" : "matches"} (${int(points)} points), charted shot by shot by Match Charting Project volunteers: a sample weighted toward top players and big matches, not every match played.`,
+  noChartedMatches: "No charted matches for this filter. Match Charting Project volunteers chart a sample of matches, mostly top players and big matches.",
+  firstServesIn: "First serves in, by direction",
+  secondServes: "Second serves, by direction (double faults included)",
+  courts: { deuce: "Deuce court", ad: "Ad court" } as Record<string, string>,
+  directions: { wide: "Wide", body: "Body", t: "T" } as Record<string, string>,
+  colCourt: "Court",
+  ralliesTitle: "Points won by rally length",
+  rallyBands: { "1_3": "1 to 3 shots", "4_6": "4 to 6 shots", "7_9": "7 to 9 shots", "10_plus": "10 shots or more" } as Record<string, string>,
+  netTitle: "At the net",
+  pointsWord: "points",
+  netPointsWord: "net points",
 };
 
 export type Messages = typeof en;

@@ -113,6 +113,10 @@ FILTERS_SCHEMA = {
             "type": "boolean",
             "description": "Laver Cup and NextGen Finals are left out unless this is true.",
         },
+        "opponent_rank_max": {
+            "type": "integer",
+            "description": "Only matches against opponents ranked this or better at the time, e.g. 10 for the top 10.",
+        },
     },
     "additionalProperties": False,
 }
@@ -159,14 +163,41 @@ TOOLS = [
     ),
     _tool(
         "head_to_head",
-        "Record between two players, by surface, and every match, newest first.",
+        "Record between two players, by surface, and every match, newest first. Each match has `score` "
+        "(winner's games first, as the source writes it) and `player_score` (player_id's games first): "
+        "quote player_score when describing a match from player_id's side.",
         {"player_id": PLAYER_ID, "opponent_id": PLAYER_ID, "filters": FILTERS_SCHEMA},
         ["player_id", "opponent_id"],
     ),
     _tool(
         "recent_form",
-        "A player's last n matches (default 10, at most 50), newest first, with the record over them.",
+        "A player's last n matches (default 10, at most 50), newest first, with the record over them and "
+        "time on court (minutes, where the data has them). Each match has `score` and `player_score`, as in "
+        "head_to_head.",
         {"player_id": PLAYER_ID, "n": {"type": "integer"}, "filters": FILTERS_SCHEMA},
+        ["player_id"],
+    ),
+    _tool(
+        "set_patterns",
+        "From the scores of completed matches: tiebreaks won, deciding sets won, and matches won after "
+        "winning or after losing the first set. Retirements are left out and counted.",
+        {"player_id": PLAYER_ID, "filters": FILTERS_SCHEMA},
+        ["player_id"],
+    ),
+    _tool(
+        "tour_comparison",
+        "The player's serve, return and break point rates next to every player's under the same filters: "
+        "their rank (1 = highest) among players with at least min_matches matches with stats (default 10), "
+        "how many are ranked, and the median.",
+        {"player_id": PLAYER_ID, "filters": FILTERS_SCHEMA, "min_matches": {"type": "integer"}},
+        ["player_id"],
+    ),
+    _tool(
+        "shot_patterns",
+        "From matches charted shot by shot by the Match Charting Project's volunteers: serve direction "
+        "(wide, body, T) on the deuce and ad courts, points won by rally length, and net points. Only some "
+        "matches are charted, mostly top players and big matches: always say how many.",
+        {"player_id": PLAYER_ID, "filters": FILTERS_SCHEMA},
         ["player_id"],
     ),
 ]
@@ -474,7 +505,14 @@ When you use a number:
 - Rates in tool results are fractions (0.616); write them as percentages with one decimal
   (61.6%).
 - Mention what the tool excluded when it matters (walkovers, matches without stats,
-  unknown surface or opponent hand).
+  unknown surface, opponent hand or opponent ranking).
+- A match's `score` is written winner first. To describe a match from one player's side,
+  quote that match's `player_score`; never reorder a score yourself.
+- tour_comparison ranks a player among the players with enough matches under the same
+  filters: say the rank and how many were ranked ("5th of 10"), and give the median as it is.
+- shot_patterns rests on the matches the Match Charting Project's volunteers charted, a
+  small share of all matches and mostly top players: say how many charted matches a figure
+  comes from, and that charting covers only some matches.
 
 Keep facts and coaching advice apart: a fact is a number or record from a tool; advice is
 your inference from those facts, and should read as one.
@@ -482,5 +520,5 @@ your inference from those facts, and should read as one.
 Dates: `tourney_date` is when a tournament started; `match_date` is the day a match was
 played, and only exists for 2026. When the user names a year, use the `season` filter.
 
-If the data can't answer a question (for example rally length, or anything before 2015),
-say so plainly instead of estimating."""
+If the data can't answer a question (for example an average rally length, point-by-point
+detail beyond shot_patterns, or anything before 2015), say so plainly instead of estimating."""

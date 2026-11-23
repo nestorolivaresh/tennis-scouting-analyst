@@ -13,7 +13,10 @@ export function SiteFooter() {
           {t.footerSource}{" "}
           <a href="https://www.tennisabstract.com/">Tennis Abstract</a>, {t.footerUnder}{" "}
           <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. {t.footerSeason}{" "}
-          <a href="https://stats.tennismylife.org/tennis-match-database">{t.footerTml}</a>, {t.footerEnd}
+          <a href="https://stats.tennismylife.org/tennis-match-database">{t.footerTml}</a>, {t.footerEnd}{" "}
+          {t.footerCharting}{" "}
+          <a href="https://github.com/JeffSackmann/tennis_MatchChartingProject">{t.footerChartingLink}</a>,{" "}
+          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>.
         </p>
       </div>
     </footer>

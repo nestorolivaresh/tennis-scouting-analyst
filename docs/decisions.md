@@ -340,9 +340,9 @@ of the published terms, not legal advice.
   (atptour.com or daviscup.com) could resolve them later.
 - 12 completed matches have service games that don't fit their score (quality report,
   section 3). They keep their stats; check them against a third source when convenient.
-- Evals: H04 varies between runs (D-023). Options: return each head-to-head score from the
-  asked player's side as well as the winner's, so the model never rewrites one; run each
-  question several times and report a pass rate. Decide before Milestone 7's case study.
+- Evals: H04 varies between runs (D-023). Scores now come from the asked player's side as well
+  (D-029), and H04 passed in the next run; running each question several times and reporting a
+  pass rate is still open.
 - The local database role is still a superuser (read-only by setting, D-014). Production uses
   the restricted `tennis_app` role (D-025).
 
@@ -1080,3 +1080,134 @@ found two problems:
 
 **Not checked.** The README on another machine or operating system, and with Node.js versions
 other than 23.11.
+
+## D-029 Milestone 8: scouting patterns from the match data
+
+*2026-11-23. Approved by Nestor, after comparing the app with how coaches scout in practice.*
+
+**Context.** Coaching and scouting tools (Tennis Inspector, Match Tennis App, SportTrack,
+Dartfish, read 2026-11-23) organize scouting around patterns: how a player handles tiebreaks
+and deciding sets, how they do against strong or left-handed opponents, how much they've played
+lately, and how their numbers compare with the rest of the tour. The match files already hold
+what's needed for these: scores, minutes, ranks and hands. This changes the spec's tool list
+(seven tools) and shared filters; the rule that every number comes from a tested tool is
+unchanged.
+
+**Chosen.**
+- **A filter on the opponent's ranking.** `opponent_rank_max` (1 to 5000): the opponent's
+  ranking in the match file, at the time of the match, is at most that. When the filter is set,
+  a match whose opponent had no ranking is excluded and counted (`unknown_opponent_rank`), the
+  same way as an unknown hand. It's a shared filter, so every tool gets it, defined in
+  `SCOPE_SQL` (D-014).
+- **Scores from the asked player's side.** Every match in `head_to_head` and `recent_form` keeps
+  `score` as the source writes it (winner first) and adds `player_score`, the same sets from the
+  asked player's side ("4-6 7-6(4)" becomes "6-4 6-7(4)" for the loser). This closes the open
+  item on H04 (D-023), where the model rewrote a winner-first score and got two sets wrong.
+- **Time on court.** Match entries carry `minutes`. `recent_form` adds `time_on_court`: total
+  minutes over the returned matches that have a duration, how many have one, minutes per match,
+  and the longest. A missing duration is counted as missing, never as 0. 89.9% of the 2015-2025
+  matches and 96.3% of the 2026 ones have a duration.
+- **A tool for set patterns.** `set_patterns(player_id, filters)` reads the score of every
+  counted match that was completed: tiebreaks won and played (a set with a tiebreak score, such
+  as "7-6(5)" or "13-12(3)"), deciding sets won and played (the last set of a match that used all
+  its sets, including a match tiebreak such as "[10-8]" played instead of one), and matches won
+  after winning the first set and after losing it. Retired and defaulted matches are left out of
+  these, because their last set wasn't finished, and counted (`ended_early`). Each rate carries
+  the number of completed matches it was read from, so a report can cite that as its sample.
+- **A tool for the tour's context.** `tour_comparison(player_id, filters, min_matches)` takes
+  the six serve and return figures and the two break-point rates, computes them for every player with at least
+  `min_matches` matches with stats under the same filters (default 10), and returns the player's
+  value, their rank among those players (1 is the highest value; players with the same value
+  share the better rank), how many players qualify, and the median. A player below the
+  threshold gets their value and no rank. The scope is `SCOPE_SQL` itself with the one-player
+  condition removed, checked when the module loads, so which matches count is still defined once.
+
+**Alternatives.** Percentiles instead of ranks (harder to say aloud, and a percentile over 30
+players hides how few there are); a "big servers" opponent filter (any cut-off would be a
+choice of ours, not a fact in the data); workload by calendar days (2015-2025 have tournament
+start dates only, so "matches in the last 7 days" can't be computed for them).
+
+**Checks required.** Every new number is checked against `api/tests/hand_checks.sh` (`awk` over
+the raw files) or Tennis Abstract, recorded in `docs/stat-checks.md`, and each rule is broken on
+purpose to show a test fails (D-015). The evals get questions for the new tools, with their
+ground truth written again in `evals/truth.py`.
+
+**Checked, 2026-11-23.**
+- **Named sources.** Hand checks 21 to 25, 27 and 28 (Tennis Abstract's pages now need
+  JavaScript, so `awk` was the source). Every value matched the tools exactly
+  (`docs/stat-checks.md`). Breaking each rule made a test fail, in the stats layer and in the
+  evals' truth.
+- **Evals.** Seven new questions (P01 to P07) and one refusal (R07, serve direction on break
+  points, which the data doesn't split). The prompt and tool list changed for every question,
+  so all 51 were run (`m8-m9`, $1.27, mean 4.1 s): 50/51, then 51/51 after widening R02's
+  refusal pattern, which had missed a right answer ("The data has no 2022 matches for Roger
+  Federer"); that answer is now a scorer test. H04, which had come out differently in each of
+  three runs (D-023), passed, quoting each final from Sinner's side. One run still can't show
+  how often an answer varies.
+- **A live report** (Sinner v Alcaraz, clay): 11 tool calls, 39 seconds, $0.125, verified on the
+  second attempt. The first cited 122 completed matches as a set pattern's sample, a count the
+  result didn't then offer; the rates now carry it (`test_new_tools_samples_can_be_cited`). The
+  extra calls make a report cost more than the $0.07 measured before (D-024).
+- **Speed.** `tour_comparison` reads every player's matches: about 0.3 s locally with no
+  filters, 0.2 s on one surface. The Player stats page calls it once per view.
+
+## D-030 Milestone 9: shot patterns from the Match Charting Project
+
+*2026-11-23. Approved by Nestor (the spec listed this data for after the MVP).*
+
+**Context.** What coaches scout most, serve direction, rally length and net play, isn't in
+match-level data. The [Match Charting Project](https://github.com/JeffSackmann/tennis_MatchChartingProject)
+has it: volunteers chart professional matches shot by shot. Its repository is still public and
+updated (checked 2026-11-23: last commit `1813a13`, "thru 18 sep 2026", not archived), and it
+uses the license this project already follows, CC BY-NC-SA 4.0, crediting "The Tennis Abstract
+Match Charting Project".
+
+**Chosen.**
+- **Files.** `charting-m-matches.csv` and three per-match stats files: `ServeDirection`,
+  `Rally` and `NetPoints`, from commit `1813a13`, pinned by SHA-256 and git blob hash like
+  Sackmann's files (D-002). Men's only. The stats files are Sackmann's own totals for each match,
+  the ones Tennis Abstract's match pages show, so this project doesn't parse the shot notation.
+  The points files aren't used: a parse of them agreed exactly with the stats files on 65% to 73%
+  of matches and was off by a few points on the rest, because the two files don't always hold
+  the same points for a match. The stats files are taken as the record.
+- **Which charted matches count.** Only one that is the same match as a tour match in our data:
+  each player's name resolves to exactly one player (the name keys of D-009: letters in order,
+  or words sorted), the round is the same, and the tour match's tournament starts between 14
+  days before and 3 days after the charted date. Two refinements came from the data:
+  - Davis Cup ties are written "RR" in the match files, with the stage in the tie's name, while
+    a chart says QF, SF or F, so a Davis Cup tie matches any round.
+  - Back-to-back events with the same pair in the same round (Canada, then Cincinnati 2024) can
+    both fit; a chart is dated during its event, so the one that started most recently on or
+    before the chart's date is taken.
+
+  A tour match charted twice keeps neither chart, and a chart ID listed twice with different
+  details is unreadable. The linked match then goes through `SCOPE_SQL` with the question's
+  filters, so walkovers, exhibitions and every filter apply as they do everywhere else (D-014).
+- **A tool.** `shot_patterns(player_id, filters)` sums, over the counted charted matches:
+  - serve direction on the deuce and ad courts (wide, body, T), for first serves that went in
+    and for all second serves, as shares with counts;
+  - points won by rally length (1-3, 4-6, 7-9 and 10 or more shots, counting the serve and not
+    the final error, Sackmann's convention), on serve and return together;
+  - net points: how often the player came in (share of the points they played) and how many of
+    those they won.
+  The sample gives the tour matches counted, how many were charted, the points charted, and the
+  player's charted matches that don't count, with the reason.
+- **Caveat in every answer.** Charted matches are a sample chosen by volunteers, weighted toward
+  top players and big matches, not every match a player played.
+
+**Shared, so not independent.** The evals' ground truth reads the same raw stats files. It
+re-implements the link by the names in the raw match files and the rest of the rules in its own
+SQL, as for the match data (D-012, D-023).
+
+**Checked, 2026-11-23.**
+- **Links.** Of 7,565 charted men's matches, 4,454 link to a tour match; 2,618 are from before
+  2015, 409 have no tour match (qualifying, Challengers, ITF, exhibitions such as the Six Kings
+  Slam), 81 name a player who isn't in the tour data, 2 are one match charted twice, and 1 row
+  is unreadable (its columns are shifted). Every linked chart's tournament name agrees with
+  its tour match's, apart from spellings such as "Queens Club" and "Queen's Club". The evals'
+  link by names agrees with the loader's link by IDs on all 4,281 charts from 2015 to 2025,
+  except one: Coleman Wong, "Chak Lam Coleman Wong" in the 2024 match file, whom only the
+  reviewed merge file joins (D-009).
+- **Numbers.** Sinner's six charted Roland Garros 2024 matches match an `awk` sum over the stats
+  files (hand check 26), and P06 and P07 passed against the evals' own truth.
+- **Size.** The database is 81 MB with the charting tables.

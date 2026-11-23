@@ -129,6 +129,9 @@ def test_refusals_from_review():
     federer = [{"tool": "serve_return_stats", "input": {"player_id": 103819, "filters": {"season": 2022}},
                 "result": {"sample": {"matches_counted": 0}}, "error": None}]  # fmt: skip
     assert score_case(cases["R02"], [], "The data has no matches for Federer in 2022.", federer, "completed")["passed"]
+    # The m8-m9 run's answer, a right refusal the first pattern missed (D-029).
+    said = "The data has no 2022 matches for Roger Federer, so I can't say how he served that year."
+    assert score_case(cases["R02"], [], said, federer, "completed")["passed"]
     assert not score_case(cases["R02"], [], "Federer served well in 2022 across 10 matches.", federer, "completed")["refusal_ok"]
     h2h = [{"tool": "head_to_head", "input": {"player_id": 206173, "opponent_id": 207989},
             "result": {"record": {"matches": 17, "wins": 7, "losses": 10, "win_rate": {"value": 0.4118}}}, "error": None}]  # fmt: skip

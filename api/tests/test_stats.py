@@ -296,3 +296,147 @@ def test_recent_form_sinner_last_five(conn):
     assert result["matches"][0]["match_date"] == "2026-07-12"  # hand 6
     assert (result["record"]["wins"], result["record"]["losses"]) == (5, 0)
     assert result["sample"]["matches_counted"] == 5
+
+
+# ---------- Milestone 8: scouting patterns from the match data (D-029) ----------
+
+DJOKOVIC = 104925  # hand 9
+
+
+def test_opponent_rank_filter_counts_unranked_opponents_as_excluded(conn):
+    result = stats.surface_splits(conn, DJOKOVIC, {"season": 2024, "opponent_rank_max": 10})
+    assert record(result) == (2, 4)  # hand 22
+    assert result["excluded"]["unknown_opponent_rank"] == 1  # hand 22: Matthew Ebden, unranked
+    assert result["filters"]["opponent_rank_max"] == 10
+    unfiltered = stats.surface_splits(conn, DJOKOVIC, {"season": 2024})
+    assert unfiltered["excluded"]["unknown_opponent_rank"] == 0  # only counted when filtering by rank
+
+
+@pytest.mark.parametrize("bad", [0, 5001, "ten", -3, 2.5, True])
+def test_opponent_rank_filter_refuses_bad_values(bad):
+    with pytest.raises(stats.ToolInputError, match="opponent_rank_max"):
+        stats.Filters.parse({"opponent_rank_max": bad})
+
+
+def test_scores_read_from_the_asked_players_side(conn):
+    matches = stats.head_to_head(conn, SINNER, ALCARAZ)["matches"]
+    final = next(m for m in matches if m["tournament"] == "Roland Garros" and m["round"] == "F")
+    assert final["result"] == "L"
+    assert final["score"] == "4-6 6-7(4) 6-4 7-6(3) 7-6(2)"  # hand 27, as written: Alcaraz first
+    assert final["player_score"] == "6-4 7-6(4) 4-6 6-7(3) 6-7(2)"  # hand 27, read from Sinner's side
+    won = next(m for m in matches if m["result"] == "W")
+    assert won["player_score"] == won["score"]
+
+
+def test_recent_form_time_on_court(conn):
+    result = stats.recent_form(conn, SINNER, 10, {"season": 2026})
+    assert result["time_on_court"]["matches_with_minutes"] == 10  # hand 23
+    assert result["time_on_court"]["total_minutes"] == 1592  # hand 23
+    assert result["time_on_court"]["longest_match_minutes"] == 226  # hand 23
+    assert result["time_on_court"]["minutes_per_match"]["value"] == pytest.approx(159.2)
+
+
+def test_missing_minutes_are_missing_not_zero(conn):
+    result = stats.recent_form(conn, SINNER, 10, {"season": 2023, "tourney_level": "D"})
+    assert result["sample"]["matches_counted"] == 3  # hand 25
+    assert all(m["minutes"] is None for m in result["matches"])  # hand 25: no durations
+    time = result["time_on_court"]
+    assert time["matches_with_minutes"] == 0 and time["total_minutes"] is None
+    assert time["longest_match_minutes"] is None and time["minutes_per_match"]["value"] is None
+
+
+def test_set_patterns_sinner_2024(conn):
+    result = stats.set_patterns(conn, SINNER, {"season": 2024})
+    counts = {name: (r["numerator"], r["denominator"]) for name, r in result["stats"].items()}
+    assert counts == {  # hand 21
+        "tiebreaks_won": (24, 32),
+        "deciding_sets_won": (13, 19),
+        "won_after_winning_first_set": (62, 66),
+        "won_after_losing_first_set": (10, 12),
+    }
+    assert result["scores_read"] == {"completed_matches": 78, "ended_early": 1, "unreadable_scores": 0}  # hand 21
+
+
+def test_tour_comparison_grass_2023(conn):
+    result = stats.tour_comparison(conn, ALCARAZ, {"season": 2023, "surface": "Grass"})
+    assert result["tour"] == {"min_matches": 10, "qualifying_players": 10, "player_qualifies": True}  # hand 24
+    spw = result["stats"]["service_points_won"]
+    assert (spw["value"]["numerator"], spw["value"]["denominator"]) == (767, 1117)  # hand 24
+    assert spw["rank"] == 5 and spw["players_ranked"] == 10  # hand 24
+    assert spw["tour_median"] == round((767 / 1117 + 700 / 1035) / 2, 4)  # hand 24: 5th and 6th of 10
+    top = stats.tour_comparison(conn, SINNER, {"season": 2023, "surface": "Grass"})
+    assert top["stats"]["service_points_won"]["rank"] == 1  # hand 24
+
+
+def test_tour_comparison_uses_the_tools_own_numbers(conn):
+    filters = {"season": 2023, "surface": "Grass"}
+    result = stats.tour_comparison(conn, ALCARAZ, filters)
+    serve = stats.serve_return_stats(conn, ALCARAZ, filters)["stats"]
+    pressure = stats.pressure_stats(conn, ALCARAZ, filters)["stats"]
+    assert {name: s["value"] for name, s in result["stats"].items()} == {**serve, **pressure}
+
+
+def test_tour_comparison_below_the_threshold_has_no_rank(conn):
+    result = stats.tour_comparison(conn, ALCARAZ, {"season": 2023, "surface": "Grass"}, min_matches=13)
+    assert result["tour"]["player_qualifies"] is False  # 12 matches with stats (hand 24)
+    assert result["stats"]["service_points_won"]["rank"] is None
+    assert result["stats"]["service_points_won"]["value"]["numerator"] == 767
+    assert result["tour"]["qualifying_players"] == 2  # hand 24: Mannarino 16, Thompson 14
+
+
+def test_rank_among_shares_the_better_rank_on_ties():
+    from fractions import Fraction as F
+
+    values = [F(3, 4), F(1, 2), F(1, 2), F(1, 4)]
+    assert [stats.rank_among(v, values) for v in values] == [1, 2, 2, 4]
+
+
+@pytest.mark.parametrize("bad", [0, 201, "x"])
+def test_tour_comparison_refuses_bad_thresholds(conn, bad):
+    with pytest.raises(stats.ToolInputError, match="min_matches"):
+        stats.tour_comparison(conn, SINNER, min_matches=bad)
+
+
+# ---------- Milestone 9: shot patterns from the Match Charting Project (D-030) ----------
+
+
+def test_shot_patterns_sinner_roland_garros_2024(conn):
+    result = stats.shot_patterns(conn, SINNER, {"season": 2024, "tourney_level": "G", "surface": "Clay"})
+    assert result["charting"]["charted_matches"] == 6 and result["charting"]["points_charted"] == 1176  # hand 26
+
+    def counts(court):
+        return [court[side]["numerator"] for side in ("wide", "body", "t")], court["wide"]["denominator"]
+
+    first, second = result["serve_direction"]["first_serves_in"], result["serve_direction"]["second_serves"]
+    assert counts(first["deuce"]) == ([80, 29, 69], 178) and counts(first["ad"]) == ([96, 21, 51], 168)  # hand 26
+    assert counts(second["deuce"]) == ([22, 49, 39], 110) and counts(second["ad"]) == ([42, 45, 11], 98)  # hand 26
+    rally = {name: (r["numerator"], r["denominator"]) for name, r in result["rally_length"]["points_won"].items()}
+    assert rally == {"1_3": (350, 646), "4_6": (152, 269), "7_9": (80, 138), "10_plus": (67, 123)}  # hand 26
+    net = result["net_points"]
+    assert (net["net_points_won"]["numerator"], net["net_points_won"]["denominator"]) == (107, 147)  # hand 26
+    assert (net["share_of_points_at_net"]["numerator"], net["share_of_points_at_net"]["denominator"]) == (147, 1176)
+
+
+def test_shot_patterns_report_the_players_charts_that_dont_count(conn):
+    result = stats.shot_patterns(conn, SINNER)
+    not_linked = result["charting"]["player_charts_not_linked_all_dates"]
+    assert set(not_linked) <= {"before_data", "name_not_resolved", "no_tour_match", "several_tour_matches", "charted_twice"}
+    rows = conn.execute(
+        "SELECT count(*) AS n FROM charting_matches WHERE 206173 IN (player1_id, player2_id) AND link <> 'linked'"
+    ).fetchone()
+    assert sum(not_linked.values()) == rows["n"] > 0
+    assert "volunteers" in result["charting"]["about"]
+
+
+def test_shot_patterns_with_no_charted_match_are_empty_not_zero(conn):
+    result = stats.shot_patterns(conn, SINNER, {"season": 2016})  # before his first tour match
+    assert result["charting"]["charted_matches"] == 0
+    assert result["rally_length"]["points_won"]["1_3"]["value"] is None
+    assert result["serve_direction"]["first_serves_in"]["deuce"]["wide"]["value"] is None
+
+
+def test_a_bare_seven_six_set_is_a_tiebreak(conn):
+    laaksonen = 105967  # his 2015 Davis Cup loss to Bemelmans has a "6-7" set with no tiebreak score
+    result = stats.set_patterns(conn, laaksonen, {"season": 2015})
+    tiebreaks = result["stats"]["tiebreaks_won"]
+    assert (tiebreaks["numerator"], tiebreaks["denominator"]) == (2, 3)  # hand 28

@@ -278,6 +278,8 @@ Each milestone ends with something that runs.
 | 5 | Frontend | The full flow works locally, including the evidence view |
 | 6 | Docker image and deploy | A public URL works from a phone, with rate and spend limits active |
 | 7 | README, case study, demo script | A stranger can run it from the README, and the case study reports real eval results |
+| 8 | Scouting patterns from the match data: an opponent-ranking filter, scores from the asked player's side, time on court, `set_patterns`, `tour_comparison` (D-029) | Every new number matches a hand check or Tennis Abstract, each rule's test fails when the rule is broken, and new eval questions pass |
+| 9 | Shot patterns from the Match Charting Project: serve direction, rally length, net points (`shot_patterns`, D-030) | Charted matches link to tour matches with reasons for the rest, the numbers match hand checks over the stats files, and new eval questions pass |
 
 **Quality checks for Milestone 1:**
 
@@ -326,7 +328,7 @@ The decision log feeds the case study. Keep the code simple enough that I can ex
 
 ### After the MVP
 
-These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data.
+These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data.
 
 ## Sources
 

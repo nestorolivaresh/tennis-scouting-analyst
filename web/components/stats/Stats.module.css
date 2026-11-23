@@ -830,3 +830,89 @@
     transition: none;
   }
 }
+
+/* ---------- scouting patterns (D-029) and charted shots (D-030) ---------- */
+
+.prow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(64px, 0.6fr) minmax(64px, 0.6fr) minmax(76px, 0.7fr);
+  gap: 0 14px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mbody .prow:last-child,
+.mbody .drow:last-child {
+  border-bottom: 0;
+}
+
+.drow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 1.1fr));
+  gap: 0 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.drow .oppRank {
+  display: block;
+}
+
+.sourceDetails {
+  margin-top: 16px;
+  font-size: 17px;
+}
+
+.sourceDetails summary {
+  cursor: pointer;
+  color: var(--bottle);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* A header row that stays visible on phones (the matches table hides its own). */
+.phead {
+  padding: 0 0 10px;
+  border-bottom: 2px solid var(--bottle);
+  font-size: 16px;
+  color: var(--muted-2);
+}
+
+@media (max-width: 760px) {
+  /* The tour table: the stat on its own line, then figure, rank and median, each labelled. */
+  .pheadTour {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    clip-path: inset(50%);
+  }
+
+  .prow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 12px;
+    align-items: end;
+  }
+
+  .prow > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .prow [data-label]::before {
+    content: attr(data-label);
+    display: block;
+    white-space: normal; /* the cell's number doesn't wrap; its label may ("Mediana del circuito") */
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--muted-2);
+  }
+
+  .drow {
+    gap: 0 8px;
+    font-size: 16px;
+  }
+}

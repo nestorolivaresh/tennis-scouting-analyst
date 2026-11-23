@@ -1,6 +1,6 @@
 """Download the raw data files listed in ingest/data.lock.json and verify their hashes.
 
-There are two sources (docs/decisions.md explains why):
+There are three sources (docs/decisions.md explains why):
 
 - sackmann: Jeff Sackmann's tennis_atp repository at its final commit. The original
   repository was deleted in 2026, so files are fetched from forks that still contain
@@ -8,10 +8,13 @@ There are two sources (docs/decisions.md explains why):
   and each file is checked against the git blob hash recorded in the commit.
 - tml: TennisMyLife yearly CSVs. They have no versions upstream, so the lock file records
   the SHA-256 of the copy we downloaded and the date we downloaded it.
+- charting: the Match Charting Project's men's match list and three per-match stats files,
+  at a pinned commit, checked against its git blob hashes like Sackmann's (D-030).
 
 Usage:
-    uv run python -m ingest.download            # fetch missing files, verify every file
-    uv run python -m ingest.download --relock   # rebuild the lock file from the sources
+    uv run python -m ingest.download                  # fetch missing files, verify every file
+    uv run python -m ingest.download --lock-charting  # pin the charting files, leave the rest
+    uv run python -m ingest.download --relock         # rebuild the whole lock file from the sources
 
 Re-locking TML replaces the data snapshot, which changes eval ground truth. Only do it on purpose.
 """
@@ -48,6 +51,16 @@ SACKMANN_FILES = [f"atp_matches_{year}.csv" for year in SACKMANN_SEASONS] + [
     "atp_matches_2026.csv",  # not ingested: used only to compare 2026 coverage with TML
     "atp_players.csv",
     "matches_data_dictionary.txt",
+    "README.md",  # kept as the record of the license terms
+]
+
+CHARTING_REPO = "JeffSackmann/tennis_MatchChartingProject"
+CHARTING_COMMIT = "1813a1309b7ed7ebf1c7e884b32bf675d00e4edf"  # "thru 18 sep 2026" (D-030)
+CHARTING_FILES = [
+    "charting-m-matches.csv",
+    "charting-m-stats-ServeDirection.csv",
+    "charting-m-stats-Rally.csv",
+    "charting-m-stats-NetPoints.csv",
     "README.md",  # kept as the record of the license terms
 ]
 
@@ -103,15 +116,41 @@ def fetch_first(urls: list[str]) -> tuple[bytes, str]:
     raise RuntimeError("all sources failed:\n  " + "\n  ".join(errors))
 
 
-def sackmann_blob_hashes() -> dict[str, str]:
-    """Read the git blob hash of every file in the pinned commit from the GitHub API."""
-    urls = [
-        f"https://api.github.com/repos/{repo}/git/trees/{SACKMANN_COMMIT}"
-        for repo in SACKMANN_MIRRORS
-    ]
-    body, _ = fetch_first(urls)
+def charting_urls(name: str) -> list[str]:
+    return [f"https://raw.githubusercontent.com/{CHARTING_REPO}/{CHARTING_COMMIT}/{name}"]
+
+
+def blob_hashes(repos: list[str], commit: str) -> dict[str, str]:
+    """Read the git blob hash of every file in a commit from the GitHub API."""
+    body, _ = fetch_first([f"https://api.github.com/repos/{repo}/git/trees/{commit}" for repo in repos])
     tree = json.loads(body)
     return {item["path"]: item["sha"] for item in tree["tree"] if item["type"] == "blob"}
+
+
+def sackmann_blob_hashes() -> dict[str, str]:
+    return blob_hashes(SACKMANN_MIRRORS, SACKMANN_COMMIT)
+
+
+def lock_charting() -> dict:
+    """Download the charting files at the pinned commit, check them against the commit's blob
+    hashes, and return their lock entry."""
+    hashes = blob_hashes([CHARTING_REPO], CHARTING_COMMIT)
+    files = {}
+    for name in CHARTING_FILES:
+        data, url = fetch_first(charting_urls(name))
+        if git_blob_sha1(data) != hashes[name]:
+            raise RuntimeError(f"{name} from {url} does not match commit {CHARTING_COMMIT}")
+        write_atomic(RAW_DIR / "charting" / name, data)
+        files[name] = {"sha256": sha256(data), "git_blob_sha1": hashes[name], "bytes": len(data)}
+        print(f"locked charting/{name} ({len(data):,} bytes, matches commit)")
+    return {
+        "description": "The Match Charting Project: men's charted matches and per-match stats files",
+        "license": "CC BY-NC-SA 4.0",
+        "attribution": "The Tennis Abstract Match Charting Project",
+        "repository": CHARTING_REPO,
+        "commit": CHARTING_COMMIT,
+        "files": files,
+    }
 
 
 def verify(data: bytes, entry: dict) -> str | None:
@@ -171,7 +210,11 @@ def relock() -> dict:
             "retrieved_on": dt.date.today().isoformat(),
             "files": tml_files,
         },
+        "charting": lock_charting(),
     }
+
+
+SOURCE_URLS = {"sackmann": sackmann_urls, "charting": charting_urls}
 
 
 def sync(lock: dict) -> list[str]:
@@ -183,7 +226,7 @@ def sync(lock: dict) -> list[str]:
             if path.exists() and verify(path.read_bytes(), entry) is None:
                 print(f"ok      {source}/{name}")
                 continue
-            urls = sackmann_urls(name) if source == "sackmann" else [spec["base_url"] + name]
+            urls = SOURCE_URLS[source](name) if source in SOURCE_URLS else [spec["base_url"] + name]
             try:
                 data, url = fetch_first(urls)
             except RuntimeError as error:
@@ -202,7 +245,17 @@ def sync(lock: dict) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--relock", action="store_true", help="download from sources and rewrite the lock file")
+    parser.add_argument(
+        "--lock-charting", action="store_true", help="pin the charting files and leave the other sources as locked"
+    )
     args = parser.parse_args(argv)
+
+    if args.lock_charting and LOCK_PATH.exists():
+        lock = json.loads(LOCK_PATH.read_text())
+        lock["charting"] = lock_charting()
+        LOCK_PATH.write_text(json.dumps(lock, indent=2) + "\n")
+        print(f"wrote {LOCK_PATH.relative_to(ROOT)}")
+        return 0
 
     if args.relock or not LOCK_PATH.exists():
         lock = relock()

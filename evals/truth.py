@@ -36,7 +36,11 @@ def connect() -> psycopg.Connection:
 # score parsing runs only on those (NULL: every player). Parameters are bound by psycopg.
 PLAYER_MATCHES_SQL = r"""
 WITH src AS (
-  SELECT r.season, r.row_num, trim(r.score) AS score, r.tourney_name,
+  SELECT r.season, r.row_num, trim(r.score) AS score, r.tourney_name, trim(r.round) AS round,
+         CASE WHEN trim(r.best_of) ~ '^\d+$' THEN trim(r.best_of)::int END AS best_of,
+         trim(r.winner_name) AS winner_name, trim(r.loser_name) AS loser_name,
+         CASE WHEN trim(r.winner_rank) ~ '^\d+$' THEN trim(r.winner_rank)::int END AS winner_rank,
+         CASE WHEN trim(r.loser_rank) ~ '^\d+$' THEN trim(r.loser_rank)::int END AS loser_rank,
          to_date(r.tourney_date, 'YYYYMMDD') AS tourney_date,
          CASE WHEN r.surface IN ('Hard', 'Clay', 'Grass', 'Carpet') THEN r.surface END AS surface,
          CASE WHEN r.tourney_level = 'D' THEN 'D' ELSE coalesce(se.level, r.tourney_level) END AS level,
@@ -128,7 +132,10 @@ match_stats AS (
   FROM side_ok GROUP BY season, row_num
 )
 SELECT t.season, t.row_num, t.tourney_name, t.tourney_date, t.surface, t.level, t.exhibition,
-       t.result_type, t.score,
+       t.result_type, t.score, t.round, t.best_of,
+       CASE WHEN me.side = 'w' THEN t.winner_name ELSE t.loser_name END AS player_name,
+       CASE WHEN me.side = 'w' THEN t.loser_name ELSE t.winner_name END AS opponent_name,
+       CASE WHEN me.side = 'w' THEN t.loser_rank ELSE t.winner_rank END AS opponent_rank,
        coalesce(ms.any_value AND ms.sides_valid AND t.result_type <> 'walkover', false) AS has_stats,
        me.player, opp.player AS opponent, me.side = 'w' AS won,
        CASE WHEN p.hand IN ('R', 'L') THEN p.hand END AS opponent_hand,
@@ -153,6 +160,7 @@ scoped AS (
            WHEN result_type NOT IN ('completed', 'retired', 'defaulted') THEN result_type
            WHEN %(surface)s::text IS NOT NULL AND surface IS NULL THEN 'no surface'
            WHEN %(opponent_hand)s::text IS NOT NULL AND opponent_hand IS NULL THEN 'unknown hand'
+           WHEN %(opponent_rank_max)s::int IS NOT NULL AND opponent_rank IS NULL THEN 'unknown rank'
          END AS left_out
   FROM pm
   WHERE player = %(player)s
@@ -163,6 +171,7 @@ scoped AS (
     AND (%(surface)s::text IS NULL OR surface IS NULL OR surface = %(surface)s)
     AND (%(levels)s::text[] IS NULL OR level = ANY(%(levels)s))
     AND (%(opponent_hand)s::text IS NULL OR opponent_hand IS NULL OR opponent_hand = %(opponent_hand)s)
+    AND (%(opponent_rank_max)s::int IS NULL OR opponent_rank IS NULL OR opponent_rank <= %(opponent_rank_max)s)
 )
 """
 )
@@ -204,6 +213,7 @@ class Filters:
     levels: tuple[str, ...] | None = None
     opponent_hand: str | None = None
     include_exhibitions: bool = False
+    opponent_rank_max: int | None = None  # the opponent's ranking at the time (D-029)
 
     def params(self) -> dict[str, Any]:
         return {
@@ -214,7 +224,13 @@ class Filters:
             "levels": list(self.levels) if self.levels else None,
             "opponent_hand": self.opponent_hand,
             "include_exhibitions": self.include_exhibitions,
+            "opponent_rank_max": self.opponent_rank_max,
         }
+
+
+# The stats Totals.stat computes (the spec's definitions).
+TOTALS_STATS = ("win_rate", "aces_per_match", "first_serve_in", "first_serve_points_won", "second_serve_points_won",
+                "service_points_won", "return_points_won", "break_points_saved", "break_points_converted")  # fmt: skip
 
 
 @dataclass(frozen=True)
@@ -269,3 +285,255 @@ def totals(conn: psycopg.Connection, player: int, filters: Filters = Filters(), 
     reasons = ("no_surface", "unknown_hand")
     sums = {key: (None if value is None else int(value)) for key, value in row.items() if key not in counts + reasons}
     return Totals(*(int(row[key]) for key in counts), sums=sums, left_out_by={key: int(row[key]) for key in reasons})
+
+
+# ---------- Milestones 8 and 9 (D-029, D-030), written again from the decision log ----------
+
+# Set patterns: the completed matches in scope, one row per set token, from the player's side.
+# A tiebreak is a set with a tiebreak score in parentheses, or a 7-6 set; a match that used all
+# its sets was decided in the last one; retirements and defaults are left out.
+SET_PATTERNS_SQL = (
+    SCOPE_SQL
+    + r""",
+set_tokens AS (
+  SELECT sc.season, sc.row_num, sc.won, sc.best_of, t.ord, t.token,
+         (regexp_match(t.token, '^\[?(\d+)-(\d+)'))[1]::int AS a,
+         (regexp_match(t.token, '^\[?(\d+)-(\d+)'))[2]::int AS b
+  FROM scoped sc, regexp_split_to_table(sc.score, '\s+') WITH ORDINALITY AS t(token, ord)
+  WHERE sc.left_out IS NULL AND sc.result_type = 'completed'
+),
+per_match AS (
+  SELECT season, row_num, won, best_of, count(*) AS sets,
+         count(*) FILTER (WHERE token LIKE '%%(%%' OR token IN ('7-6', '6-7')) AS tb_played,
+         count(*) FILTER (WHERE (token LIKE '%%(%%' OR token IN ('7-6', '6-7'))
+                            AND CASE WHEN won THEN a > b ELSE b > a END) AS tb_won,
+         bool_or(ord = 1 AND CASE WHEN won THEN a > b ELSE b > a END) AS won_first_set
+  FROM set_tokens GROUP BY season, row_num, won, best_of
+)
+SELECT coalesce(sum(tb_won), 0) AS tiebreaks_won_count, coalesce(sum(tb_played), 0) AS tiebreaks_played,
+       count(*) FILTER (WHERE sets = best_of AND won) AS deciding_won, count(*) FILTER (WHERE sets = best_of) AS deciding_played,
+       count(*) FILTER (WHERE won_first_set AND won) AS after_win_won, count(*) FILTER (WHERE won_first_set) AS after_win_played,
+       count(*) FILTER (WHERE NOT won_first_set AND won) AS after_loss_won, count(*) FILTER (WHERE NOT won_first_set) AS after_loss_played,
+       count(*) AS completed
+FROM per_match
+"""
+)
+
+# Every player's totals under the same rules, for tour ranks: the scope with its one-player
+# condition removed (PLAYER_MATCHES_SQL already reads every player when %(player)s is NULL).
+_ONE_PLAYER = "  WHERE player = %(player)s\n"
+assert SCOPE_SQL.count(_ONE_PLAYER) == 1
+TOUR_TOTALS_SQL = (
+    SCOPE_SQL.replace(_ONE_PLAYER, "  WHERE TRUE\n")
+    + """
+SELECT player, count(*) FILTER (WHERE left_out IS NULL) AS matches,
+       count(*) FILTER (WHERE left_out IS NULL AND has_stats) AS matches_with_stats,
+       sum(ace) FILTER (WHERE left_out IS NULL AND has_stats) AS aces,
+       sum(svpt) FILTER (WHERE left_out IS NULL AND has_stats) AS serve_points,
+       sum(first_in) FILTER (WHERE left_out IS NULL AND has_stats) AS first_in,
+       sum(first_won) FILTER (WHERE left_out IS NULL AND has_stats) AS first_won,
+       sum(second_won) FILTER (WHERE left_out IS NULL AND has_stats) AS second_won,
+       sum(bp_saved) FILTER (WHERE left_out IS NULL AND has_stats) AS bp_saved,
+       sum(bp_faced) FILTER (WHERE left_out IS NULL AND has_stats) AS bp_faced,
+       sum(opp_svpt) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_serve_points,
+       sum(opp_first_won + opp_second_won) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_serve_won,
+       sum(opp_bp_saved) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_bp_saved,
+       sum(opp_bp_faced) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_bp_faced
+FROM scoped
+GROUP BY player
+"""
+)
+
+# Charted matches: a chart counts for a tour match in scope when both names match the raw match
+# file's names (letters only, case ignored), the round is the same (any round for a Davis Cup
+# tie, written "RR"), and the tournament starts 14 days before to 3 days after the chart date.
+# If several tour matches fit a chart, the one that started most recently on or before the
+# chart date wins; a chart with no single winner, a tour match chosen by two charts, and a
+# chart ID listed twice with different details don't count. Names are compared over every
+# Sackmann match, not just the player's, so a chart is linked the same way for both players.
+CHARTS_SQL = (
+    SCOPE_SQL
+    + r""",
+charts AS (
+  SELECT match_id AS chart_id, min(player1) AS player1, min(player2) AS player2,
+         to_date(min(date), 'YYYYMMDD') AS chart_date, min(round) AS round
+  FROM raw.charting_matches
+  WHERE match_id <> ''
+  GROUP BY match_id
+  HAVING count(DISTINCT (player1, player2, date, tournament, round, surface, best_of)) = 1
+     AND min(date) ~ '^\d{8}$'
+),
+chart_keys AS MATERIALIZED (
+  SELECT c.*, least(a.k, b.k) || '|' || greatest(a.k, b.k) AS pair
+  FROM charts c,
+       LATERAL (SELECT regexp_replace(lower(c.player1), '[^a-z]', '', 'g') AS k) a,
+       LATERAL (SELECT regexp_replace(lower(c.player2), '[^a-z]', '', 'g') AS k) b
+),
+tour AS MATERIALIZED (
+  SELECT r.season, r.row_num, trim(r.round) AS round, r.tourney_level AS level,
+         to_date(r.tourney_date, 'YYYYMMDD') AS tourney_date,
+         least(w.k, l.k) || '|' || greatest(w.k, l.k) AS pair
+  FROM raw.matches r,
+       LATERAL (SELECT regexp_replace(lower(r.winner_name), '[^a-z]', '', 'g') AS k) w,
+       LATERAL (SELECT regexp_replace(lower(r.loser_name), '[^a-z]', '', 'g') AS k) l
+  WHERE r.source = 'sackmann' AND r.season BETWEEN 2015 AND 2025
+),
+fits AS MATERIALIZED (
+  SELECT c.chart_id, c.chart_date, c.player1, t.season, t.row_num, t.tourney_date
+  FROM chart_keys c JOIN tour t ON t.pair = c.pair
+   AND (t.round = c.round OR (t.level = 'D' AND t.round = 'RR'))
+   AND t.tourney_date BETWEEN c.chart_date - 14 AND c.chart_date + 3
+),
+chosen AS MATERIALIZED (
+  SELECT f.* FROM fits f
+  WHERE (SELECT count(*) FROM fits g WHERE g.chart_id = f.chart_id) = 1
+     OR (f.tourney_date <= f.chart_date
+         AND NOT EXISTS (SELECT 1 FROM fits g WHERE g.chart_id = f.chart_id AND g.tourney_date <= g.chart_date
+                         AND (g.tourney_date > f.tourney_date OR (g.tourney_date = f.tourney_date AND g.row_num <> f.row_num))))
+),
+linked AS (
+  SELECT c.* FROM chosen c
+  WHERE (SELECT count(*) FROM chosen d WHERE (d.season, d.row_num) = (c.season, c.row_num)) = 1
+),
+mine AS (
+  SELECT l.chart_id, l.player1, sc.player_name
+  FROM scoped sc JOIN linked l ON (l.season, l.row_num) = (sc.season, sc.row_num)
+  WHERE sc.left_out IS NULL
+)
+"""
+)
+
+
+@dataclass(frozen=True)
+class Charted:
+    """The player's charted matches in scope, and their names in the charting files."""
+
+    chart_ids: list[str]
+    names: dict[str, str]  # chart_id -> the player's name as the chart writes it
+    first: dict[str, bool]  # chart_id -> whether the player is the chart's Player 1
+
+
+def _letters(name: str) -> str:
+    return "".join(ch for ch in name.lower() if "a" <= ch <= "z")
+
+
+def charted(conn: psycopg.Connection, player: int, filters: Filters = Filters()) -> Charted:
+    mine = {
+        row["chart_id"]: row["player_name"]
+        for row in conn.execute(CHARTS_SQL + "SELECT chart_id, player_name FROM mine",
+                                {"player": player, "opponent": None, **filters.params()}).fetchall()
+    }  # fmt: skip
+    names, first = {}, {}
+    for row in conn.execute("SELECT DISTINCT match_id, player1, player2 FROM raw.charting_matches WHERE match_id = ANY(%(ids)s)",
+                            {"ids": list(mine)}).fetchall():  # fmt: skip
+        is_first = _letters(row["player1"]) == _letters(mine[row["match_id"]])
+        names[row["match_id"]] = row["player1"] if is_first else row["player2"]
+        first[row["match_id"]] = is_first
+    return Charted(sorted(names), names, first)
+
+
+def _whole(value: str | None) -> int | None:
+    text = (value or "").strip()
+    return int(text) if text.isdigit() else None
+
+
+def shot_totals(conn: psycopg.Connection, player: int, filters: Filters = Filters()) -> dict[str, Any]:
+    """Sums over the player's charted matches in scope. A match's serve directions need both of
+    its rows ('1': first serves in; '2': every second serve); its rally lengths need the Total
+    row of Player 1's side, with the length bands adding up to it."""
+    c = charted(conn, player, filters)
+    out: dict[str, Any] = {"charted_matches": len(c.chart_ids)}
+    serve = {(r["match_id"], r["row"]): r for r in conn.execute(
+        "SELECT * FROM raw.charting_serve_direction WHERE match_id = ANY(%(ids)s) AND row IN ('1', '2')",
+        {"ids": c.chart_ids}).fetchall() if r["player"] == c.names[r["match_id"]]}  # fmt: skip
+    columns = ("deuce_wide", "deuce_middle", "deuce_t", "ad_wide", "ad_middle", "ad_t")
+    for row_name in ("1", "2"):
+        for column in columns:
+            out[f"serve{row_name}_{column}"] = 0
+    for chart_id in c.chart_ids:
+        pair = [serve.get((chart_id, "1")), serve.get((chart_id, "2"))]
+        if None in pair or any(_whole(r[col]) is None for r in pair for col in columns):
+            continue
+        for row_name, r in zip(("1", "2"), pair):
+            for column in columns:
+                out[f"serve{row_name}_{column}"] += _whole(r[column])
+    rally_rows = conn.execute(
+        "SELECT r.* FROM raw.charting_rally r JOIN raw.charting_matches m ON m.match_id = r.match_id AND m.player1 = r.server "
+        "WHERE r.match_id = ANY(%(ids)s) AND r.row IN ('Total', '1-3', '4-6', '7-9', '10')", {"ids": c.chart_ids}).fetchall()  # fmt: skip
+    by_chart: dict[str, dict[str, dict]] = {}
+    for r in rally_rows:
+        by_chart.setdefault(r["match_id"], {})[r["row"]] = r
+    for band in ("1-3", "4-6", "7-9", "10"):
+        out[f"rally_{band}_won"] = out[f"rally_{band}_played"] = 0
+    for chart_id, rows in by_chart.items():
+        total = rows.get("Total")
+        bands = {b: rows.get(b) for b in ("1-3", "4-6", "7-9", "10")}
+        if total is None or sum(_whole(r["pts"]) or 0 for r in bands.values() if r) != _whole(total["pts"]):
+            continue
+        side = "pl1_won" if c.first[chart_id] else "pl2_won"
+        for band, r in bands.items():
+            if r:
+                out[f"rally_{band}_played"] += _whole(r["pts"])
+                out[f"rally_{band}_won"] += _whole(r[side])
+    return out
+
+
+def rank_in_tour(conn: psycopg.Connection, stat: str, player: int, filters: Filters, min_matches: int = 10) -> dict[str, Any]:
+    """The player's rank for one stat among players with at least min_matches matches with
+    stats: 1 is the highest, and equal values share the better rank."""
+    rows = conn.execute(TOUR_TOTALS_SQL, {"player": None, "opponent": None, **filters.params()}).fetchall()
+    sums_keys = ("aces", "serve_points", "first_in", "first_won", "second_won", "bp_saved", "bp_faced",
+                 "opp_serve_points", "opp_serve_won", "opp_bp_saved", "opp_bp_faced")  # fmt: skip
+    values = {}
+    for row in rows:
+        if row["matches_with_stats"] < min_matches:
+            continue
+        t = Totals(int(row["matches"]), 0, 0, int(row["matches_with_stats"]), 0,
+                   sums={k: None if row[k] is None else int(row[k]) for k in sums_keys})  # fmt: skip
+        value = t.stat(stat)
+        if value is not None:
+            values[row["player"]] = value
+    mine = values.get(player)
+    return {"rank": None if mine is None else 1 + sum(1 for v in values.values() if v > mine), "players_ranked": len(values)}
+
+
+def set_totals(conn: psycopg.Connection, player: int, filters: Filters = Filters()) -> dict[str, int]:
+    row = conn.execute(SET_PATTERNS_SQL, {"player": player, "opponent": None, **filters.params()}).fetchone()
+    return {key: int(value) for key, value in row.items()}
+
+
+def _share(numerator: int, denominator: int) -> float | None:
+    return numerator / denominator if denominator else None
+
+
+# Each new stat a question can expect: how to compute it, and whether it's a count (exact).
+def pattern_value(conn: psycopg.Connection, stat: str, player: int, filters: Filters) -> tuple[float | int | None, str]:
+    if stat in ("tiebreaks_won", "tiebreaks_won_count", "tiebreaks_played", "deciding_sets_won",
+                "won_after_winning_first_set", "won_after_losing_first_set"):  # fmt: skip
+        s = set_totals(conn, player, filters)
+        return {
+            "tiebreaks_won": (_share(s["tiebreaks_won_count"], s["tiebreaks_played"]), "rate"),
+            "tiebreaks_won_count": (s["tiebreaks_won_count"], "count"),
+            "tiebreaks_played": (s["tiebreaks_played"], "count"),
+            "deciding_sets_won": (_share(s["deciding_won"], s["deciding_played"]), "rate"),
+            "won_after_winning_first_set": (_share(s["after_win_won"], s["after_win_played"]), "rate"),
+            "won_after_losing_first_set": (_share(s["after_loss_won"], s["after_loss_played"]), "rate"),
+        }[stat]
+    if stat.startswith(("tour_rank:", "tour_players:")):
+        kind, measure = stat.split(":")
+        ranked = rank_in_tour(conn, measure, player, filters)
+        return (ranked["rank"] if kind == "tour_rank" else ranked["players_ranked"]), "count"
+    if stat == "charted_matches":
+        return shot_totals(conn, player, filters)["charted_matches"], "count"
+    if stat.startswith(("dir_first_", "dir_second_")):
+        s = shot_totals(conn, player, filters)
+        row_name = "1" if stat.startswith("dir_first_") else "2"
+        court, side = stat.removeprefix("dir_first_").removeprefix("dir_second_").split("_")
+        column = {"wide": "wide", "body": "middle", "t": "t"}[side]
+        court_total = sum(s[f"serve{row_name}_{court}_{c}"] for c in ("wide", "middle", "t"))
+        return _share(s[f"serve{row_name}_{court}_{column}"], court_total), "rate"
+    if stat.startswith("rally_") and stat.endswith("_won"):
+        band = stat.removeprefix("rally_").removesuffix("_won").replace("_plus", "").replace("_", "-")
+        s = shot_totals(conn, player, filters)
+        return _share(s[f"rally_{band}_won"], s[f"rally_{band}_played"]), "rate"
+    raise ValueError(f"unknown stat {stat!r}")

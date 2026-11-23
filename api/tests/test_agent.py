@@ -59,7 +59,7 @@ def test_tool_results_go_back_to_the_model(conn):
     assert [name for name, _ in events] == ["tool_call", "tool_result", "text"]
     request = client.requests[0]
     assert request["model"] == "claude-sonnet-5-5" and request["output_config"] == {"effort": "low"}
-    assert request["cache_control"] == {"type": "ephemeral"} and len(request["tools"]) == 7
+    assert request["cache_control"] == {"type": "ephemeral"} and len(request["tools"]) == 10
 
 
 def test_tool_errors_go_back_to_the_model_as_error_results(conn):

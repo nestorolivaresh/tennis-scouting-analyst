@@ -7,9 +7,11 @@
 -- Trigram similarity for player-name lookup with typos (api/stats.py, resolve_player).
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-DROP TABLE IF EXISTS player_matches, matches, players;
+DROP TABLE IF EXISTS charting_player_stats, charting_matches, player_matches, matches, players;
 DROP TABLE IF EXISTS raw.matches, raw.sackmann_players, raw.tml_players,
-                     raw.player_merges, raw.player_crosswalk, raw.special_events;
+                     raw.player_merges, raw.player_crosswalk, raw.special_events,
+                     raw.charting_matches, raw.charting_serve_direction, raw.charting_rally,
+                     raw.charting_net_points;
 
 -- ---------------------------------------------------------------------------
 -- raw: the source files exactly as published, every value as text, plus the reviewed
@@ -125,6 +127,39 @@ CREATE TABLE raw.special_events (
   note          TEXT
 );
 
+-- The Match Charting Project's files (D-030), as text. raw.charting_matches keeps the columns
+-- this project uses (not the umpire or the volunteer who charted the match); the stats files
+-- keep every column. Column names are the files' own, in snake case.
+CREATE TABLE raw.charting_matches (
+  row_num    INTEGER NOT NULL,
+  match_id   TEXT,
+  player1    TEXT,  -- "Player 1": always the player who served first
+  player2    TEXT,
+  date       TEXT,  -- YYYYMMDD
+  tournament TEXT,
+  round      TEXT,
+  surface    TEXT,
+  best_of    TEXT
+);
+
+CREATE TABLE raw.charting_serve_direction (
+  match_id TEXT, player TEXT, row TEXT,  -- row '1': first serves in; '2': every second serve
+  deuce_wide TEXT, deuce_middle TEXT, deuce_t TEXT, ad_wide TEXT, ad_middle TEXT, ad_t TEXT,
+  err_net TEXT, err_wide TEXT, err_deep TEXT, err_wide_deep TEXT, err_foot TEXT, err_unknown TEXT
+);
+
+CREATE TABLE raw.charting_rally (
+  match_id TEXT, server TEXT, returner TEXT, row TEXT,  -- pl1 is the `server` column's player
+  pts TEXT, pl1_won TEXT, pl1_winners TEXT, pl1_forced TEXT, pl1_unforced TEXT,
+  pl2_won TEXT, pl2_winners TEXT, pl2_forced TEXT, pl2_unforced TEXT
+);
+
+CREATE TABLE raw.charting_net_points (
+  match_id TEXT, player TEXT, row TEXT,
+  net_pts TEXT, pts_won TEXT, net_winner TEXT, induced_forced TEXT, net_unforced TEXT,
+  passed_at_net TEXT, passing_shot_induced_forced TEXT, total_shots TEXT
+);
+
 -- ---------------------------------------------------------------------------
 -- Core tables used by the stats layer.
 -- ---------------------------------------------------------------------------
@@ -203,3 +238,54 @@ CREATE TABLE player_matches (
 
 CREATE INDEX idx_pm_player_opponent ON player_matches (player_id, opponent_id);
 CREATE INDEX idx_matches_date ON matches (tourney_date);
+
+-- ---------------------------------------------------------------------------
+-- Charted matches (D-030). Every charted men's match, with whether it is the same match as a
+-- tour match in `matches` and, if not, why. Only linked matches have player stats.
+-- ---------------------------------------------------------------------------
+CREATE TABLE charting_matches (
+  chart_id    TEXT PRIMARY KEY,  -- the Match Charting Project's match_id
+  chart_date  DATE,
+  round       TEXT,
+  player1_id  INTEGER REFERENCES players (player_id),  -- NULL: the name didn't resolve
+  player2_id  INTEGER REFERENCES players (player_id),
+  match_id    TEXT REFERENCES matches (match_id),
+  link        TEXT NOT NULL CHECK (link IN ('linked', 'before_data', 'name_not_resolved',
+                                            'no_tour_match', 'several_tour_matches', 'charted_twice',
+                                            'unreadable_row')),
+  CHECK ((link = 'linked') = (match_id IS NOT NULL))
+);
+CREATE UNIQUE INDEX idx_charting_one_chart_per_match ON charting_matches (match_id);
+
+-- One row per player of a linked charted match. A category is NULL when its file has no
+-- usable row for that match (D-030): serve direction (first serves in, every second serve,
+-- deuce and ad courts), points by rally length (shots including the serve, not counting the
+-- final error), and net points.
+CREATE TABLE charting_player_stats (
+  chart_id   TEXT    NOT NULL REFERENCES charting_matches (chart_id),
+  match_id   TEXT    NOT NULL REFERENCES matches (match_id),
+  player_id  INTEGER NOT NULL REFERENCES players (player_id),
+  first_deuce_wide INTEGER, first_deuce_body INTEGER, first_deuce_t INTEGER,
+  first_ad_wide INTEGER, first_ad_body INTEGER, first_ad_t INTEGER,
+  second_deuce_wide INTEGER, second_deuce_body INTEGER, second_deuce_t INTEGER,
+  second_ad_wide INTEGER, second_ad_body INTEGER, second_ad_t INTEGER,
+  rally_1_3_played INTEGER, rally_1_3_won INTEGER, rally_4_6_played INTEGER, rally_4_6_won INTEGER,
+  rally_7_9_played INTEGER, rally_7_9_won INTEGER, rally_10_played INTEGER, rally_10_won INTEGER,
+  points_played INTEGER,
+  net_points INTEGER, net_points_won INTEGER,
+  PRIMARY KEY (chart_id, player_id),
+  CHECK (num_nulls(first_deuce_wide, first_deuce_body, first_deuce_t, first_ad_wide, first_ad_body,
+                   first_ad_t, second_deuce_wide, second_deuce_body, second_deuce_t, second_ad_wide,
+                   second_ad_body, second_ad_t) IN (0, 12)),
+  CHECK (num_nulls(rally_1_3_played, rally_1_3_won, rally_4_6_played, rally_4_6_won, rally_7_9_played,
+                   rally_7_9_won, rally_10_played, rally_10_won, points_played) IN (0, 9)),
+  CHECK (num_nulls(net_points, net_points_won) IN (0, 2)),
+  CHECK (rally_1_3_won <= rally_1_3_played AND rally_4_6_won <= rally_4_6_played
+         AND rally_7_9_won <= rally_7_9_played AND rally_10_won <= rally_10_played),
+  CHECK (rally_1_3_played + rally_4_6_played + rally_7_9_played + rally_10_played = points_played),
+  CHECK (net_points_won <= net_points AND net_points <= points_played),
+  CHECK (least(first_deuce_wide, first_deuce_body, first_deuce_t, first_ad_wide, first_ad_body, first_ad_t,
+               second_deuce_wide, second_deuce_body, second_deuce_t, second_ad_wide, second_ad_body,
+               second_ad_t, rally_1_3_won, rally_4_6_won, rally_7_9_won, rally_10_won, net_points_won) >= 0)
+);
+CREATE INDEX idx_charting_stats_player ON charting_player_stats (player_id);

@@ -13,6 +13,12 @@ The project uses the final commit of the `tennis_atp` repository (`712be0c`, 8 J
 That repository was removed from GitHub in 2026; the files were retrieved from public forks and
 checked against the commit's file hashes (`ingest/data.lock.json`).
 
+**Shot-level patterns.** "Crowdsourced shot-by-shot professional tennis data" by
+[The Tennis Abstract Match Charting Project](https://github.com/JeffSackmann/tennis_MatchChartingProject),
+licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). The project
+uses the men's match list and three per-match stats files (serve direction, rally length, net
+points) at commit `1813a13` (18 September 2026), checked against that commit's file hashes.
+
 **Season 2026.** The [TennisMyLife ATP match database](https://stats.tennismylife.org/tennis-match-database).
 Its public terms allow personal, educational and non-commercial research use, and don't allow
 redistributing the raw CSV files.
@@ -28,14 +34,14 @@ redistributing the raw CSV files.
   - `web/lib/fixtures/` (example app responses, with match results and stats);
   - `evals/cases.py` and `evals/results/` (eval questions and results).
 
-  What comes from Sackmann's data is shared under
+  What comes from Sackmann's data or the Match Charting Project's is shared under
   [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), as his license requires.
   What comes from the TennisMyLife data stays under TennisMyLife's terms above and isn't
   relicensed here. That covers the TennisMyLife IDs in `ingest/player_crosswalk.csv`, and the
   2026 matches in the summaries and fixtures.
 - **Changes made to the data.** The project reshapes matches to one row per player,
   normalizes tournament levels, merges duplicate player IDs, removes stats that fail sanity
-  checks, and maps TennisMyLife players to Sackmann IDs. `docs/decisions.md` explains each
+  checks, maps TennisMyLife players to Sackmann IDs, and links charted matches to tour matches. `docs/decisions.md` explains each
   change.
 - **Code.** The code's license is separate from the data licenses and hasn't been chosen yet.
 

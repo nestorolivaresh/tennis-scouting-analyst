@@ -60,4 +60,8 @@ def compose(
             "recent_form": stats.recent_form(conn, pid, RECENT_MATCHES, filters),
             "career": {"serve_return": stats.serve_return_stats(conn, pid), "pressure": stats.pressure_stats(conn, pid)},
             "head_to_head": h2h,
+            # Milestones 8 and 9 (D-029, D-030), under the page's filters.
+            "set_patterns": stats.set_patterns(conn, pid, filters),
+            "tour": stats.tour_comparison(conn, pid, filters),
+            "shots": stats.shot_patterns(conn, pid, filters),
         }

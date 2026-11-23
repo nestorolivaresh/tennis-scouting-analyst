@@ -107,5 +107,39 @@
         "bytes": 881227
       }
     }
+  },
+  "charting": {
+    "description": "The Match Charting Project: men's charted matches and per-match stats files",
+    "license": "CC BY-NC-SA 4.0",
+    "attribution": "The Tennis Abstract Match Charting Project",
+    "repository": "JeffSackmann/tennis_MatchChartingProject",
+    "commit": "1813a1309b7ed7ebf1c7e884b32bf675d00e4edf",
+    "files": {
+      "charting-m-matches.csv": {
+        "sha256": "d8dce1ad8d12c04efa01da587441b54ece8e8100530660528312244f632efe80",
+        "git_blob_sha1": "7bf0d44611caf3c2becfb77d47db70da57fab4cd",
+        "bytes": 1141817
+      },
+      "charting-m-stats-ServeDirection.csv": {
+        "sha256": "991a437b8af0d69176671e91f9c6c0429fc6060bc6fb0cb741d88ab071bc14fe",
+        "git_blob_sha1": "c015fefd118b4b8aebabc6c5816f1dcb1a2fb908",
+        "bytes": 4663213
+      },
+      "charting-m-stats-Rally.csv": {
+        "sha256": "39fca5a5f930a7a3444d00533016baa764ec37ce43d0a06aa07b713f38d6b498",
+        "git_blob_sha1": "ec275ed40b2a137b133e5f2077abc1c6f42525ee",
+        "bytes": 10974130
+      },
+      "charting-m-stats-NetPoints.csv": {
+        "sha256": "239540c77767512921153a05d8e320450524b6a06976c5bf0d496268a2dee0e8",
+        "git_blob_sha1": "222a0301a2156de6ace7e14fe69af479fcc193bf",
+        "bytes": 6184262
+      },
+      "README.md": {
+        "sha256": "2c2a5961a2761eea35b4143e9cab1d23200f49d72fc0ced56bb09f5a326e8444",
+        "git_blob_sha1": "4615df62170830f15bd84876c26ccf20e56437d0",
+        "bytes": 4805
+      }
+    }
   }
 }

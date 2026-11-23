@@ -119,3 +119,28 @@ def test_a_report_without_key_stats_fails():
     assert check_report({"summary": "x"}, {}) == ["the report has no key_stats list"]
     assert check_report(["not", "a", "report"], {}) == ["the report has no key_stats list"]
     assert "is not an object" in check_report(report("0.6"), {})[0]
+
+
+@needs_db
+def test_new_tools_samples_can_be_cited():
+    """Set patterns cite the completed matches they were read from; shot patterns the charted
+    matches of their block; tour ranks the matches with stats (D-029, D-030). A live report
+    cited 122 completed matches for a set pattern and failed before the count was citable."""
+    from api.db import connect
+
+    conn = connect()
+    calls = {
+        "s": ToolCall("s", "set_patterns", {}, 1, result=stats.set_patterns(conn, ALCARAZ, {"season": 2024})),
+        "c": ToolCall("c", "shot_patterns", {}, 1, result=stats.shot_patterns(conn, ALCARAZ, {"season": 2024})),
+        "r": ToolCall("r", "tour_comparison", {}, 1, result=stats.tour_comparison(conn, ALCARAZ, {"season": 2024})),
+    }
+    conn.close()
+    completed = calls["s"].result["scores_read"]["completed_matches"]
+    assert completed != calls["s"].result["sample"]["matches_counted"]  # the sample exercises the rule
+    good = report(
+        {**stat(calls, "s", "stats.won_after_losing_first_set.value", "sample.matches_counted"), "sample_matches": completed},
+        stat(calls, "c", "rally_length.points_won.10_plus.value", "rally_length.matches"),
+        stat(calls, "c", "serve_direction.first_serves_in.ad.t.value", "serve_direction.matches"),
+        stat(calls, "r", "stats.return_points_won.rank", "sample.matches_with_stats"),
+    )
+    assert check_report(good, calls) == []

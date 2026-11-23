@@ -2,7 +2,7 @@
 
 A personal project, built for fun and to explore new tools. Live at [tennis-scouting-analyst.vercel.app](https://tennis-scouting-analyst.vercel.app). Every
 claim below links to the decision that records it in [decisions.md](decisions.md) (D-001 to
-D-027), and every eval number comes from a committed results file in
+D-030), and every eval number comes from a committed results file in
 [`evals/results/`](../evals/results).
 
 ## The problem
@@ -31,8 +31,12 @@ So the goal was narrower than "an AI analyst":
   was left out, and the exact field.
 - **Follow-up chat.** It uses the same tools. The app says plainly that chat numbers aren't
   checked the way a report's key numbers are.
+- **Scouting patterns.** How a player does in tiebreaks and deciding sets, after winning or
+  losing the first set, and against top-ranked opponents; how their serve and return rates rank
+  against the rest of the tour; and, from matches charted shot by shot, where they serve on each
+  court, how they do in short and long rallies, and at the net (D-029, D-030).
 - **Player stats.** Any player's record by surface and season, serve and return figures,
-  recent matches and head-to-head, with no model involved.
+  scouting patterns, recent matches and head-to-head, with no model involved.
 - **Three languages.** English, Spanish and French, defaulting to the browser's language
   (D-027).
 
@@ -91,6 +95,7 @@ Four layers, each meant to catch what the others can't.
 ## Eval results
 
 Forty-three questions: the spec's 40 in five categories, plus 3 added from bugs found by hand.
+Milestones 8 and 9 added eight more for the scouting patterns, for 51.
 Each answer is scored on several checks:
 - its numbers, with rates within 0.5 percentage points and counts exact;
 - the tool it chose, and the filters it used;
@@ -107,9 +112,12 @@ Each answer is scored on several checks:
 | `final` | 43 | the first scorer plus pairs | 43/43 | $0.765 | 4.0 s |
 | `final-rescored` | 43 | the final scorer | 42/43 | (same answers) | |
 | `final-v2` | 43 | the final scorer | 42/43 | $0.779 | 3.9 s |
+| `m8-m9` | 51 | the final scorer | 50/51 | $1.268 | 4.1 s |
+| `m8-m9-rescored` | 51 | the final scorer, R02's refusal widened | 51/51 | (same answers) | |
 
 `final-v2` by category: single stat 10/10, filtered stat 10/10, head-to-head 10/11,
-comparison 6/6, refuse or caveat 6/6. On the spec's original 40 questions, scored the same way,
+comparison 6/6, refuse or caveat 6/6. `m8-m9`, after the scorer fix: every category passed,
+including scouting patterns 7/7. On the spec's original 40 questions, scored the same way,
 the baseline passed 37 and `final-v2` passed 39.
 
 **What failed, by cause.**
@@ -125,9 +133,11 @@ checks records and counts as pairs and checks who leads. The three hand-found bu
 questions.
 
 **What is still wrong.** One question (H04, the full Sinner-Alcaraz head-to-head) gave a
-different answer in each of three runs. The latest restated a Roland Garros final score from the
-other player's side and got two sets wrong. One run per question can't show how often an answer
-varies.
+different answer in each of three runs. One restated a Roland Garros final score from the other
+player's side and got two sets wrong. The fix went into the tool rather than the prompt: every
+match now carries its score from the asked player's side too, and H04 passed in `m8-m9`,
+quoting each final from Sinner's side (D-029). One run per question still can't show how often
+an answer varies.
 
 ## What went wrong along the way
 
@@ -153,7 +163,8 @@ varies.
 - **Model.** Claude Sonnet 5.5 at low effort, chosen over Opus 5.5 to halve the price; the
   evals measured whether quality held (D-022).
 - **A report.** Nine tool calls, about 18 to 20 seconds of model time and about $0.07
-  (D-024, D-027).
+  (D-024, D-027). With the scouting-pattern tools, one measured report made 11 calls and cost
+  $0.125, including one correction after the check (D-029).
 - **Evals.** A full run of 43 questions costs about $0.78 and averages about 4 seconds per
   question. The evals milestone spent about $2.43 on model calls (D-023).
 - **Hosting.** $0 on Vercel Hobby and Neon's free plan. A paused service is the failure mode,
@@ -162,8 +173,10 @@ varies.
 ## Limits
 
 - **Data.** ATP men's singles at tour level, from 2015 to a 2026 snapshot taken on
-  7 November 2026 (matches through 1 November). There is no point-by-point data, so questions
-  about rally length are declined.
+  7 November 2026 (matches through 1 November). Shot-level figures come only from the matches the
+  Match Charting Project's volunteers charted: 4,454 of the tour matches, mostly top players and
+  big matches. They don't split serve direction by score, so "where does he serve on break
+  points" is declined.
 - **Checking.** Only a report's key numbers are checked against the data. Its prose and the
   chat answers are not.
 - **Evals.** English only, one run per question, and scoring with regular expressions over
@@ -181,7 +194,6 @@ varies.
 
 From the spec's list for after the first version:
 - retrieval over coaching notes or match reports;
-- the Match Charting Project's point-by-point data;
 - evals in CI;
 - WTA data.
 

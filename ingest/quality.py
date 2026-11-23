@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
+import dataclasses
 from dataclasses import dataclass
 
 import psycopg
@@ -20,6 +21,8 @@ LARGE_CHANGE = 0.25  # flag a season whose match count moves more than 25% from 
 FINGERPRINT_TABLES = [
     "raw.matches", "raw.sackmann_players", "raw.tml_players", "raw.player_merges",
     "raw.player_crosswalk", "raw.special_events", "players", "matches", "player_matches",
+    "raw.charting_matches", "raw.charting_serve_direction", "raw.charting_rally", "raw.charting_net_points",
+    "charting_matches", "charting_player_stats",
 ]  # fmt: skip
 # Number of sets decided by a tiebreak, counted in SQL independently of transform.py.
 TIEBREAKS_SQL = "(SELECT count(*) FROM regexp_matches(m.score, '(^| )(7-6|6-7)', 'g'))"
@@ -52,6 +55,13 @@ INVARIANT_CHECKS = [
                                     pm.second_won, pm.service_games, pm.bp_saved, pm.bp_faced)
                IS DISTINCT FROM ROW(r.l_ace::int, r.l_df::int, r.l_svpt::int, r."l_1stIn"::int, r."l_1stWon"::int,
                                     r."l_2ndWon"::int, r."l_SvGms"::int, r."l_bpSaved"::int, r."l_bpFaced"::int)))""",
+    ),
+    (
+        "Linked charted matches without exactly two stats rows, for the tour match's two players",
+        """SELECT count(*) FROM charting_matches c JOIN matches m USING (match_id)
+           WHERE (SELECT array_agg(s.player_id ORDER BY s.player_id) FROM charting_player_stats s
+                  WHERE s.chart_id = c.chart_id AND s.match_id = c.match_id)
+                 IS DISTINCT FROM ARRAY[least(m.winner_id, m.loser_id), greatest(m.winner_id, m.loser_id)]""",
     ),
     (
         "player_matches rows whose stats disagree with matches.has_stats",
@@ -112,6 +122,7 @@ class LoadSummary:
     merged_rows: int  # Sackmann rows whose player ID was replaced by a canonical ID
     crosswalk_methods: collections.Counter  # how 2026 TML players were mapped
     review_decisions: collections.Counter  # decisions in ingest/player_review.csv, 'pending' if none
+    charting_empty: collections.Counter = dataclasses.field(default_factory=collections.Counter)
 
 
 def fetch(conn: psycopg.Connection, query: str) -> list[tuple]:
@@ -250,8 +261,21 @@ def build_report(conn: psycopg.Connection, load: LoadSummary, generated_on: dt.d
     add("- Different player IDs with the same full name, for review (may be different people): "
         + ("; ".join(f"{name} ({', '.join(map(str, ids))})" for name, ids in same_name) or "none") + ".")  # fmt: skip
 
-    # 7. Fingerprints
-    add("\n## 7. Table fingerprints\n")
+    # 7. Charted matches
+    add("\n## 7. Charted matches (D-030)\n")
+    add("Every charted men's match in the Match Charting Project's files, and whether it is the same match "
+        "as a tour match in the data. Only linked matches are used.\n")  # fmt: skip
+    rows = fetch(conn, """SELECT link, count(*) FILTER (WHERE chart_date >= '2015-01-01'),
+                                   count(*) FILTER (WHERE chart_date < '2015-01-01' OR chart_date IS NULL)
+                            FROM charting_matches GROUP BY 1 ORDER BY 2 DESC, 1""")
+    add(table(["Link", "Charted 2015 on", "Earlier or no date"], [[f"`{l}`", f"{a:,}", f"{b:,}"] for l, a, b in rows]))
+    add("")
+    add("Categories left empty for a linked player because the stats file had no usable row "
+        "(missing, not whole numbers, or totals that don't add up): "
+        + (", ".join(f"`{c}` {n}" for c, n in ranked(load.charting_empty)) or "none") + ".")  # fmt: skip
+
+    # 8. Fingerprints
+    add("\n## 8. Table fingerprints\n")
     add("MD5 of each table's rows in sorted order. Two loads of the same files must give the same values.\n")
     rows = []
     for name in FINGERPRINT_TABLES:
