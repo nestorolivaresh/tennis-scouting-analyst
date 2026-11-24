@@ -118,22 +118,22 @@ Categories left empty for a linked player because the stats file had no usable r
 
 ## 8. Table fingerprints
 
-MD5 of each table's rows in sorted order. Two loads of the same files must give the same values.
+MD5 of each table's rows, sorted by their text in byte order. Two loads of the same files must give the same values, on any database.
 
 | Table | Rows | MD5 |
 | --- | --- | --- |
-| `raw.matches` | 33,335 | `c02a6ba845347337ff8275b8895ddbc0` |
+| `raw.matches` | 33,335 | `2f60c322e86b449f6272e1e0a0d3268b` |
 | `raw.sackmann_players` | 66,912 | `7475d431b06aecd93572ffe11ea835a8` |
-| `raw.tml_players` | 12,939 | `b3932e198b38b6f792ef9312718cabea` |
+| `raw.tml_players` | 12,939 | `8a541688076851f0f7de16f76d895f6d` |
 | `raw.player_merges` | 10 | `7d8f86de5a920add2c19607230021ed4` |
 | `raw.player_crosswalk` | 405 | `42ac6d37a8f84e1edfef91190817561c` |
-| `raw.special_events` | 11 | `aa646a80c1e268eaf961400b76bdc839` |
+| `raw.special_events` | 11 | `f048d3c240e7afe053a3744508fc0a0f` |
 | `players` | 1,351 | `1155f6b01ce3915c71b6055d7938f9f2` |
-| `matches` | 33,334 | `8f3e03e2bffc16be40f2b42edeed3936` |
-| `player_matches` | 66,668 | `0c91114406c206a9141e942ffce24c14` |
-| `raw.charting_matches` | 7,566 | `812189a7e169c97180ff8245ad2041a3` |
-| `raw.charting_serve_direction` | 45,341 | `4fb79c8dff7e9daf4b2c7a6b28495c80` |
-| `raw.charting_rally` | 96,706 | `0055cf173efe962307797dc91dc05266` |
-| `raw.charting_net_points` | 59,396 | `8b306f9692c1477244e52501397c04aa` |
-| `charting_matches` | 7,565 | `86ed7a65f7eb3af9d837ea1ddd906c1b` |
-| `charting_player_stats` | 8,908 | `5af70700203fe3064c99e8a6ca90ef50` |
+| `matches` | 33,334 | `ea1beaea7a2122f3b1063d8000fcce64` |
+| `player_matches` | 66,668 | `8902af91038b1eb1d14234acd74227e0` |
+| `raw.charting_matches` | 7,566 | `586c1cdd694cf09f52eb8512ebfbe207` |
+| `raw.charting_serve_direction` | 45,341 | `9674da8f8f471e8c7f107368013cc660` |
+| `raw.charting_rally` | 96,706 | `317a8ad5f114524a2f4aafe58c5693bc` |
+| `raw.charting_net_points` | 59,396 | `60d81018c4070839a622330792788fb8` |
+| `charting_matches` | 7,565 | `1d74e1eb2125ce5cafe97c89a378a9e1` |
+| `charting_player_stats` | 8,908 | `56e868c8b9b7168c93fd7d78c0ed08b8` |

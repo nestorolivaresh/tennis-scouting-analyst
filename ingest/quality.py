@@ -276,15 +276,25 @@ def build_report(conn: psycopg.Connection, load: LoadSummary, generated_on: dt.d
 
     # 8. Fingerprints
     add("\n## 8. Table fingerprints\n")
-    add("MD5 of each table's rows in sorted order. Two loads of the same files must give the same values.\n")
+    add("MD5 of each table's rows, sorted by their text in byte order. Two loads of the same files must "
+        "give the same values, on any database.\n")  # fmt: skip
     rows = []
     for name in FINGERPRINT_TABLES:
-        query = sql.SQL("SELECT count(*), md5(coalesce(string_agg(t::text, E'\\n' ORDER BY t::text), '')) FROM {} AS t").format(
-            sql.Identifier(*name.split("."))
-        )
-        with conn.cursor() as cur:
-            cur.execute(query)
-            count, digest = cur.fetchone()
+        count, digest = fingerprint(conn, name)
         rows.append([f"`{name}`", f"{count:,}", f"`{digest}`"])
     add(table(["Table", "Rows", "MD5"], rows))
     return "\n".join(out) + "\n"
+
+
+def fingerprint(conn: psycopg.Connection, name: str) -> tuple[int, str]:
+    """A table's row count and the MD5 of its rows as text, joined in byte order.
+
+    The sort says COLLATE "C" because the default differs between databases: the local
+    Postgres sorts text with en_US.utf8 and Neon with C, which gave the same data 11 different
+    MD5s on 2026-11-23."""
+    query = sql.SQL("""SELECT count(*), md5(coalesce(string_agg(t::text, E'\\n' ORDER BY t::text COLLATE "C"), ''))
+                       FROM {} AS t""").format(sql.Identifier(*name.split(".")))  # fmt: skip
+    with conn.cursor() as cur:
+        cur.execute(query)
+        count, digest = cur.fetchone()
+    return count, digest
