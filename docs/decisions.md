@@ -1501,6 +1501,13 @@ are the report's own code, not a copy. The scope is read before the database is 
   box, and 375 px with no sideways scroll. With every surface, Alcaraz's counts (122 completed
   matches, 75 charted) match the live report checked earlier the same day.
 
-**Not checked.** The link on a finished report in a browser (that needs a model call; it is the
-same link function the tests cover), the new route on Vercel and its CDN, a real model run using
-the new stats, and browsers other than Chromium.
+**Checked after release** (910cc4b on the deployed site, 2026-11-24). `/api/matchup` answers
+422, 404 and 200 as tested, its body for Sinner against Alcaraz on clay equals the saved local
+response, and a second request is a CDN hit. The page, its switch, the Player stats return rows
+and both links into it work. One live report (Sinner against Alcaraz on clay, 11 tool calls,
+about $0.097) used the new stat where the earlier one couldn't: "He wins 56.5% of second-serve
+points on clay, and Sinner wins 53.9% of points when returning second serves", with 53.9% as a
+key number whose card reads 507 of 940 second-serve return points. All 8 key numbers matched
+and all 64 numbers in the text were found. The report's link opens the same match-up.
+
+**Not checked.** Browsers other than Chromium.
