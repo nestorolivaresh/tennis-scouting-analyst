@@ -237,6 +237,7 @@ export const en = {
   noFilterMatches: "None: every match in the data",
   notReported: "Not reported",
   panelSurfaceSample: (n: number, w: SurfaceWords, headToHead: boolean, line: string) => `${n} ${w.lower} ${headToHead ? "meetings" : "matches"}, out of ${line}`,
+  panelPartSample: (n: number, part: "charted" | "completed", line: string) => `${n} ${part} ${n === 1 ? "match" : "matches"}, out of ${line}`,
   panelSource: (tool: string, who: string, id: string) => `${tool}, ${who} (call ${id})`,
   panelSurfaceLine: (w: SurfaceWords) => `. This is the ${w.lower} line.`,
   nothing: "Nothing",

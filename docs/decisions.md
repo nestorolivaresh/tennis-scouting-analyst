@@ -1400,3 +1400,14 @@ result states the pair; a score in the middle of a set ("at 5-5") is too. On an 
 an answer the model writes in Spanish (to a question in Spanish) gets English-style cited
 numbers, since the page's language sets the format.
 
+**Found after release** (the go-live check of 5ad013e on the deployed site, 2026-11-24):
+- A charted figure's source card gave the whole window as its sample ("126 matches") while
+  the figure came from 75 charted matches; a set pattern's gave 126 for 122 completed matches.
+  Citations made the card reachable from many more numbers. The Player stats page's cards had
+  the same fault. Both now read "75 charted matches, out of 126 matches ...", from the count
+  in the result the figure sits in (D-029, D-030). Fixed with a test for each page, from a
+  saved result.
+- In a follow-up answer, the check underlined "Four of the five went to a tiebreak or a
+  deciding set". By the scores listed above it in the same answer, all five did: the
+  model miscounted, and no result states the count.
+

@@ -77,7 +77,7 @@ const SET_ROWS = ["tiebreaks_won", "deciding_sets_won", "won_after_winning_first
 
 /** Tiebreaks, deciding sets and what happened after the first set, with what each counts. */
 export function setRows(block: SetPatterns, t: T = EN): PatternRow[] {
-  const source = sourceFacts(block, t);
+  const source = sourceFacts(block, t, { n: block.scores_read.completed_matches, part: "completed" });
   return SET_ROWS.map((key) => rateRow(key, t.stats[key], block.stats[key], t.setUnits[key], source, t));
 }
 
@@ -149,19 +149,21 @@ function directions(courts: Record<"deuce" | "ad", Court>, t: T): DirectionRow[]
 
 /** Serve direction, points won by rally length and net points from the charted matches. */
 export function shotView(block: ShotPatterns, t: T = EN): ShotView {
-  const source = sourceFacts(block, t);
   const { charted_matches: charted, points_charted: points } = block.charting;
+  const source = (n: number) => sourceFacts(block, t, { n, part: "charted" });
   const net = block.net_points;
+  const rallySource = source(block.rally_length.matches);
+  const netSource = source(net.matches);
   return {
     charted,
     note: charted ? t.chartedNote(charted, points) : t.noChartedMatches,
     first: directions(block.serve_direction.first_serves_in, t),
     second: directions(block.serve_direction.second_serves, t),
-    rallies: BANDS.map((band) => rateRow(band, t.rallyBands[band], block.rally_length.points_won[band], t.pointsWord, source, t)),
+    rallies: BANDS.map((band) => rateRow(band, t.rallyBands[band], block.rally_length.points_won[band], t.pointsWord, rallySource, t)),
     net: [
-      rateRow("net_points_won", t.stats.net_points_won, net.net_points_won, t.netPointsWord, source, t),
-      rateRow("share_of_points_at_net", t.stats.share_of_points_at_net, net.share_of_points_at_net, t.pointsWord, source, t),
+      rateRow("net_points_won", t.stats.net_points_won, net.net_points_won, t.netPointsWord, netSource, t),
+      rateRow("share_of_points_at_net", t.stats.share_of_points_at_net, net.share_of_points_at_net, t.pointsWord, netSource, t),
     ],
-    source,
+    source: source(charted),
   };
 }

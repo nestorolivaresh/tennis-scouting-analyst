@@ -252,6 +252,8 @@ export const es: Messages = {
   noFilterMatches: "Ninguno: todos los partidos de los datos",
   notReported: "No indicado",
   panelSurfaceSample: (n, w, headToHead, line) => `${n} ${headToHead ? "enfrentamientos" : "partidos"} ${w.on}, de un total de ${line}`,
+  panelPartSample: (n, part, line) =>
+    `${n} ${n === 1 ? "partido" : "partidos"} ${part === "charted" ? "registrado" : "completado"}${n === 1 ? "" : "s"}, de un total de ${line}`,
   panelSource: (tool, who, id) => `${tool}, ${who} (llamada ${id})`,
   panelSurfaceLine: (w) => `. Esta es la línea de ${w.lower}.`,
   nothing: "Nada",

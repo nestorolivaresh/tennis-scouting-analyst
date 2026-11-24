@@ -91,6 +91,22 @@ const evidence = (tool: string, result: Record<string, unknown>): Evidence[] => 
 ];
 const keyStat = (field: string, value: number, sample: number): KeyStat => ({ label: "", value, tool_call_id: "c1", field, sample_matches: sample });
 
+test("a charted or set-pattern card gives the matches the figures rest on, out of the window's", () => {
+  // Found live on 2026-11-24: the cards gave the whole window ("378 matches") as the sample of
+  // figures read from fewer charted or completed matches. Counts from the saved response.
+  const data = clone();
+  const shots = data.shots as unknown as ShotPatterns;
+  const counted = saved.shots.sample.matches_counted;
+  const whole = (n: number, part: string) => new RegExp(`^${n} ${part} matches, out of ${counted} matches \\(all with stats\\), tournaments from `);
+  assert.ok(saved.shots.charting.charted_matches < counted && saved.set_patterns.scores_read.completed_matches < counted); // exercises the rule
+  const view = shotView(shots);
+  assert.match(view.source.sample, whole(saved.shots.charting.charted_matches, "charted"));
+  assert.match(view.rallies[0].source.sample, whole(saved.shots.rally_length.matches, "charted"));
+  assert.match(view.net[0].source.sample, whole(saved.shots.net_points.matches, "charted"));
+  assert.match(setRows(data.set_patterns)[3].source.sample, whole(saved.set_patterns.scores_read.completed_matches, "completed"));
+  assert.match(setRows(data.set_patterns, MESSAGES.fr)[3].source.sample, new RegExp(`^${saved.set_patterns.scores_read.completed_matches} matchs terminés, sur ${counted} matchs`));
+});
+
 test("a charted serve direction is described from its path, with its counts", () => {
   const shots = clone().shots as unknown as Record<string, unknown>;
   const ev = evidence("shot_patterns", shots);

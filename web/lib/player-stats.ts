@@ -342,8 +342,14 @@ export interface SourceFacts {
   left: string;
 }
 
-/** The Source panel: what this block of the response says about itself. */
-export function sourceFacts(block: Pick<Block, "tool" | "filters" | "sample" | "excluded">, t: T = EN): SourceFacts {
+/** The Source panel: what this block of the response says about itself. `part` is the matches
+ * the figures rest on when they're a part of the block's sample: the charted ones (D-030) or the
+ * completed ones (D-029). */
+export function sourceFacts(
+  block: Pick<Block, "tool" | "filters" | "sample" | "excluded">,
+  t: T = EN,
+  part?: { n: number; part: "charted" | "completed" },
+): SourceFacts {
   const filters = describeFilters(block.filters, t);
   const { sample } = block;
   const line = sample.matches_counted
@@ -357,7 +363,7 @@ export function sourceFacts(block: Pick<Block, "tool" | "filters" | "sample" | "
   return {
     tool: (Object.hasOwn(t.tools, block.tool) ? t.tools[block.tool] : undefined) ?? block.tool,
     filters: filters.length ? `${filters.join(", ")}.` : t.noFiltersEver,
-    sample: line ? `${line}.` : t.noMatchesCounted,
+    sample: line ? `${part ? t.panelPartSample(part.n, part.part, line) : line}.` : t.noMatchesCounted,
     left: left.length ? `${left.join(", ")}.` : t.nothingDot,
   };
 }

@@ -11,7 +11,9 @@ import {
   checkStat, dataThrough, describeExcluded, describeFilters, describeStat, describeValue, formatValue, groupKeyStats, hasCareerHeadToHead, honoursBoard, isSmallKeyStat,
   isTwoYearWindow, leadOf, ratePercent, resolvePath, round1, sampleLine, scalePosition, scoreboardTiles, serveChart, serveSampleLine, serveScale, shortNames, sourcePanel, surfaceChart,
 } from "./evidence.ts";
-import { eventName, roundName } from "./people.ts";
+import { EN, MESSAGES } from "./i18n.ts";
+import { eventName, longDate, roundName } from "./people.ts";
+import saved from "./fixtures/player-stats-clay-2025.json" with { type: "json" };
 import type { Evidence, KeyStat, Rate, ReportResponse, ToolResult } from "./types.ts";
 
 const current = currentReport as unknown as ReportResponse;
@@ -365,6 +367,31 @@ test("a key number's source panel is read from the tool result", () => {
 
   const missing: KeyStat = { ...stats[0], tool_call_id: "c42" };
   assert.equal(sourcePanel(missing, checkStat(missing, current.evidence)), null);
+});
+
+test("a charted or set-pattern figure's card gives the matches it rests on, out of the window's", () => {
+  // Found live on 2026-11-24: a charted figure's card said "126 matches", the whole window,
+  // while the figure came from 75 charted matches. Counts from the saved results
+  // (fixtures/player-stats-clay-2025.json: Alcaraz, clay 2025), never typed in.
+  const evidence: Evidence[] = [
+    { tool_call_id: "c1", tool: "shot_patterns", input: {}, result: saved.shots as never, error: null },
+    { tool_call_id: "c2", tool: "set_patterns", input: {}, result: saved.set_patterns as never, error: null },
+  ];
+  const whole = sampleLine(saved.shots.sample)!.replace(/\d{4}-\d{2}-\d{2}/g, (iso) => longDate(iso, EN));
+  // The model may state the window's count as the sample: the card still gives the charted one.
+  const panel = (tool_call_id: string, field: string, t = EN, sample_matches = saved.shots.sample.matches_counted) => {
+    const stat: KeyStat = { label: "", value: Number.NaN, tool_call_id, field, sample_matches };
+    return sourcePanel(stat, checkStat(stat, evidence), t)!.sample;
+  };
+  const charted = saved.shots.serve_direction.matches;
+  assert.ok(charted < saved.shots.sample.matches_counted); // the sample exercises the rule
+  assert.equal(panel("c1", "serve_direction.second_serves.ad.wide.value"), `${charted} charted matches, out of ${whole}`);
+  assert.equal(panel("c1", "net_points.net_points_won.value"), `${saved.shots.net_points.matches} charted matches, out of ${whole}`);
+  const completed = saved.set_patterns.stats.won_after_losing_first_set.matches;
+  assert.ok(completed < saved.set_patterns.sample.matches_counted);
+  assert.equal(panel("c2", "stats.won_after_losing_first_set.value"), `${completed} completed matches, out of ${whole}`);
+  assert.match(panel("c1", "serve_direction.second_serves.ad.wide.value", MESSAGES.es), new RegExp(`^${charted} partidos registrados, de un total de ${saved.shots.sample.matches_counted} partidos`));
+  assert.equal(panel("c1", "charting.charted_matches"), whole); // a count of the whole result: the window
 });
 
 test("rates are shown from their counts, not from the tool's rounded value", () => {

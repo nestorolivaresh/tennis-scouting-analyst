@@ -252,6 +252,7 @@ export const fr: Messages = {
   noFilterMatches: "Aucun : tous les matchs des données",
   notReported: "Non indiqué",
   panelSurfaceSample: (n, w, headToHead, line) => `${n} ${headToHead ? "confrontations" : "matchs"} ${w.on}, sur ${line}`,
+  panelPartSample: (n, part, line) => `${n} match${n > 1 ? "s" : ""} ${part === "charted" ? "relevé" : "terminé"}${n > 1 ? "s" : ""}, sur ${line}`,
   panelSource: (tool, who, id) => `${tool}, ${who} (appel ${id})`,
   panelSurfaceLine: (w) => `. C'est la ligne « ${w.lower} ».`,
   nothing: "Rien",

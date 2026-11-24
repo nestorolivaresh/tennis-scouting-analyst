@@ -656,6 +656,18 @@ function inWords(items: string[], t: T): string {
 
 const withLongDates = (text: string, t: T) => text.replace(/\d{4}-\d{2}-\d{2}/g, (iso) => longDate(iso, t));
 
+/** The matches a charted or set-pattern figure rests on, read from the result: the charted
+ * matches of its block (shot_patterns, D-030) or the completed matches its rate was read from
+ * (set_patterns, D-029), a part of the window's matches. Null for any other figure. */
+function partOfSample(stat: KeyStat, tool: string, result: ToolResult): { n: number; part: "charted" | "completed" } | null {
+  const part = tool === "shot_patterns" ? "charted" : tool === "set_patterns" ? "completed" : null;
+  if (!part) return null;
+  const { found, seen } = resolvePath(result, stat.field);
+  if (!found) return null;
+  const node = [...seen].reverse().find((n) => n && typeof n === "object" && !Array.isArray(n) && Number.isInteger((n as Record<string, unknown>).matches));
+  return node ? { n: (node as { matches: number }).matches, part } : null;
+}
+
 export interface SourcePanel {
   source: string;
   filters: string;
@@ -679,7 +691,12 @@ export function sourcePanel(stat: KeyStat, check: StatCheck, t: T = EN): SourceP
   const words = surface ? surfaceWords(t, surface) : null;
   const filters = describeStat(stat, source, t).filters.join("; ") || every;
   const line = sampleLine(result.sample, t);
-  const sample = line === null ? t.notReported : words && check.sample !== null ? t.panelSurfaceSample(check.sample, words, headToHead, line) : line;
+  const part = partOfSample(stat, source.tool, result);
+  const sample = line === null
+    ? t.notReported
+    : part
+      ? t.panelPartSample(part.n, part.part, line)
+      : words && check.sample !== null ? t.panelSurfaceSample(check.sample, words, headToHead, line) : line;
   const excluded = describeExcluded(result.excluded, t);
   return {
     source: t.panelSource(tool, who, source.tool_call_id),
