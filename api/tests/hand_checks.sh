@@ -15,6 +15,11 @@ S=data/raw/sackmann
 T=data/raw/tml/2026.csv
 EXCLUDE='W/O'
 EXHIBITION='Laver Cup|Next ?Gen'
+# The last tournament start in the TML snapshot of 2026-11-07. Checks on 2026 count only
+# tournaments that started by then, so accepting a newer snapshot doesn't move them (D-034).
+# TML dates each match; a tournament's start is its earliest match date, as in the loaded data
+# (D-010). Those checks read the file twice: once for the starts, then for the matches.
+CUTOFF=20261026
 
 echo "== 1. Sinner 2024, win-loss by surface (Sackmann columns: 3 surface, 11 winner, 19 loser, 24 score)"
 awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" -v E="$EXHIBITION" '
@@ -38,26 +43,30 @@ awk -F, -v P="Carlos Alcaraz" -v X="$EXCLUDE" '
     n++; if ($11 == P) { fi += $31; sp += $30; ac += $28 } else { fi += $40; sp += $39; ac += $37 } }
   END { printf "first_in %d / serve_points %d, aces %d over %d matches\n", fi, sp, ac, n }' "$S/atp_matches_2023.csv"
 
-echo "== 5. Sinner vs Alcaraz, every season (Sackmann 2015-2025 + TML 2026)"
+echo "== 5. Sinner vs Alcaraz, every season (Sackmann 2015-2025 + TML 2026 up to the cutoff)"
 for y in $(seq 2015 2025); do
   f="$S/atp_matches_$y.csv"
   awk -F, -v X="$EXCLUDE" -v E="$EXHIBITION" '
     (($11 == "Jannik Sinner" && $19 == "Carlos Alcaraz") || ($11 == "Carlos Alcaraz" && $19 == "Jannik Sinner")) &&
     index($24, X) == 0 && $2 !~ E { print $6, $3, ($11 == "Jannik Sinner" ? "W" : "L"), $2, $26 }' "$f"
 done
-awk -F, -v X="$EXCLUDE" -v E="$EXHIBITION" '
+awk -F, -v X="$EXCLUDE" -v E="$EXHIBITION" -v C="$CUTOFF" '
+  NR == FNR { if (FNR > 1 && (!($1 in s) || $7 < s[$1])) s[$1] = $7; next }
+  FNR > 1 && s[$1] <= C &&
   (($12 == "Jannik Sinner" && $22 == "Carlos Alcaraz") || ($12 == "Carlos Alcaraz" && $22 == "Jannik Sinner")) &&
-  index($29, X) == 0 && $2 !~ E { print $7, $3, ($12 == "Jannik Sinner" ? "W" : "L"), $2, $31 }' "$T"
+  index($29, X) == 0 && $2 !~ E { print $7, $3, ($12 == "Jannik Sinner" ? "W" : "L"), $2, $31 }' "$T" "$T"
 
-echo "== 6. Sinner's last 5 matches in TML 2026 (columns: 7 match date, 12 winner, 22 loser, 31 round, 17/27 ranks)"
-awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" '
-  ($12 == P || $22 == P) && index($29, X) == 0 {
-    print $7, $2, $31, ($12 == P ? "W" : "L"), ($12 == P ? $22 : $12), "rank=" ($12 == P ? $17 : $27) }' "$T" | sort -r | head -5
+echo "== 6. Sinner's last 5 matches in TML 2026 up to the cutoff (columns: 7 match date, 12 winner, 22 loser, 31 round, 17/27 ranks)"
+awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" -v C="$CUTOFF" '
+  NR == FNR { if (FNR > 1 && (!($1 in s) || $7 < s[$1])) s[$1] = $7; next }
+  FNR > 1 && s[$1] <= C && ($12 == P || $22 == P) && index($29, X) == 0 {
+    print $7, $2, $31, ($12 == P ? "W" : "L"), ($12 == P ? $22 : $12), "rank=" ($12 == P ? $17 : $27) }' "$T" "$T" | sort -r | head -5
 
-echo "== 7. Alcaraz 2026 (TML), win-loss"
-awk -F, -v P="Carlos Alcaraz" -v X="$EXCLUDE" -v E="$EXHIBITION" '
-  ($12 == P || $22 == P) && index($29, X) == 0 && $2 !~ E { if ($12 == P) w++; else l++ }
-  END { printf "%d-%d\n", w, l }' "$T"
+echo "== 7. Alcaraz 2026 (TML) up to the cutoff, win-loss"
+awk -F, -v P="Carlos Alcaraz" -v X="$EXCLUDE" -v E="$EXHIBITION" -v C="$CUTOFF" '
+  NR == FNR { if (FNR > 1 && (!($1 in s) || $7 < s[$1])) s[$1] = $7; next }
+  FNR > 1 && s[$1] <= C && ($12 == P || $22 == P) && index($29, X) == 0 && $2 !~ E { if ($12 == P) w++; else l++ }
+  END { printf "%d-%d\n", w, l }' "$T" "$T"
 
 echo "== 8. Alexander Zverev 2024: exhibition matches, other counted matches"
 awk -F, -v P="Alexander Zverev" -v X="$EXCLUDE" -v E="$EXHIBITION" '
@@ -152,11 +161,12 @@ awk -F, -v P="Novak Djokovic" -v X="$EXCLUDE" -v E="$EXHIBITION" '
     if (r + 0 <= 10) { if ($c["winner_name"] == P) w++; else l++ } }
   END { printf "top 10: %d-%d; unranked opponents: %d (%s)\n", w, l, unknown, who }' "$S/atp_matches_2024.csv"
 
-echo "== 23. Sinner's last 10 counted matches in TML 2026: minutes (tourney_date is the match date in TML)"
-awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" -v E="$EXHIBITION" '
-  NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
-  ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E {
-    print $c["tourney_date"], ($c["minutes"] == "" ? "none" : $c["minutes"]) }' "$T" | sort -r | head -10 |
+echo "== 23. Sinner's last 10 counted matches in TML 2026 up to the cutoff: minutes (tourney_date is the match date in TML)"
+awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" -v E="$EXHIBITION" -v C="$CUTOFF" '
+  FNR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+  NR == FNR { t = $c["tourney_id"]; d = $c["tourney_date"]; if (!(t in s) || d < s[t]) s[t] = d; next }
+  s[$c["tourney_id"]] <= C && ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E {
+    print $c["tourney_date"], ($c["minutes"] == "" ? "none" : $c["minutes"]) }' "$T" "$T" | sort -r | head -10 |
   awk '{ if ($2 == "none") missing++; else { n++; total += $2; if ($2 > longest) longest = $2 } }
        END { printf "with minutes %d, missing %d, total %d, longest %d\n", n, missing, total, longest }'
 
@@ -212,15 +222,16 @@ awk -F, -v P="Henri Laaksonen" -v E="$EXHIBITION" '
         if (t[k] !~ /\(/) print "bare:", $c["tourney_name"], $c["score"] } } }
   END { printf "tiebreaks %d/%d\n", won, played }' "$S/atp_matches_2015.csv"
 
-echo "== 29. Return points won against first and second serves (D-033): Sinner 2024 (Sackmann), Alcaraz 2026 (TML)"
+echo "== 29. Return points won against first and second serves (D-033): Sinner 2024 (Sackmann), Alcaraz 2026 (TML) up to the cutoff"
 # The opponent's serve, read from the other side: points they didn't win are the returner's.
 # Second-serve points are serve points minus first serves in, so double faults are included.
 for args in "Jannik Sinner|$S/atp_matches_2024.csv" "Carlos Alcaraz|$T"; do
-  awk -F, -v P="${args%%|*}" -v X="$EXCLUDE" -v E="$EXHIBITION" '
-    NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
-    ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E &&
+  awk -F, -v P="${args%%|*}" -v X="$EXCLUDE" -v E="$EXHIBITION" -v C="$CUTOFF" '
+    FNR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+    NR == FNR { t = $c["tourney_id"]; d = $c["tourney_date"]; if (!(t in s) || d < s[t]) s[t] = d; next }
+    s[$c["tourney_id"]] <= C && ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E &&
     $c["w_svpt"] != "" && $c["l_svpt"] != "" {
       o = ($c["winner_name"] == P) ? "l_" : "w_"
       fin += $c[o "1stIn"]; fwon += $c[o "1stWon"]; sp += $c[o "svpt"]; swon += $c[o "2ndWon"] }
-    END { printf "%s: against first serves %d/%d, against second serves %d/%d\n", P, fin - fwon, fin, sp - fin - swon, sp - fin }' "${args#*|}"
+    END { printf "%s: against first serves %d/%d, against second serves %d/%d\n", P, fin - fwon, fin, sp - fin - swon, sp - fin }' "${args#*|}" "${args#*|}"
 done

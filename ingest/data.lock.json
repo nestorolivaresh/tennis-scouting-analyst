@@ -92,15 +92,15 @@
     "terms": "Personal, educational and non-commercial research use only; no redistribution of the raw CSV files",
     "terms_url": "https://stats.tennismylife.org/tennis-match-database",
     "base_url": "https://stats.tennismylife.org/data/",
-    "retrieved_on": "2026-11-07",
+    "retrieved_on": "2026-11-24",
     "files": {
       "2026.csv": {
-        "sha256": "4219d664cb7f4989b2529791ed60cbc6276b0b621708016799064163bda9efe8",
-        "bytes": 578416
+        "sha256": "1da091b1c86f12d67423b8837e000b4517e5dd664638bd2cfd3dc2d92fc86781",
+        "bytes": 592602
       },
       "2025.csv": {
-        "sha256": "5630ff8ee5ff380b765b3f30f9cb85b646e219fab14a28b87edb8b67e2153226",
-        "bytes": 623878
+        "sha256": "5ccf52d912085d6a5ba3effdc5f2f216f170aabfd8850086b5f92c7ccedfd53e",
+        "bytes": 620959
       },
       "ATP_Database.csv": {
         "sha256": "60e1bc865bb2d8662f07a5a17bcb2fe33afae61023617bf6b2d27d03505b945d",

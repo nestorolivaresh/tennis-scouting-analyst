@@ -9,6 +9,11 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
   Ace%) are the same formulas as the spec's stat definitions.
 - **Hand N**: check N in `api/tests/hand_checks.sh`, which computes values with `awk` straight
   from the raw CSV files. Run it with `sh api/tests/hand_checks.sh` after `ingest.download`.
+- **Up to the cutoff** (D-034): checks on 2026 count only tournaments that started by
+  2026-10-26, the last start in the 2026-11-07 TML snapshot, and their tests pass the same
+  `date_to`. A newer snapshot then leaves them unchanged unless TML corrects those rows. The
+  data window (hand 17) and the newest-match checks (hands 6 and 19, `player_profile`)
+  describe the snapshot itself and are rechecked on every refresh.
 
 | Tool | Check | Expected | Source | Tool result |
 | --- | --- | --- | --- | --- |
@@ -16,7 +21,7 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | `player_profile` | Sinner's hand, country, height | R, ITA, 191 cm | Hand 16 | match |
 | `player_profile` | Sinner's newest match and latest rank | Wimbledon 2026 final on 2026-07-12, won; rank 1 | Hand 6 | match |
 | `player_profile` | Latest rank when the newest match has none (Catarina) | newest match Davis Cup FIN v MON, 2026-09-18, no rank; latest rank 452 at Davis Cup MON v ECU (2023) | Hand 19 | match |
-| all stats tools | Data window | first tournament 2015-01-04, last tournament start 2026-10-26, last match 2026-11-01 | Hand 17 | match |
+| all stats tools | Data window (snapshot of 2026-11-24) | first tournament 2015-01-04, last tournament start 2026-11-08, last match 2026-11-14 | Hand 17 | match |
 | `surface_splits` | Sinner 2024 record | 73-6 | TA | 73-6 |
 | `surface_splits` | Sinner 2024 by surface | Hard 53-3, Clay 11-2, Grass 9-1 | Hand 1 | match |
 | `surface_splits` | Sinner 2024 walkovers excluded | 2 | Hand 2 | 2 |
@@ -27,7 +32,7 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | `surface_splits` | Sinner 2024 by level: G, D, G+M, A+F | 23-2, 3-0, 51-5, 19-1 | Hand 12 | match |
 | `surface_splits` | Gasquet 2018: matches counted, unknown results excluded | 57, 1 (Davis Cup FRA v ESP, score contradicts the winner) | Hand 14 | 57, 1 |
 | `surface_splits` | Hassan 2023 on hard: matches with no surface excluded | 2 (Davis Cup UKR v LBN) | Hand 15 | 2 |
-| `surface_splits` | Alcaraz 2026 record (TML season) | 37-5 | Hand 7 | 37-5 |
+| `surface_splits` | Alcaraz 2026 record (TML season), up to the cutoff | 37-5 | Hand 7 | 37-5 |
 | `surface_splits` | Zverev 2024 matches, without and with exhibitions | 88, 90 (2 Laver Cup) | Hand 8 | 88, 90 |
 | `serve_return_stats` | Sinner 2024 first serve in | 61.6% | TA | 61.59% (3,693 / 5,996) |
 | `serve_return_stats` | Sinner 2024 first-serve points won | 79.3% | TA | 79.34% |
@@ -38,14 +43,14 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | `serve_return_stats` | Alcaraz 2023 clay: first serves in, aces per match | 1,346 / 1,999; 95 aces in 28 matches | Hand 4 | match |
 | `serve_return_stats` | Alcaraz 2022: matches, matches with stats, aces per match | 70, 68; 259 aces over the 68 with stats | Hand 13 | match |
 | `serve_return_stats` | Sinner 2024 return points won against first serves, against second serves (D-033) | 1,313 / 4,117; 1,379 / 2,469 | Hand 29 | match |
-| `serve_return_stats` | Alcaraz 2026 (TML) return points won against first serves, against second serves (D-033) | 777 / 2,245; 705 / 1,304 | Hand 29 | match |
+| `serve_return_stats` | Alcaraz 2026 (TML) return points won against first serves, against second serves (D-033), up to the cutoff | 777 / 2,245; 705 / 1,304 | Hand 29 | match |
 | `pressure_stats` | Sinner 2024 clay: break points saved, converted | 47 / 68; 57 / 120 | Hand 3 | match |
-| `head_to_head` | Sinner v Alcaraz record and by surface | 7-10; Hard 3-7, Clay 2-3, Grass 2-0 | Hand 5 | match |
-| `head_to_head` | Newest meeting | 2026 Monte Carlo final, Sinner won | Hand 5 | match |
-| `recent_form` | Sinner's last 5 matches | Wimbledon 2026 R32 to F, all wins (Brooksby, Mochizuki, Struff, Djokovic, Zverev), final on 2026-07-12 | Hand 6 | match |
+| `head_to_head` | Sinner v Alcaraz record and by surface, up to the cutoff | 7-10; Hard 3-7, Clay 2-3, Grass 2-0 | Hand 5 | match |
+| `head_to_head` | Newest meeting, up to the cutoff | 2026 Monte Carlo final, Sinner won | Hand 5 | match |
+| `recent_form` | Sinner's last 5 matches, up to the cutoff | Wimbledon 2026 R32 to F, all wins (Brooksby, Mochizuki, Struff, Djokovic, Zverev), final on 2026-07-12 | Hand 6 | match |
 | all stats tools | Djokovic 2024 against opponents ranked 10 or better; unranked opponents excluded (D-029) | 2-4; 1 excluded (Matthew Ebden) | Hand 22 | match |
 | `head_to_head` | The 2025 Roland Garros final from Sinner's side (`player_score`) | written "4-6 6-7(4) 6-4 7-6(3) 7-6(2)"; Sinner's side "6-4 7-6(4) 4-6 6-7(3) 6-7(2)" | Hand 27 | match |
-| `recent_form` | Sinner's last 10 matches in 2026: minutes on court | 10 with minutes, 1,592 in total, longest 226 | Hand 23 | match |
+| `recent_form` | Sinner's last 10 matches in 2026, up to the cutoff: minutes on court | 10 with minutes, 1,592 in total, longest 226 | Hand 23 | match |
 | `recent_form` | Sinner's 2023 Davis Cup matches: no durations | 3 matches, none with minutes, so no total (never 0) | Hand 25 | match |
 | `set_patterns` | Sinner 2024: tiebreaks, deciding sets, after winning / losing the first set | 24/32, 13/19, 62/66, 10/12; 78 completed, 1 ended early | Hand 21 | match |
 | `set_patterns` | Laaksonen 2015: tiebreaks, including a bare "6-7" set | 2/3 | Hand 28 | match |

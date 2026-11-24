@@ -193,7 +193,7 @@ an answer varies.
 ## Limits
 
 - **Data.** ATP men's singles at tour level, from 2015 to a 2026 snapshot taken on
-  7 November 2026 (matches through 1 November). Shot-level figures come only from the matches the
+  24 November 2026 (matches through 14 November). Shot-level figures come only from the matches the
   Match Charting Project's volunteers charted: 4,454 of the tour matches, mostly top players and
   big matches. They don't split serve direction by score, so "where does he serve on break
   points" is declined.

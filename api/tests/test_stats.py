@@ -17,6 +17,10 @@ from api import stats
 SINNER, ALCARAZ, A_ZVEREV, M_ZVEREV = 206173, 207989, 100644, 104999  # hand 9
 GASQUET, HASSAN, CATARINA = 104755, 133975, 200031  # hand 9
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
+# Checks on 2026 stop at the last tournament start in the 2026-11-07 TML snapshot, as the hand
+# checks do, so a newer snapshot doesn't move them (D-034). Only test_data_window, and the
+# player_profile checks on whoever played last, describe the snapshot itself.
+PINNED = {"date_to": "2026-10-26"}
 
 
 @pytest.fixture(scope="module")
@@ -129,10 +133,10 @@ def test_unknown_player_is_a_distinct_error(conn):
 
 def test_data_window(conn):
     window = stats.surface_splits(conn, SINNER, {"season": 2024})["data_window"]
-    assert window == {  # hand 17
+    assert window == {  # hand 17, for the snapshot in ingest/data.lock.json
         "first_tourney_date": "2015-01-04",
-        "last_tourney_date": "2026-10-26",
-        "last_match_date": "2026-11-01",
+        "last_tourney_date": "2026-11-08",
+        "last_match_date": "2026-11-14",
     }
 
 
@@ -151,7 +155,7 @@ def test_surface_splits_sinner_2024(conn):
 
 
 def test_surface_splits_2026_comes_from_tml(conn):
-    result = stats.surface_splits(conn, ALCARAZ, {"season": 2026})
+    result = stats.surface_splits(conn, ALCARAZ, {"season": 2026, **PINNED})
     assert record(result) == (37, 5)  # hand 7
 
 
@@ -260,7 +264,7 @@ def counts(rate):
     ("player_id", "filters", "against_first", "against_second"),
     [
         (SINNER, {"season": 2024}, (1313, 4117), (1379, 2469)),  # hand 29 (Sackmann)
-        (ALCARAZ, {"season": 2026}, (777, 2245), (705, 1304)),  # hand 29 (TML)
+        (ALCARAZ, {"season": 2026, **PINNED}, (777, 2245), (705, 1304)),  # hand 29 (TML)
     ],
 )
 def test_return_points_won_against_first_and_second_serves(conn, player_id, filters, against_first, against_second):
@@ -300,7 +304,7 @@ def test_pressure_stats_sinner_2024_clay(conn):
 
 
 def test_head_to_head_sinner_alcaraz(conn):
-    result = stats.head_to_head(conn, SINNER, ALCARAZ)
+    result = stats.head_to_head(conn, SINNER, ALCARAZ, PINNED)
     assert (result["record"]["wins"], result["record"]["losses"]) == (7, 10)  # hand 5
     by_surface = {s["surface"]: (s["wins"], s["losses"]) for s in result["by_surface"]}
     assert by_surface == {"Hard": (3, 7), "Clay": (2, 3), "Grass": (2, 0)}  # hand 5
@@ -310,7 +314,7 @@ def test_head_to_head_sinner_alcaraz(conn):
 
 
 def test_head_to_head_is_symmetric(conn):
-    reverse = stats.head_to_head(conn, ALCARAZ, SINNER)
+    reverse = stats.head_to_head(conn, ALCARAZ, SINNER, PINNED)
     assert (reverse["record"]["wins"], reverse["record"]["losses"]) == (10, 7)
 
 
@@ -318,7 +322,7 @@ def test_head_to_head_is_symmetric(conn):
 
 
 def test_recent_form_sinner_last_five(conn):
-    result = stats.recent_form(conn, SINNER, n=5)
+    result = stats.recent_form(conn, SINNER, 5, PINNED)
     played = [(m["round"], m["opponent"]["name"], m["result"]) for m in result["matches"]]
     assert played == [  # hand 6, newest first
         ("F", "Alexander Zverev", "W"),
@@ -363,7 +367,7 @@ def test_scores_read_from_the_asked_players_side(conn):
 
 
 def test_recent_form_time_on_court(conn):
-    result = stats.recent_form(conn, SINNER, 10, {"season": 2026})
+    result = stats.recent_form(conn, SINNER, 10, {"season": 2026, **PINNED})
     assert result["time_on_court"]["matches_with_minutes"] == 10  # hand 23
     assert result["time_on_court"]["total_minutes"] == 1592  # hand 23
     assert result["time_on_court"]["longest_match_minutes"] == 226  # hand 23

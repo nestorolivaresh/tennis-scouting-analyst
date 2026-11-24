@@ -1511,3 +1511,49 @@ key number whose card reads 507 of 940 second-serve return points. All 8 key num
 and all 64 numbers in the text were found. The report's link opens the same match-up.
 
 **Not checked.** Browsers other than Chromium.
+
+## D-034 Fresher 2026 data, and tests that a refresh doesn't break
+
+*2026-11-24. Approved by Nestor ("Fresh data first").*
+
+**Context.** The pinned TennisMyLife snapshot was taken on 2026-11-07, with matches through
+1 November, so every report and match prep page missed what was played since. Accepting a newer
+snapshot also broke the tests that pin 2026 counts or the snapshot's dates: five on 10 November
+(D-028), six this time.
+
+**Chosen.**
+- **The snapshot of 2026-11-24.** `2026.csv` grows from 2,719 to 2,801 rows: the Paris Masters
+  and Stockholm, with matches through 14 November. TennisMyLife also changed 182 earlier 2026
+  rows: rankings in all of them, and the serve counts of 4 matches whose old rows had about 95%
+  first serves in (Australian Open and Wimbledon first rounds; none involve the players the tests
+  use). `2025.csv`, used only to map player IDs and cross-check Sackmann, changed rankings and one
+  Davis Cup tie's name. `ingest.players` added one row, a TML code mapped by the 2025 overlap,
+  checked by hand against the raw files (same name, country and 2025 matches in both). No review
+  row is pending.
+- **Tests that hold across refreshes.** Checks on 2026 count only tournaments that started by
+  2026-10-26, the last start in the earlier snapshot: the tests pass that `date_to`, and the hand
+  checks (5, 6, 7, 23, 29) stop at the same tournament start, read from TML's earliest match date
+  as the load does (D-010). The report's window tests check the rule, two years up to the newest
+  tournament, instead of fixed dates, and `/health` is compared with the stats layer's data
+  window. Only `test_data_window` (hand 17) and the newest-match checks on `player_profile`
+  (hands 6 and 19) describe the snapshot and are rechecked on a refresh.
+
+**Alternatives.** Update the pinned values on every refresh (the old way: work each time, and a
+real change hides among expected ones); test 2026 only against relative facts (no named source
+for the numbers, D-015).
+
+**How it was checked.**
+- The hand checks with the cutoff give the old values on the new snapshot (Alcaraz 37-5 and
+  777 / 2,245 and 705 / 1,304, the same 17 meetings, Sinner's 1,592 minutes); without it,
+  Alcaraz's 2026 is now 41-5, as he won the Paris Masters.
+- Loading the earlier snapshot again from a local copy, only `test_data_window` failed, as
+  designed; the new snapshot was then restored and verified against the lock file.
+- The evals' ground truth, computed for all 51 cases with `--dry-run`, equals the expected values
+  stored in `m10-final`, so no live rerun is needed. Their results were recorded on the earlier
+  snapshot, so `--rescore` now refuses them (D-002); a rescore needs a new live run.
+
+**Production.** Neon still holds the 2026-11-07 snapshot until Nestor reloads it with these
+files (`docs/deploy.md`, section 2). The app's role keeps its access through a reload
+(`infra/neon_setup.sql` sets default privileges), and no deploy is needed. After the load,
+`docs/quality-report.md` should differ only in its date, which checks that Neon and the local
+database hold the same rows.

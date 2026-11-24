@@ -11,6 +11,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api import app as app_module
+from api import stats
+from api.db import connect
 from api.agent import Settings
 from api.tests.fake_model import FakeClient, message, text, tool_results, tool_use
 
@@ -18,6 +20,14 @@ SINNER, ALCARAZ = 206173, 207989  # hand 9
 SETTINGS = Settings(api_key="test-key", model="claude-sonnet-5-5", allow_no_spend_cap=True)
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
 REPORT = {"player_id": SINNER, "opponent_id": ALCARAZ, "surface": "Clay"}
+PINNED = {"date_to": "2026-10-26"}  # as in test_stats.py: 2026 values stop there (D-034)
+
+
+def report_window(http):
+    """The report's window under the snapshot loaded: the two years up to the newest tournament.
+    test_data_window checks those dates against hand 17; here only the rule is checked."""
+    newest = http.get("/health").json()["data_window"]["last_tourney_date"]
+    return {"date_from": f"{int(newest[:4]) - 2}{newest[4:]}", "date_to": newest}
 
 
 @pytest.fixture
@@ -42,7 +52,7 @@ def http():
 def gather(_request):
     return message(
         tool_use("t1", "serve_return_stats", {"player_id": ALCARAZ, "filters": {"surface": "Clay"}}),
-        tool_use("t2", "head_to_head", {"player_id": SINNER, "opponent_id": ALCARAZ}),
+        tool_use("t2", "head_to_head", {"player_id": SINNER, "opponent_id": ALCARAZ, "filters": PINNED}),
     )
 
 
@@ -87,10 +97,10 @@ def test_report_verified(http, use_model):
     assert [(e["tool_call_id"], e["tool"]) for e in body["evidence"]] == [("c1", "serve_return_stats"), ("c2", "head_to_head")]
     assert [s["tool_call_id"] for s in body["report"]["key_stats"]] == ["c1", "c1", "c2", "c2"]
     assert body["evidence"][1]["result"]["record"]["wins"] == 7  # hand 5
-    assert body["request"]["date_to"] == "2026-10-26" and body["request"]["date_from"] == "2024-10-26"  # hand 17
+    assert {k: body["request"][k] for k in ("date_from", "date_to")} == report_window(http)
     first = model.requests[0]
     assert first["output_config"]["format"]["type"] == "json_schema"
-    assert "date_from\": \"2024-10-26\"" in first["messages"][0]["content"]
+    assert f'date_from": "{report_window(http)["date_from"]}"' in first["messages"][0]["content"]
     assert body["usage"]["cost_usd"] is not None and body["usage"]["tool_calls"] == 2
 
 
@@ -391,7 +401,11 @@ def test_chat_reports_model_errors_in_the_stream(http, use_model):
 def test_health(http):
     body = http.get("/health").json()
     assert (body["status"], body["database"], body["spend_cap_active"]) == ("ok", "ok", False)
-    assert body["data_window"]["last_match_date"] == "2026-11-01"  # hand 17
+    conn = connect()
+    try:
+        assert body["data_window"] == stats.data_window(conn)  # whose dates test_data_window checks (hand 17)
+    finally:
+        conn.close()
 
 
 def test_health_reports_a_database_outage(http):
@@ -426,7 +440,7 @@ def test_report_stream_shows_progress_then_the_checked_report(http, use_model):
         "start", "model_call", "tool_call", "tool_result", "tool_call", "tool_result", "model_call", "checking", "report",
     ]
     start, final = sequence[0][1], sequence[-1][1]
-    assert start["request"]["date_to"] == "2026-10-26"  # hand 17
+    assert start["request"]["date_to"] == report_window(http)["date_to"]
     assert sequence[1][1] == {"call": 1, "tool_calls_so_far": 0} and sequence[6][1] == {"call": 2, "tool_calls_so_far": 2}
     assert sequence[7][1] == {"attempt": 1, "key_stats": 4}
     assert (final["status"], final["grounding"]["attempts"], final["request_id"]) == ("verified", 1, start["request_id"])

@@ -50,7 +50,7 @@ uv run python -m ingest.download
 
 Seasons 2015-2025 come from the final commit of Jeff Sackmann's repository and always match.
 The 2026 files come from TennisMyLife, which updates them, so a download made after
-7 November 2026 won't match the pinned snapshot and the script says so. Accept the newer
+24 November 2026 won't match the pinned snapshot and the script says so. Accept the newer
 snapshot, then add any new players to the reviewed ID files:
 
 ```bash
@@ -65,11 +65,11 @@ uv run --env-file .env python -m ingest.load   # a few seconds; also writes docs
 uv run --env-file .env pytest                  # unit tests, plus checks on the loaded data
 ```
 
-These steps were followed from a fresh clone on 10 November 2026, with a newer 2026 snapshot:
-298 tests passed and 5 failed. The five pin 2026 dates or counts from the original snapshot:
-`test_health`, `test_data_window`, `test_surface_splits_2026_comes_from_tml`,
-`test_report_verified` and `test_report_stream_shows_progress_then_the_checked_report`. Seasons
-2015-2025 and the evals are unaffected. [D-002](docs/decisions.md) explains the trade-off.
+With a 2026 snapshot newer than the pinned one, expect `test_data_window` to fail, since it
+checks the snapshot's own dates, and the two newest-match checks on `player_profile` if those
+players have played since. Every other check on 2026 counts only tournaments that started by
+26 October 2026, so it holds on a later snapshot unless TennisMyLife corrects those rows.
+Seasons 2015-2025 and the evals are unaffected ([D-002, D-034](docs/decisions.md)).
 
 **Run the app.** Start the API in one terminal and the web app in another:
 
