@@ -920,3 +920,127 @@
     font-size: 16px;
   }
 }
+
+/* ---------- season path (D-035) ---------- */
+
+.pathSummary {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 24px);
+  color: var(--bottle);
+}
+
+.pathList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathItem {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.pathItem:last-child {
+  border-bottom: 0;
+}
+
+.pathRow {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1.2fr) minmax(0, 1.6fr) 96px;
+  gap: 0 16px;
+  align-items: center;
+  padding: 11px 0;
+}
+
+summary.pathRow {
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.pathRow::-webkit-details-marker {
+  display: none;
+}
+
+summary.pathRow:hover {
+  background: var(--tint);
+}
+
+.pathDate,
+.pathEvent,
+.pathEnded {
+  min-width: 0;
+}
+
+.pathEnded,
+.pathRecord {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pathRecord {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.pathMatches {
+  margin: 0 0 12px;
+  padding: 4px 0 4px 16px;
+  list-style: none;
+  border-left: 3px solid var(--hairline);
+}
+
+.pathMatch {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1.4fr) 70px minmax(0, 1fr);
+  gap: 2px 14px;
+  align-items: baseline;
+  padding: 6px 0;
+  font-size: 16px;
+}
+
+.pathRound {
+  color: var(--muted-2);
+}
+
+.pathTag {
+  margin-left: 8px;
+}
+
+@media (max-width: 760px) {
+  .pathRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 14px;
+  }
+
+  .pathEvent {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .pathRecord {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .pathEnded {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .pathDate {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    font-size: 16px;
+    color: var(--muted-2);
+  }
+
+  .pathMatch {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pathMatch > :nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

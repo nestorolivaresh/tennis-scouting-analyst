@@ -74,7 +74,7 @@ awk -F, -v P="Alexander Zverev" -v X="$EXCLUDE" -v E="$EXHIBITION" '
   END { printf "exhibitions %d, other matches %d\n", ex, n }' "$S/atp_matches_2024.csv"
 
 echo "== 9. Player IDs (atp_players.csv: id, first, last)"
-grep -E "^(206173|100644|104999|207352|200000|207989|104925|106421|104755|133975|200031)," "$S/atp_players.csv" | cut -d, -f1-3
+grep -E "^(206173|100644|104999|207352|200000|207989|104925|106421|104755|133975|200031|209950|207518|126203)," "$S/atp_players.csv" | cut -d, -f1-3
 
 echo "== 10. Sinner 2024 against left-handers (opponent hand from the match row: 12 winner_hand, 20 loser_hand)"
 awk -F, -v P="Jannik Sinner" -v X="$EXCLUDE" -v E="$EXHIBITION" '
@@ -235,3 +235,25 @@ for args in "Jannik Sinner|$S/atp_matches_2024.csv" "Carlos Alcaraz|$T"; do
       fin += $c[o "1stIn"]; fwon += $c[o "1stWon"]; sp += $c[o "svpt"]; swon += $c[o "2ndWon"] }
     END { printf "%s: against first serves %d/%d, against second serves %d/%d\n", P, fin - fwon, fin, sp - fin - swon, sp - fin }' "${args#*|}" "${args#*|}"
 done
+
+echo "== 30. Season paths (D-035): each tournament's start, name, counted win-loss, walkovers, and its last round with the result"
+# The last round is the highest in the draw's order (R128 R64 R32 R16 RR QF SF BR F), then the
+# highest match number. Walkovers are listed (wo=) but not counted; exhibitions are left out.
+path() {
+  awk -F, -v P="$1" -v X="$EXCLUDE" -v E="$EXHIBITION" '
+    BEGIN { split("R128 R64 R32 R16 RR QF SF BR F", r, " "); for (i in r) ord[r[i]] = i }
+    ($11 == P || $19 == P) && $2 !~ E {
+      t = $1; if (!(t in start)) { start[t] = $6; name[t] = $2; n++; order[n] = t }
+      won = ($11 == P); wo = index($24, X) > 0
+      if (wo) walk[t]++; else if (won) w[t]++; else l[t]++
+      k = ord[$26] * 1000 + $7
+      if (!(t in best) || k > best[t]) { best[t] = k; last[t] = $26 " " (won ? "W" : "L") (wo ? " W/O" : "") }
+    }
+    END { for (i = 1; i <= n; i++) { t = order[i]; printf "%s %s %d-%d wo=%d last=%s\n", start[t], name[t], w[t], l[t], walk[t], last[t] } }' "$2" | sort
+}
+path "Jannik Sinner" "$S/atp_matches_2025.csv"
+path "Arthur Fils" "$S/atp_matches_2025.csv" | grep "Roland Garros"
+path "Lorenzo Musetti" "$S/atp_matches_2024.csv" | grep -E "Olympics|ITA vs ARG"
+path "Felix Auger Aliassime" "$S/atp_matches_2024.csv" | grep "Olympics"
+path "Alexander Zverev" "$S/atp_matches_2025.csv" | grep -E "Tour Finals|United Cup"
+path "Taylor Fritz" "$S/atp_matches_2025.csv" | grep -E "Tour Finals|United Cup"

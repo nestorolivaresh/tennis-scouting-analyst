@@ -48,11 +48,15 @@ def compose(
         # First, so a bad opponent stops the request before the other queries run.
         h2h = None if opponent_id is None else stats.head_to_head(conn, pid, opponent_id, filters)
         profile = stats.player_profile(conn, pid)
+        seasons = _seasons(conn, pid, profile, filters.surface)
+        # The season path covers the chosen season, or the newest one with a counted match under
+        # the surface filter (D-035). None when there is no such season.
+        path_season = filters.season or next((s["season"] for s in seasons if s["overall"]["matches"]), None)
         return {
             "profile": profile,
             "filters": {"surface": filters.surface, "season": filters.season},
             "data_window": stats.data_window(conn),
-            "seasons": _seasons(conn, pid, profile, filters.surface),
+            "seasons": seasons,
             "by_surface": stats.surface_splits(conn, pid, stats.Filters(season=filters.season)),
             "record": stats.surface_splits(conn, pid, filters),
             "serve_return": stats.serve_return_stats(conn, pid, filters),
@@ -64,4 +68,6 @@ def compose(
             "set_patterns": stats.set_patterns(conn, pid, filters),
             "tour": stats.tour_comparison(conn, pid, filters),
             "shots": stats.shot_patterns(conn, pid, filters),
+            "season_path": None if path_season is None
+            else stats.season_path(conn, pid, stats.Filters(surface=filters.surface, season=path_season)),
         }

@@ -63,6 +63,11 @@ def keys_in(value):
 
 def expected_blocks(conn, player_id, filters, opponent_id):
     season_only = {"season": filters["season"]} if "season" in filters else {}
+    surface_only = {"surface": filters["surface"]} if "surface" in filters else {}
+    # The chosen season, or the newest season loaded with a counted match under the surface filter.
+    path_season = filters.get("season") or next(
+        s for s in ALL_SEASONS if stats.surface_splits(conn, player_id, {**surface_only, "season": s})["overall"]["matches"]
+    )
     profile = stats.player_profile(conn, player_id)
     return {
         "profile": profile,
@@ -77,6 +82,7 @@ def expected_blocks(conn, player_id, filters, opponent_id):
         "set_patterns": stats.set_patterns(conn, player_id, filters),  # D-029
         "tour": stats.tour_comparison(conn, player_id, filters),
         "shots": stats.shot_patterns(conn, player_id, filters),  # D-030
+        "season_path": stats.season_path(conn, player_id, {**surface_only, "season": path_season}),  # D-035
     }
 
 
@@ -94,6 +100,15 @@ def test_each_block_equals_the_direct_tool_call(http, conn, filters, opponent_id
         assert body[block] == value, block
     assert set(body) == {*expected, "filters", "seasons"}
     assert body["filters"] == {"surface": filters.get("surface"), "season": filters.get("season")}
+
+
+def test_the_season_path_follows_the_page(http, conn):
+    # With no season chosen it covers the newest season with a match; a chosen one is used as is.
+    newest = get(http).json()["season_path"]
+    assert newest["filters"]["season"] == max(counted_seasons(conn, ALCARAZ))
+    chosen = get(http, **CLAY_2025).json()["season_path"]
+    assert (chosen["filters"]["season"], chosen["filters"]["surface"]) == (2025, "Clay")
+    assert {e["surface"] for e in chosen["events"]} == {"Clay"}
 
 
 def test_the_filters_are_the_parsed_ones(http):

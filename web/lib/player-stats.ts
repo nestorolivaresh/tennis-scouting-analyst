@@ -7,6 +7,7 @@ import type { Handoff } from "./handoff.ts";
 import { EN, type T, surfaceWords } from "./i18n.ts";
 import { eventName, handName, lastName, longDate, monthYear, roundName } from "./people.ts";
 import type { SetPatterns, ShotPatterns, TourComparison } from "./patterns.ts";
+import type { SeasonPath } from "./season-path.ts";
 import type { Candidate, PlayerRef, Rate, Sample, SearchResult } from "./types.ts";
 
 // ---------- the response ----------
@@ -102,6 +103,8 @@ export interface PlayerStats {
   set_patterns: SetPatterns;
   tour: TourComparison;
   shots: ShotPatterns;
+  /** Absent from a response cached before D-035; null when no season has a match. */
+  season_path?: SeasonPath | null;
 }
 
 // ---------- the URL ----------

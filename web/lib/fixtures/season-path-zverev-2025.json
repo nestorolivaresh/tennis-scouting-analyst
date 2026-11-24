@@ -1,0 +1,2713 @@
+{
+ "tool": "season_path",
+ "player": {
+  "player_id": 100644,
+  "name": "Alexander Zverev"
+ },
+ "filters": {
+  "surface": null,
+  "date_from": null,
+  "date_to": null,
+  "season": 2025,
+  "tourney_level": null,
+  "opponent_hand": null,
+  "include_exhibitions": false,
+  "opponent_rank_max": null
+ },
+ "sample": {
+  "matches_counted": 80,
+  "matches_with_stats": 78,
+  "opponent_retired_or_defaulted": 4,
+  "player_retired_or_defaulted": 0,
+  "first_tourney_date": "2024-12-27",
+  "last_tourney_date": "2025-11-22"
+ },
+ "excluded": {
+  "walkovers": 1,
+  "exhibitions": 2,
+  "unknown_results": 0,
+  "unknown_surface": 0,
+  "unknown_opponent_hand": 0,
+  "unknown_opponent_rank": 0
+ },
+ "data_window": {
+  "first_tourney_date": "2015-01-04",
+  "last_tourney_date": "2026-11-08",
+  "last_match_date": "2026-11-14"
+ },
+ "summary": {
+  "events": 26,
+  "titles": 1,
+  "record": {
+   "matches": 80,
+   "wins": 57,
+   "losses": 23
+  },
+  "walkovers_shown": 1
+ },
+ "events": [
+  {
+   "tournament": "United Cup",
+   "level": "A",
+   "surface": "Hard",
+   "tourney_date": "2024-12-27",
+   "record": {
+    "matches": 2,
+    "wins": 2,
+    "losses": 0
+   },
+   "walkovers": 0,
+   "outcome": "team",
+   "round": "RR",
+   "last_match": {
+    "tourney_date": "2024-12-27",
+    "match_date": null,
+    "tournament": "United Cup",
+    "level": "A",
+    "surface": "Hard",
+    "round": "RR",
+    "result": "W",
+    "score": "2-6 6-0 6-2",
+    "player_score": "2-6 6-0 6-2",
+    "result_type": "completed",
+    "minutes": 125,
+    "rank": 2,
+    "opponent": {
+     "player_id": 111190,
+     "name": "Zhizhen Zhang",
+     "rank": 45
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2024-12-27",
+     "match_date": null,
+     "tournament": "United Cup",
+     "level": "A",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "W",
+     "score": "6-4 6-4",
+     "player_score": "6-4 6-4",
+     "result_type": "completed",
+     "minutes": 77,
+     "rank": 2,
+     "opponent": {
+      "player_id": 106329,
+      "name": "Thiago Monteiro",
+      "rank": 109
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2024-12-27",
+     "match_date": null,
+     "tournament": "United Cup",
+     "level": "A",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "W",
+     "score": "2-6 6-0 6-2",
+     "player_score": "2-6 6-0 6-2",
+     "result_type": "completed",
+     "minutes": 125,
+     "rank": 2,
+     "opponent": {
+      "player_id": 111190,
+      "name": "Zhizhen Zhang",
+      "rank": 45
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Australian Open",
+   "level": "G",
+   "surface": "Hard",
+   "tourney_date": "2025-01-13",
+   "record": {
+    "matches": 7,
+    "wins": 6,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "F",
+   "last_match": {
+    "tourney_date": "2025-01-13",
+    "match_date": null,
+    "tournament": "Australian Open",
+    "level": "G",
+    "surface": "Hard",
+    "round": "F",
+    "result": "L",
+    "score": "6-3 7-6(4) 6-3",
+    "player_score": "3-6 6-7(4) 3-6",
+    "result_type": "completed",
+    "minutes": 162,
+    "rank": 2,
+    "opponent": {
+     "player_id": 206173,
+     "name": "Jannik Sinner",
+     "rank": 1
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R128",
+     "result": "W",
+     "score": "6-4 6-4 6-4",
+     "player_score": "6-4 6-4 6-4",
+     "result_type": "completed",
+     "minutes": 141,
+     "rank": 2,
+     "opponent": {
+      "player_id": 106298,
+      "name": "Lucas Pouille",
+      "rank": 103
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "W",
+     "score": "6-1 6-4 6-1",
+     "player_score": "6-1 6-4 6-1",
+     "result_type": "completed",
+     "minutes": 114,
+     "rank": 2,
+     "opponent": {
+      "player_id": 124079,
+      "name": "Pedro Martinez",
+      "rank": 44
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-3 6-4 6-4",
+     "player_score": "6-3 6-4 6-4",
+     "result_type": "completed",
+     "minutes": 122,
+     "rank": 2,
+     "opponent": {
+      "player_id": 207985,
+      "name": "Jacob Fearnley",
+      "rank": 92
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "W",
+     "score": "6-1 2-6 6-3 6-2",
+     "player_score": "6-1 2-6 6-3 6-2",
+     "result_type": "completed",
+     "minutes": 136,
+     "rank": 2,
+     "opponent": {
+      "player_id": 200005,
+      "name": "Ugo Humbert",
+      "rank": 14
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "QF",
+     "result": "W",
+     "score": "7-6(1) 7-6(0) 2-6 6-1",
+     "player_score": "7-6(1) 7-6(0) 2-6 6-1",
+     "result_type": "completed",
+     "minutes": 208,
+     "rank": 2,
+     "opponent": {
+      "player_id": 126205,
+      "name": "Tommy Paul",
+      "rank": 11
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "SF",
+     "result": "W",
+     "score": "7-6(5) 0-0 RET",
+     "player_score": "7-6(5) 0-0 RET",
+     "result_type": "retired",
+     "minutes": 81,
+     "rank": 2,
+     "opponent": {
+      "player_id": 104925,
+      "name": "Novak Djokovic",
+      "rank": 7
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-01-13",
+     "match_date": null,
+     "tournament": "Australian Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "F",
+     "result": "L",
+     "score": "6-3 7-6(4) 6-3",
+     "player_score": "3-6 6-7(4) 3-6",
+     "result_type": "completed",
+     "minutes": 162,
+     "rank": 2,
+     "opponent": {
+      "player_id": 206173,
+      "name": "Jannik Sinner",
+      "rank": 1
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Buenos Aires",
+   "level": "A",
+   "surface": "Clay",
+   "tourney_date": "2025-02-10",
+   "record": {
+    "matches": 2,
+    "wins": 1,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "QF",
+   "last_match": {
+    "tourney_date": "2025-02-10",
+    "match_date": null,
+    "tournament": "Buenos Aires",
+    "level": "A",
+    "surface": "Clay",
+    "round": "QF",
+    "result": "L",
+    "score": "3-6 6-3 6-2",
+    "player_score": "6-3 3-6 2-6",
+    "result_type": "completed",
+    "minutes": 132,
+    "rank": 2,
+    "opponent": {
+     "player_id": 202103,
+     "name": "Francisco Cerundolo",
+     "rank": 28
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-02-10",
+     "match_date": null,
+     "tournament": "Buenos Aires",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "W",
+     "score": "6-4 6-4",
+     "player_score": "6-4 6-4",
+     "result_type": "completed",
+     "minutes": 97,
+     "rank": 2,
+     "opponent": {
+      "player_id": 105583,
+      "name": "Dusan Lajovic",
+      "rank": 81
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-02-10",
+     "match_date": null,
+     "tournament": "Buenos Aires",
+     "level": "A",
+     "surface": "Clay",
+     "round": "QF",
+     "result": "L",
+     "score": "3-6 6-3 6-2",
+     "player_score": "6-3 3-6 2-6",
+     "result_type": "completed",
+     "minutes": 132,
+     "rank": 2,
+     "opponent": {
+      "player_id": 202103,
+      "name": "Francisco Cerundolo",
+      "rank": 28
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Rio de Janeiro",
+   "level": "A",
+   "surface": "Clay",
+   "tourney_date": "2025-02-17",
+   "record": {
+    "matches": 3,
+    "wins": 2,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "QF",
+   "last_match": {
+    "tourney_date": "2025-02-17",
+    "match_date": null,
+    "tournament": "Rio de Janeiro",
+    "level": "A",
+    "surface": "Clay",
+    "round": "QF",
+    "result": "L",
+    "score": "4-6 6-3 6-4",
+    "player_score": "6-4 3-6 4-6",
+    "result_type": "completed",
+    "minutes": 151,
+    "rank": 2,
+    "opponent": {
+     "player_id": 207681,
+     "name": "Francisco Comesana",
+     "rank": 86
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-02-17",
+     "match_date": null,
+     "tournament": "Rio de Janeiro",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "W",
+     "score": "7-6(4) 6-4",
+     "player_score": "7-6(4) 6-4",
+     "result_type": "completed",
+     "minutes": 124,
+     "rank": 2,
+     "opponent": {
+      "player_id": 207352,
+      "name": "Bu Yunchaokete",
+      "rank": 69
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-02-17",
+     "match_date": null,
+     "tournament": "Rio de Janeiro",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "W",
+     "score": "7-6(1) 7-6(6)",
+     "player_score": "7-6(1) 7-6(6)",
+     "result_type": "completed",
+     "minutes": 148,
+     "rank": 2,
+     "opponent": {
+      "player_id": 207686,
+      "name": "Alexander Shevchenko",
+      "rank": 103
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-02-17",
+     "match_date": null,
+     "tournament": "Rio de Janeiro",
+     "level": "A",
+     "surface": "Clay",
+     "round": "QF",
+     "result": "L",
+     "score": "4-6 6-3 6-4",
+     "player_score": "6-4 3-6 4-6",
+     "result_type": "completed",
+     "minutes": 151,
+     "rank": 2,
+     "opponent": {
+      "player_id": 207681,
+      "name": "Francisco Comesana",
+      "rank": 86
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Acapulco",
+   "level": "A",
+   "surface": "Hard",
+   "tourney_date": "2025-02-24",
+   "record": {
+    "matches": 2,
+    "wins": 1,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R16",
+   "last_match": {
+    "tourney_date": "2025-02-24",
+    "match_date": null,
+    "tournament": "Acapulco",
+    "level": "A",
+    "surface": "Hard",
+    "round": "R16",
+    "result": "L",
+    "score": "6-3 6-4",
+    "player_score": "3-6 4-6",
+    "result_type": "completed",
+    "minutes": 88,
+    "rank": 2,
+    "opponent": {
+     "player_id": 210530,
+     "name": "Learner Tien",
+     "rank": 83
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-02-24",
+     "match_date": null,
+     "tournament": "Acapulco",
+     "level": "A",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-7(2) 6-3 6-4",
+     "player_score": "6-7(2) 6-3 6-4",
+     "result_type": "completed",
+     "minutes": 164,
+     "rank": 2,
+     "opponent": {
+      "player_id": 208286,
+      "name": "Matteo Arnaldi",
+      "rank": 33
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-02-24",
+     "match_date": null,
+     "tournament": "Acapulco",
+     "level": "A",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "L",
+     "score": "6-3 6-4",
+     "player_score": "3-6 4-6",
+     "result_type": "completed",
+     "minutes": 88,
+     "rank": 2,
+     "opponent": {
+      "player_id": 210530,
+      "name": "Learner Tien",
+      "rank": 83
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Indian Wells Masters",
+   "level": "M",
+   "surface": "Hard",
+   "tourney_date": "2025-03-05",
+   "record": {
+    "matches": 1,
+    "wins": 0,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R64",
+   "last_match": {
+    "tourney_date": "2025-03-05",
+    "match_date": null,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "round": "R64",
+    "result": "L",
+    "score": "4-6 7-6(5) 7-6(4)",
+    "player_score": "6-4 6-7(5) 6-7(4)",
+    "result_type": "completed",
+    "minutes": 187,
+    "rank": 2,
+    "opponent": {
+     "player_id": 134868,
+     "name": "Tallon Griekspoor",
+     "rank": 43
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-03-05",
+     "match_date": null,
+     "tournament": "Indian Wells Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "L",
+     "score": "4-6 7-6(5) 7-6(4)",
+     "player_score": "6-4 6-7(5) 6-7(4)",
+     "result_type": "completed",
+     "minutes": 187,
+     "rank": 2,
+     "opponent": {
+      "player_id": 134868,
+      "name": "Tallon Griekspoor",
+      "rank": 43
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Miami Masters",
+   "level": "M",
+   "surface": "Hard",
+   "tourney_date": "2025-03-19",
+   "record": {
+    "matches": 3,
+    "wins": 2,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R16",
+   "last_match": {
+    "tourney_date": "2025-03-19",
+    "match_date": null,
+    "tournament": "Miami Masters",
+    "level": "M",
+    "surface": "Hard",
+    "round": "R16",
+    "result": "L",
+    "score": "3-6 6-3 6-4",
+    "player_score": "6-3 3-6 4-6",
+    "result_type": "completed",
+    "minutes": 120,
+    "rank": 2,
+    "opponent": {
+     "player_id": 209950,
+     "name": "Arthur Fils",
+     "rank": 18
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-03-19",
+     "match_date": null,
+     "tournament": "Miami Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "W",
+     "score": "6-2 6-4",
+     "player_score": "6-2 6-4",
+     "result_type": "completed",
+     "minutes": 74,
+     "rank": 2,
+     "opponent": {
+      "player_id": 207985,
+      "name": "Jacob Fearnley",
+      "rank": 83
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-03-19",
+     "match_date": null,
+     "tournament": "Miami Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "7-5 6-4",
+     "player_score": "7-5 6-4",
+     "result_type": "completed",
+     "minutes": 87,
+     "rank": 2,
+     "opponent": {
+      "player_id": 111442,
+      "name": "Jordan Thompson",
+      "rank": 37
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-03-19",
+     "match_date": null,
+     "tournament": "Miami Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "L",
+     "score": "3-6 6-3 6-4",
+     "player_score": "6-3 3-6 4-6",
+     "result_type": "completed",
+     "minutes": 120,
+     "rank": 2,
+     "opponent": {
+      "player_id": 209950,
+      "name": "Arthur Fils",
+      "rank": 18
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Monte Carlo Masters",
+   "level": "M",
+   "surface": "Clay",
+   "tourney_date": "2025-04-07",
+   "record": {
+    "matches": 1,
+    "wins": 0,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R32",
+   "last_match": {
+    "tourney_date": "2025-04-07",
+    "match_date": null,
+    "tournament": "Monte Carlo Masters",
+    "level": "M",
+    "surface": "Clay",
+    "round": "R32",
+    "result": "L",
+    "score": "2-6 6-3 7-5",
+    "player_score": "6-2 3-6 5-7",
+    "result_type": "completed",
+    "minutes": 148,
+    "rank": 2,
+    "opponent": {
+     "player_id": 126610,
+     "name": "Matteo Berrettini",
+     "rank": 34
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-04-07",
+     "match_date": null,
+     "tournament": "Monte Carlo Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "L",
+     "score": "2-6 6-3 7-5",
+     "player_score": "6-2 3-6 5-7",
+     "result_type": "completed",
+     "minutes": 148,
+     "rank": 2,
+     "opponent": {
+      "player_id": 126610,
+      "name": "Matteo Berrettini",
+      "rank": 34
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Munich",
+   "level": "A",
+   "surface": "Clay",
+   "tourney_date": "2025-04-14",
+   "record": {
+    "matches": 5,
+    "wins": 5,
+    "losses": 0
+   },
+   "walkovers": 0,
+   "outcome": "title",
+   "round": "F",
+   "last_match": {
+    "tourney_date": "2025-04-14",
+    "match_date": null,
+    "tournament": "Munich",
+    "level": "A",
+    "surface": "Clay",
+    "round": "F",
+    "result": "W",
+    "score": "6-2 6-4",
+    "player_score": "6-2 6-4",
+    "result_type": "completed",
+    "minutes": 71,
+    "rank": 3,
+    "opponent": {
+     "player_id": 210097,
+     "name": "Ben Shelton",
+     "rank": 15
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-04-14",
+     "match_date": null,
+     "tournament": "Munich",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "W",
+     "score": "6-4 6-1",
+     "player_score": "6-4 6-1",
+     "result_type": "completed",
+     "minutes": 80,
+     "rank": 3,
+     "opponent": {
+      "player_id": 124186,
+      "name": "Alexandre Muller",
+      "rank": 40
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-04-14",
+     "match_date": null,
+     "tournament": "Munich",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "W",
+     "score": "6-3 6-2",
+     "player_score": "6-3 6-2",
+     "result_type": "completed",
+     "minutes": 79,
+     "rank": 3,
+     "opponent": {
+      "player_id": 127157,
+      "name": "Daniel Altmaier",
+      "rank": 68
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-04-14",
+     "match_date": null,
+     "tournament": "Munich",
+     "level": "A",
+     "surface": "Clay",
+     "round": "QF",
+     "result": "W",
+     "score": "6-7(6) 7-6(3) 6-4",
+     "player_score": "6-7(6) 7-6(3) 6-4",
+     "result_type": "completed",
+     "minutes": 194,
+     "rank": 3,
+     "opponent": {
+      "player_id": 134868,
+      "name": "Tallon Griekspoor",
+      "rank": 37
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-04-14",
+     "match_date": null,
+     "tournament": "Munich",
+     "level": "A",
+     "surface": "Clay",
+     "round": "SF",
+     "result": "W",
+     "score": "7-6(3) 6-3",
+     "player_score": "7-6(3) 6-3",
+     "result_type": "completed",
+     "minutes": 91,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206681,
+      "name": "Fabian Marozsan",
+      "rank": 77
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-04-14",
+     "match_date": null,
+     "tournament": "Munich",
+     "level": "A",
+     "surface": "Clay",
+     "round": "F",
+     "result": "W",
+     "score": "6-2 6-4",
+     "player_score": "6-2 6-4",
+     "result_type": "completed",
+     "minutes": 71,
+     "rank": 3,
+     "opponent": {
+      "player_id": 210097,
+      "name": "Ben Shelton",
+      "rank": 15
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Madrid Masters",
+   "level": "M",
+   "surface": "Clay",
+   "tourney_date": "2025-04-23",
+   "record": {
+    "matches": 3,
+    "wins": 2,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R16",
+   "last_match": {
+    "tourney_date": "2025-04-23",
+    "match_date": null,
+    "tournament": "Madrid Masters",
+    "level": "M",
+    "surface": "Clay",
+    "round": "R16",
+    "result": "L",
+    "score": "7-5 6-3",
+    "player_score": "5-7 3-6",
+    "result_type": "completed",
+    "minutes": 89,
+    "rank": 2,
+    "opponent": {
+     "player_id": 202103,
+     "name": "Francisco Cerundolo",
+     "rank": 21
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-04-23",
+     "match_date": null,
+     "tournament": "Madrid Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R64",
+     "result": "W",
+     "score": "6-2 6-2",
+     "player_score": "6-2 6-2",
+     "result_type": "completed",
+     "minutes": 70,
+     "rank": 2,
+     "opponent": {
+      "player_id": 105138,
+      "name": "Roberto Bautista Agut",
+      "rank": 55
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-04-23",
+     "match_date": null,
+     "tournament": "Madrid Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "W",
+     "score": "2-6 7-6(3) 7-6(0)",
+     "player_score": "2-6 7-6(3) 7-6(0)",
+     "result_type": "completed",
+     "minutes": 164,
+     "rank": 2,
+     "opponent": {
+      "player_id": 200221,
+      "name": "Alejandro Davidovich Fokina",
+      "rank": 29
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-04-23",
+     "match_date": null,
+     "tournament": "Madrid Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "L",
+     "score": "7-5 6-3",
+     "player_score": "5-7 3-6",
+     "result_type": "completed",
+     "minutes": 89,
+     "rank": 2,
+     "opponent": {
+      "player_id": 202103,
+      "name": "Francisco Cerundolo",
+      "rank": 21
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Rome Masters",
+   "level": "M",
+   "surface": "Clay",
+   "tourney_date": "2025-05-07",
+   "record": {
+    "matches": 4,
+    "wins": 3,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "QF",
+   "last_match": {
+    "tourney_date": "2025-05-07",
+    "match_date": null,
+    "tournament": "Rome Masters",
+    "level": "M",
+    "surface": "Clay",
+    "round": "QF",
+    "result": "L",
+    "score": "7-6(1) 6-4",
+    "player_score": "6-7(1) 4-6",
+    "result_type": "completed",
+    "minutes": 135,
+    "rank": 2,
+    "opponent": {
+     "player_id": 207518,
+     "name": "Lorenzo Musetti",
+     "rank": 9
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-05-07",
+     "match_date": null,
+     "tournament": "Rome Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R64",
+     "result": "W",
+     "score": "6-2 6-1",
+     "player_score": "6-2 6-1",
+     "result_type": "completed",
+     "minutes": 66,
+     "rank": 2,
+     "opponent": {
+      "player_id": 200116,
+      "name": "Camilo Ugo Carabelli",
+      "rank": 60
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-07",
+     "match_date": null,
+     "tournament": "Rome Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "W",
+     "score": "6-4 6-0",
+     "player_score": "6-4 6-0",
+     "result_type": "completed",
+     "minutes": 85,
+     "rank": 2,
+     "opponent": {
+      "player_id": 209147,
+      "name": "Vilius Gaubas",
+      "rank": 154
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-07",
+     "match_date": null,
+     "tournament": "Rome Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "W",
+     "score": "7-6(3) 6-1",
+     "player_score": "7-6(3) 6-1",
+     "result_type": "completed",
+     "minutes": 105,
+     "rank": 2,
+     "opponent": {
+      "player_id": 209950,
+      "name": "Arthur Fils",
+      "rank": 14
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-07",
+     "match_date": null,
+     "tournament": "Rome Masters",
+     "level": "M",
+     "surface": "Clay",
+     "round": "QF",
+     "result": "L",
+     "score": "7-6(1) 6-4",
+     "player_score": "6-7(1) 4-6",
+     "result_type": "completed",
+     "minutes": 135,
+     "rank": 2,
+     "opponent": {
+      "player_id": 207518,
+      "name": "Lorenzo Musetti",
+      "rank": 9
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Hamburg",
+   "level": "A",
+   "surface": "Clay",
+   "tourney_date": "2025-05-18",
+   "record": {
+    "matches": 2,
+    "wins": 1,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R16",
+   "last_match": {
+    "tourney_date": "2025-05-18",
+    "match_date": null,
+    "tournament": "Hamburg",
+    "level": "A",
+    "surface": "Clay",
+    "round": "R16",
+    "result": "L",
+    "score": "6-3 4-6 7-6(5)",
+    "player_score": "3-6 6-4 6-7(5)",
+    "result_type": "completed",
+    "minutes": 160,
+    "rank": 3,
+    "opponent": {
+     "player_id": 124186,
+     "name": "Alexandre Muller",
+     "rank": 40
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-05-18",
+     "match_date": null,
+     "tournament": "Hamburg",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "W",
+     "score": "6-1 7-6(5)",
+     "player_score": "6-1 7-6(5)",
+     "result_type": "completed",
+     "minutes": 94,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206499,
+      "name": "Aleksandar Kovacevic",
+      "rank": 80
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-18",
+     "match_date": null,
+     "tournament": "Hamburg",
+     "level": "A",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "L",
+     "score": "6-3 4-6 7-6(5)",
+     "player_score": "3-6 6-4 6-7(5)",
+     "result_type": "completed",
+     "minutes": 160,
+     "rank": 3,
+     "opponent": {
+      "player_id": 124186,
+      "name": "Alexandre Muller",
+      "rank": 40
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Roland Garros",
+   "level": "G",
+   "surface": "Clay",
+   "tourney_date": "2025-05-26",
+   "record": {
+    "matches": 5,
+    "wins": 4,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "QF",
+   "last_match": {
+    "tourney_date": "2025-05-26",
+    "match_date": null,
+    "tournament": "Roland Garros",
+    "level": "G",
+    "surface": "Clay",
+    "round": "QF",
+    "result": "L",
+    "score": "4-6 6-3 6-2 6-4",
+    "player_score": "6-4 3-6 2-6 4-6",
+    "result_type": "completed",
+    "minutes": null,
+    "rank": 3,
+    "opponent": {
+     "player_id": 104925,
+     "name": "Novak Djokovic",
+     "rank": 6
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-05-26",
+     "match_date": null,
+     "tournament": "Roland Garros",
+     "level": "G",
+     "surface": "Clay",
+     "round": "R128",
+     "result": "W",
+     "score": "6-3 6-3 6-4",
+     "player_score": "6-3 6-3 6-4",
+     "result_type": "completed",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 210530,
+      "name": "Learner Tien",
+      "rank": 67
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-26",
+     "match_date": null,
+     "tournament": "Roland Garros",
+     "level": "G",
+     "surface": "Clay",
+     "round": "R64",
+     "result": "W",
+     "score": "3-6 6-1 6-2 6-3",
+     "player_score": "3-6 6-1 6-2 6-3",
+     "result_type": "completed",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207411,
+      "name": "Jesper De Jong",
+      "rank": 88
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-26",
+     "match_date": null,
+     "tournament": "Roland Garros",
+     "level": "G",
+     "surface": "Clay",
+     "round": "R32",
+     "result": "W",
+     "score": "6-2 7-6(4) 6-1",
+     "player_score": "6-2 7-6(4) 6-1",
+     "result_type": "completed",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207925,
+      "name": "Flavio Cobolli",
+      "rank": 26
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-26",
+     "match_date": null,
+     "tournament": "Roland Garros",
+     "level": "G",
+     "surface": "Clay",
+     "round": "R16",
+     "result": "W",
+     "score": "6-4 3-0 RET",
+     "player_score": "6-4 3-0 RET",
+     "result_type": "retired",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 134868,
+      "name": "Tallon Griekspoor",
+      "rank": 35
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-05-26",
+     "match_date": null,
+     "tournament": "Roland Garros",
+     "level": "G",
+     "surface": "Clay",
+     "round": "QF",
+     "result": "L",
+     "score": "4-6 6-3 6-2 6-4",
+     "player_score": "6-4 3-6 2-6 4-6",
+     "result_type": "completed",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 104925,
+      "name": "Novak Djokovic",
+      "rank": 6
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Stuttgart",
+   "level": "A",
+   "surface": "Grass",
+   "tourney_date": "2025-06-09",
+   "record": {
+    "matches": 4,
+    "wins": 3,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "F",
+   "last_match": {
+    "tourney_date": "2025-06-09",
+    "match_date": null,
+    "tournament": "Stuttgart",
+    "level": "A",
+    "surface": "Grass",
+    "round": "F",
+    "result": "L",
+    "score": "6-3 7-6(0)",
+    "player_score": "3-6 6-7(0)",
+    "result_type": "completed",
+    "minutes": 85,
+    "rank": 3,
+    "opponent": {
+     "player_id": 126203,
+     "name": "Taylor Fritz",
+     "rank": 7
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-06-09",
+     "match_date": null,
+     "tournament": "Stuttgart",
+     "level": "A",
+     "surface": "Grass",
+     "round": "R16",
+     "result": "W",
+     "score": "6-2 7-6(7)",
+     "player_score": "6-2 7-6(7)",
+     "result_type": "completed",
+     "minutes": 111,
+     "rank": 3,
+     "opponent": {
+      "player_id": 144895,
+      "name": "Corentin Moutet",
+      "rank": 91
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-06-09",
+     "match_date": null,
+     "tournament": "Stuttgart",
+     "level": "A",
+     "surface": "Grass",
+     "round": "QF",
+     "result": "W",
+     "score": "7-5 6-4",
+     "player_score": "7-5 6-4",
+     "result_type": "completed",
+     "minutes": 90,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206909,
+      "name": "Brandon Nakashima",
+      "rank": 31
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-06-09",
+     "match_date": null,
+     "tournament": "Stuttgart",
+     "level": "A",
+     "surface": "Grass",
+     "round": "SF",
+     "result": "W",
+     "score": "7-6(8) 7-6(1)",
+     "player_score": "7-6(8) 7-6(1)",
+     "result_type": "completed",
+     "minutes": 121,
+     "rank": 3,
+     "opponent": {
+      "player_id": 210097,
+      "name": "Ben Shelton",
+      "rank": 12
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-06-09",
+     "match_date": null,
+     "tournament": "Stuttgart",
+     "level": "A",
+     "surface": "Grass",
+     "round": "F",
+     "result": "L",
+     "score": "6-3 7-6(0)",
+     "player_score": "3-6 6-7(0)",
+     "result_type": "completed",
+     "minutes": 85,
+     "rank": 3,
+     "opponent": {
+      "player_id": 126203,
+      "name": "Taylor Fritz",
+      "rank": 7
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Halle",
+   "level": "A",
+   "surface": "Grass",
+   "tourney_date": "2025-06-16",
+   "record": {
+    "matches": 4,
+    "wins": 3,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "SF",
+   "last_match": {
+    "tourney_date": "2025-06-16",
+    "match_date": null,
+    "tournament": "Halle",
+    "level": "A",
+    "surface": "Grass",
+    "round": "SF",
+    "result": "L",
+    "score": "7-6(3) 6-7(1) 6-4",
+    "player_score": "6-7(3) 7-6(1) 4-6",
+    "result_type": "completed",
+    "minutes": 179,
+    "rank": 3,
+    "opponent": {
+     "player_id": 106421,
+     "name": "Daniil Medvedev",
+     "rank": 11
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-06-16",
+     "match_date": null,
+     "tournament": "Halle",
+     "level": "A",
+     "surface": "Grass",
+     "round": "R32",
+     "result": "W",
+     "score": "6-2 6-1",
+     "player_score": "6-2 6-1",
+     "result_type": "completed",
+     "minutes": 79,
+     "rank": 3,
+     "opponent": {
+      "player_id": 106218,
+      "name": "Marcos Giron",
+      "rank": 43
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-06-16",
+     "match_date": null,
+     "tournament": "Halle",
+     "level": "A",
+     "surface": "Grass",
+     "round": "R16",
+     "result": "W",
+     "score": "3-6 6-4 7-6(2)",
+     "player_score": "3-6 6-4 7-6(2)",
+     "result_type": "completed",
+     "minutes": 143,
+     "rank": 3,
+     "opponent": {
+      "player_id": 132283,
+      "name": "Lorenzo Sonego",
+      "rank": 46
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-06-16",
+     "match_date": null,
+     "tournament": "Halle",
+     "level": "A",
+     "surface": "Grass",
+     "round": "QF",
+     "result": "W",
+     "score": "6-4 7-6(6)",
+     "player_score": "6-4 7-6(6)",
+     "result_type": "completed",
+     "minutes": 101,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207925,
+      "name": "Flavio Cobolli",
+      "rank": 24
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-06-16",
+     "match_date": null,
+     "tournament": "Halle",
+     "level": "A",
+     "surface": "Grass",
+     "round": "SF",
+     "result": "L",
+     "score": "7-6(3) 6-7(1) 6-4",
+     "player_score": "6-7(3) 7-6(1) 4-6",
+     "result_type": "completed",
+     "minutes": 179,
+     "rank": 3,
+     "opponent": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev",
+      "rank": 11
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Wimbledon",
+   "level": "G",
+   "surface": "Grass",
+   "tourney_date": "2025-06-30",
+   "record": {
+    "matches": 1,
+    "wins": 0,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R128",
+   "last_match": {
+    "tourney_date": "2025-06-30",
+    "match_date": null,
+    "tournament": "Wimbledon",
+    "level": "G",
+    "surface": "Grass",
+    "round": "R128",
+    "result": "L",
+    "score": "7-6(3) 6-7(8) 6-3 6-7(5) 6-4",
+    "player_score": "6-7(3) 7-6(8) 3-6 7-6(5) 4-6",
+    "result_type": "completed",
+    "minutes": 280,
+    "rank": 3,
+    "opponent": {
+     "player_id": 126239,
+     "name": "Arthur Rinderknech",
+     "rank": 72
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-06-30",
+     "match_date": null,
+     "tournament": "Wimbledon",
+     "level": "G",
+     "surface": "Grass",
+     "round": "R128",
+     "result": "L",
+     "score": "7-6(3) 6-7(8) 6-3 6-7(5) 6-4",
+     "player_score": "6-7(3) 7-6(8) 3-6 7-6(5) 4-6",
+     "result_type": "completed",
+     "minutes": 280,
+     "rank": 3,
+     "opponent": {
+      "player_id": 126239,
+      "name": "Arthur Rinderknech",
+      "rank": 72
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Canada Masters",
+   "level": "M",
+   "surface": "Hard",
+   "tourney_date": "2025-07-27",
+   "record": {
+    "matches": 5,
+    "wins": 4,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "SF",
+   "last_match": {
+    "tourney_date": "2025-07-27",
+    "match_date": null,
+    "tournament": "Canada Masters",
+    "level": "M",
+    "surface": "Hard",
+    "round": "SF",
+    "result": "L",
+    "score": "6-3 4-6 7-6(4)",
+    "player_score": "3-6 6-4 6-7(4)",
+    "result_type": "completed",
+    "minutes": 172,
+    "rank": 3,
+    "opponent": {
+     "player_id": 111575,
+     "name": "Karen Khachanov",
+     "rank": 16
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-07-27",
+     "match_date": null,
+     "tournament": "Canada Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "W",
+     "score": "7-6(6) 6-4",
+     "player_score": "7-6(6) 6-4",
+     "result_type": "completed",
+     "minutes": 102,
+     "rank": 3,
+     "opponent": {
+      "player_id": 200443,
+      "name": "Adam Walton",
+      "rank": 88
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-07-27",
+     "match_date": null,
+     "tournament": "Canada Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-7(5) 6-3 6-2",
+     "player_score": "6-7(5) 6-3 6-2",
+     "result_type": "completed",
+     "minutes": 166,
+     "rank": 3,
+     "opponent": {
+      "player_id": 208286,
+      "name": "Matteo Arnaldi",
+      "rank": 41
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-07-27",
+     "match_date": null,
+     "tournament": "Canada Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "W",
+     "score": "6-4 1-0 RET",
+     "player_score": "6-4 1-0 RET",
+     "result_type": "retired",
+     "minutes": 51,
+     "rank": 3,
+     "opponent": {
+      "player_id": 202103,
+      "name": "Francisco Cerundolo",
+      "rank": 24
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-07-27",
+     "match_date": null,
+     "tournament": "Canada Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "QF",
+     "result": "W",
+     "score": "6-7(8) 6-4 6-3",
+     "player_score": "6-7(8) 6-4 6-3",
+     "result_type": "completed",
+     "minutes": 162,
+     "rank": 3,
+     "opponent": {
+      "player_id": 200615,
+      "name": "Alexei Popyrin",
+      "rank": 26
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-07-27",
+     "match_date": null,
+     "tournament": "Canada Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "SF",
+     "result": "L",
+     "score": "6-3 4-6 7-6(4)",
+     "player_score": "3-6 6-4 6-7(4)",
+     "result_type": "completed",
+     "minutes": 172,
+     "rank": 3,
+     "opponent": {
+      "player_id": 111575,
+      "name": "Karen Khachanov",
+      "rank": 16
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Cincinnati Masters",
+   "level": "M",
+   "surface": "Hard",
+   "tourney_date": "2025-08-07",
+   "record": {
+    "matches": 5,
+    "wins": 4,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "SF",
+   "last_match": {
+    "tourney_date": "2025-08-07",
+    "match_date": null,
+    "tournament": "Cincinnati Masters",
+    "level": "M",
+    "surface": "Hard",
+    "round": "SF",
+    "result": "L",
+    "score": "6-4 6-3",
+    "player_score": "4-6 3-6",
+    "result_type": "completed",
+    "minutes": 105,
+    "rank": 3,
+    "opponent": {
+     "player_id": 207989,
+     "name": "Carlos Alcaraz",
+     "rank": 2
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-08-07",
+     "match_date": null,
+     "tournament": "Cincinnati Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "W",
+     "score": "6-3 6-3",
+     "player_score": "6-3 6-3",
+     "result_type": "completed",
+     "minutes": 66,
+     "rank": 3,
+     "opponent": {
+      "player_id": 210460,
+      "name": "Nishesh Basavareddy",
+      "rank": 109
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-08-07",
+     "match_date": null,
+     "tournament": "Cincinnati Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-4 6-4",
+     "player_score": "6-4 6-4",
+     "result_type": "completed",
+     "minutes": 96,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206909,
+      "name": "Brandon Nakashima",
+      "rank": 31
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-08-07",
+     "match_date": null,
+     "tournament": "Cincinnati Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "W",
+     "score": "7-5 3-0 RET",
+     "player_score": "7-5 3-0 RET",
+     "result_type": "retired",
+     "minutes": 70,
+     "rank": 3,
+     "opponent": {
+      "player_id": 111575,
+      "name": "Karen Khachanov",
+      "rank": 12
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-08-07",
+     "match_date": null,
+     "tournament": "Cincinnati Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "QF",
+     "result": "W",
+     "score": "6-2 6-2",
+     "player_score": "6-2 6-2",
+     "result_type": "completed",
+     "minutes": 77,
+     "rank": 3,
+     "opponent": {
+      "player_id": 210097,
+      "name": "Ben Shelton",
+      "rank": 6
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-08-07",
+     "match_date": null,
+     "tournament": "Cincinnati Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "SF",
+     "result": "L",
+     "score": "6-4 6-3",
+     "player_score": "4-6 3-6",
+     "result_type": "completed",
+     "minutes": 105,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz",
+      "rank": 2
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Us Open",
+   "level": "G",
+   "surface": "Hard",
+   "tourney_date": "2025-08-25",
+   "record": {
+    "matches": 3,
+    "wins": 2,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R32",
+   "last_match": {
+    "tourney_date": "2025-08-25",
+    "match_date": null,
+    "tournament": "Us Open",
+    "level": "G",
+    "surface": "Hard",
+    "round": "R32",
+    "result": "L",
+    "score": "4-6 7-6(7) 6-4 6-4",
+    "player_score": "6-4 6-7(7) 4-6 4-6",
+    "result_type": "completed",
+    "minutes": 228,
+    "rank": 3,
+    "opponent": {
+     "player_id": 200000,
+     "name": "Felix Auger Aliassime",
+     "rank": 27
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-08-25",
+     "match_date": null,
+     "tournament": "Us Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R128",
+     "result": "W",
+     "score": "6-2 7-6(4) 6-4",
+     "player_score": "6-2 7-6(4) 6-4",
+     "result_type": "completed",
+     "minutes": 128,
+     "rank": 3,
+     "opponent": {
+      "player_id": 126214,
+      "name": "Alejandro Tabilo",
+      "rank": 122
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-08-25",
+     "match_date": null,
+     "tournament": "Us Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "W",
+     "score": "6-4 6-4 6-4",
+     "player_score": "6-4 6-4 6-4",
+     "result_type": "completed",
+     "minutes": 148,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207985,
+      "name": "Jacob Fearnley",
+      "rank": 60
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-08-25",
+     "match_date": null,
+     "tournament": "Us Open",
+     "level": "G",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "L",
+     "score": "4-6 7-6(7) 6-4 6-4",
+     "player_score": "6-4 6-7(7) 4-6 4-6",
+     "result_type": "completed",
+     "minutes": 228,
+     "rank": 3,
+     "opponent": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime",
+      "rank": 27
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Beijing",
+   "level": "A",
+   "surface": "Hard",
+   "tourney_date": "2025-09-25",
+   "record": {
+    "matches": 3,
+    "wins": 2,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "QF",
+   "last_match": {
+    "tourney_date": "2025-09-25",
+    "match_date": null,
+    "tournament": "Beijing",
+    "level": "A",
+    "surface": "Hard",
+    "round": "QF",
+    "result": "L",
+    "score": "6-3 6-3",
+    "player_score": "3-6 3-6",
+    "result_type": "completed",
+    "minutes": 82,
+    "rank": 3,
+    "opponent": {
+     "player_id": 106421,
+     "name": "Daniil Medvedev",
+     "rank": 18
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-09-25",
+     "match_date": null,
+     "tournament": "Beijing",
+     "level": "A",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-4 6-3",
+     "player_score": "6-4 6-3",
+     "result_type": "completed",
+     "minutes": 90,
+     "rank": 3,
+     "opponent": {
+      "player_id": 132283,
+      "name": "Lorenzo Sonego",
+      "rank": 44
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-09-25",
+     "match_date": null,
+     "tournament": "Beijing",
+     "level": "A",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "W",
+     "score": "7-5 3-6 6-3",
+     "player_score": "7-5 3-6 6-3",
+     "result_type": "completed",
+     "minutes": 158,
+     "rank": 3,
+     "opponent": {
+      "player_id": 144895,
+      "name": "Corentin Moutet",
+      "rank": 37
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-09-25",
+     "match_date": null,
+     "tournament": "Beijing",
+     "level": "A",
+     "surface": "Hard",
+     "round": "QF",
+     "result": "L",
+     "score": "6-3 6-3",
+     "player_score": "3-6 3-6",
+     "result_type": "completed",
+     "minutes": 82,
+     "rank": 3,
+     "opponent": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev",
+      "rank": 18
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Shanghai Masters",
+   "level": "M",
+   "surface": "Hard",
+   "tourney_date": "2025-10-01",
+   "record": {
+    "matches": 2,
+    "wins": 1,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "R32",
+   "last_match": {
+    "tourney_date": "2025-10-01",
+    "match_date": null,
+    "tournament": "Shanghai Masters",
+    "level": "M",
+    "surface": "Hard",
+    "round": "R32",
+    "result": "L",
+    "score": "4-6 6-3 6-2",
+    "player_score": "6-4 3-6 2-6",
+    "result_type": "completed",
+    "minutes": 132,
+    "rank": 3,
+    "opponent": {
+     "player_id": 126239,
+     "name": "Arthur Rinderknech",
+     "rank": 54
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-10-01",
+     "match_date": null,
+     "tournament": "Shanghai Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R64",
+     "result": "W",
+     "score": "6-4 6-4",
+     "player_score": "6-4 6-4",
+     "result_type": "completed",
+     "minutes": 98,
+     "rank": 3,
+     "opponent": {
+      "player_id": 208316,
+      "name": "Valentin Royer",
+      "rank": 76
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-01",
+     "match_date": null,
+     "tournament": "Shanghai Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "L",
+     "score": "4-6 6-3 6-2",
+     "player_score": "6-4 3-6 2-6",
+     "result_type": "completed",
+     "minutes": 132,
+     "rank": 3,
+     "opponent": {
+      "player_id": 126239,
+      "name": "Arthur Rinderknech",
+      "rank": 54
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Vienna",
+   "level": "A",
+   "surface": "Hard",
+   "tourney_date": "2025-10-20",
+   "record": {
+    "matches": 4,
+    "wins": 3,
+    "losses": 1
+   },
+   "walkovers": 1,
+   "outcome": "lost",
+   "round": "F",
+   "last_match": {
+    "tourney_date": "2025-10-20",
+    "match_date": null,
+    "tournament": "Vienna",
+    "level": "A",
+    "surface": "Hard",
+    "round": "F",
+    "result": "L",
+    "score": "3-6 6-3 7-5",
+    "player_score": "6-3 3-6 5-7",
+    "result_type": "completed",
+    "minutes": 148,
+    "rank": 3,
+    "opponent": {
+     "player_id": 206173,
+     "name": "Jannik Sinner",
+     "rank": 2
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-10-20",
+     "match_date": null,
+     "tournament": "Vienna",
+     "level": "A",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-4 1-6 7-6(5)",
+     "player_score": "6-4 1-6 7-6(5)",
+     "result_type": "completed",
+     "minutes": 139,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207985,
+      "name": "Jacob Fearnley",
+      "rank": 81
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-20",
+     "match_date": null,
+     "tournament": "Vienna",
+     "level": "A",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "W",
+     "score": "6-4 6-4",
+     "player_score": "6-4 6-4",
+     "result_type": "completed",
+     "minutes": 87,
+     "rank": 3,
+     "opponent": {
+      "player_id": 208286,
+      "name": "Matteo Arnaldi",
+      "rank": 72
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-20",
+     "match_date": null,
+     "tournament": "Vienna",
+     "level": "A",
+     "surface": "Hard",
+     "round": "QF",
+     "result": "W",
+     "score": "W/O",
+     "player_score": "W/O",
+     "result_type": "walkover",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 134868,
+      "name": "Tallon Griekspoor",
+      "rank": 28
+     },
+     "has_stats": false,
+     "counted": false
+    },
+    {
+     "tourney_date": "2025-10-20",
+     "match_date": null,
+     "tournament": "Vienna",
+     "level": "A",
+     "surface": "Hard",
+     "round": "SF",
+     "result": "W",
+     "score": "6-4 7-5",
+     "player_score": "6-4 7-5",
+     "result_type": "completed",
+     "minutes": 92,
+     "rank": 3,
+     "opponent": {
+      "player_id": 207518,
+      "name": "Lorenzo Musetti",
+      "rank": 8
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-20",
+     "match_date": null,
+     "tournament": "Vienna",
+     "level": "A",
+     "surface": "Hard",
+     "round": "F",
+     "result": "L",
+     "score": "3-6 6-3 7-5",
+     "player_score": "6-3 3-6 5-7",
+     "result_type": "completed",
+     "minutes": 148,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206173,
+      "name": "Jannik Sinner",
+      "rank": 2
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Paris Masters",
+   "level": "M",
+   "surface": "Hard",
+   "tourney_date": "2025-10-27",
+   "record": {
+    "matches": 4,
+    "wins": 3,
+    "losses": 1
+   },
+   "walkovers": 0,
+   "outcome": "lost",
+   "round": "SF",
+   "last_match": {
+    "tourney_date": "2025-10-27",
+    "match_date": null,
+    "tournament": "Paris Masters",
+    "level": "M",
+    "surface": "Hard",
+    "round": "SF",
+    "result": "L",
+    "score": "6-0 6-1",
+    "player_score": "0-6 1-6",
+    "result_type": "completed",
+    "minutes": 62,
+    "rank": 3,
+    "opponent": {
+     "player_id": 206173,
+     "name": "Jannik Sinner",
+     "rank": 2
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-10-27",
+     "match_date": null,
+     "tournament": "Paris Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R32",
+     "result": "W",
+     "score": "6-7(5) 6-1 7-5",
+     "player_score": "6-7(5) 6-1 7-5",
+     "result_type": "completed",
+     "minutes": 155,
+     "rank": 3,
+     "opponent": {
+      "player_id": 200116,
+      "name": "Camilo Ugo Carabelli",
+      "rank": 49
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-27",
+     "match_date": null,
+     "tournament": "Paris Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "R16",
+     "result": "W",
+     "score": "6-2 6-4",
+     "player_score": "6-2 6-4",
+     "result_type": "completed",
+     "minutes": 96,
+     "rank": 3,
+     "opponent": {
+      "player_id": 200221,
+      "name": "Alejandro Davidovich Fokina",
+      "rank": 15
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-27",
+     "match_date": null,
+     "tournament": "Paris Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "QF",
+     "result": "W",
+     "score": "2-6 6-3 7-6(5)",
+     "player_score": "2-6 6-3 7-6(5)",
+     "result_type": "completed",
+     "minutes": 150,
+     "rank": 3,
+     "opponent": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev",
+      "rank": 13
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-10-27",
+     "match_date": null,
+     "tournament": "Paris Masters",
+     "level": "M",
+     "surface": "Hard",
+     "round": "SF",
+     "result": "L",
+     "score": "6-0 6-1",
+     "player_score": "0-6 1-6",
+     "result_type": "completed",
+     "minutes": 62,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206173,
+      "name": "Jannik Sinner",
+      "rank": 2
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Tour Finals",
+   "level": "F",
+   "surface": "Hard",
+   "tourney_date": "2025-11-09",
+   "record": {
+    "matches": 3,
+    "wins": 1,
+    "losses": 2
+   },
+   "walkovers": 0,
+   "outcome": "round_robin",
+   "round": "RR",
+   "last_match": {
+    "tourney_date": "2025-11-09",
+    "match_date": null,
+    "tournament": "Tour Finals",
+    "level": "F",
+    "surface": "Hard",
+    "round": "RR",
+    "result": "L",
+    "score": "6-4 6-3",
+    "player_score": "4-6 3-6",
+    "result_type": "completed",
+    "minutes": 97,
+    "rank": 3,
+    "opponent": {
+     "player_id": 206173,
+     "name": "Jannik Sinner",
+     "rank": 2
+    },
+    "has_stats": true,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-11-09",
+     "match_date": null,
+     "tournament": "Tour Finals",
+     "level": "F",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "L",
+     "score": "6-4 7-6(4)",
+     "player_score": "4-6 6-7(4)",
+     "result_type": "completed",
+     "minutes": 127,
+     "rank": 3,
+     "opponent": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime",
+      "rank": 8
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-11-09",
+     "match_date": null,
+     "tournament": "Tour Finals",
+     "level": "F",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "W",
+     "score": "6-3 7-6(6)",
+     "player_score": "6-3 7-6(6)",
+     "result_type": "completed",
+     "minutes": 93,
+     "rank": 3,
+     "opponent": {
+      "player_id": 210097,
+      "name": "Ben Shelton",
+      "rank": 5
+     },
+     "has_stats": true,
+     "counted": true
+    },
+    {
+     "tourney_date": "2025-11-09",
+     "match_date": null,
+     "tournament": "Tour Finals",
+     "level": "F",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "L",
+     "score": "6-4 6-3",
+     "player_score": "4-6 3-6",
+     "result_type": "completed",
+     "minutes": 97,
+     "rank": 3,
+     "opponent": {
+      "player_id": 206173,
+      "name": "Jannik Sinner",
+      "rank": 2
+     },
+     "has_stats": true,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Davis Cup Finals QF: ARG vs GER",
+   "level": "D",
+   "surface": "Hard",
+   "tourney_date": "2025-11-20",
+   "record": {
+    "matches": 1,
+    "wins": 1,
+    "losses": 0
+   },
+   "walkovers": 0,
+   "outcome": "tie",
+   "round": "RR",
+   "last_match": {
+    "tourney_date": "2025-11-20",
+    "match_date": null,
+    "tournament": "Davis Cup Finals QF: ARG vs GER",
+    "level": "D",
+    "surface": "Hard",
+    "round": "RR",
+    "result": "W",
+    "score": "6-4 7-6(3)",
+    "player_score": "6-4 7-6(3)",
+    "result_type": "completed",
+    "minutes": null,
+    "rank": 3,
+    "opponent": {
+     "player_id": 202103,
+     "name": "Francisco Cerundolo",
+     "rank": 21
+    },
+    "has_stats": false,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-11-20",
+     "match_date": null,
+     "tournament": "Davis Cup Finals QF: ARG vs GER",
+     "level": "D",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "W",
+     "score": "6-4 7-6(3)",
+     "player_score": "6-4 7-6(3)",
+     "result_type": "completed",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 202103,
+      "name": "Francisco Cerundolo",
+      "rank": 21
+     },
+     "has_stats": false,
+     "counted": true
+    }
+   ]
+  },
+  {
+   "tournament": "Davis Cup Finals SF: ESP vs GER",
+   "level": "D",
+   "surface": "Hard",
+   "tourney_date": "2025-11-22",
+   "record": {
+    "matches": 1,
+    "wins": 1,
+    "losses": 0
+   },
+   "walkovers": 0,
+   "outcome": "tie",
+   "round": "RR",
+   "last_match": {
+    "tourney_date": "2025-11-22",
+    "match_date": null,
+    "tournament": "Davis Cup Finals SF: ESP vs GER",
+    "level": "D",
+    "surface": "Hard",
+    "round": "RR",
+    "result": "W",
+    "score": "7-6(2) 7-6(5)",
+    "player_score": "7-6(2) 7-6(5)",
+    "result_type": "completed",
+    "minutes": null,
+    "rank": 3,
+    "opponent": {
+     "player_id": 144719,
+     "name": "Jaume Munar",
+     "rank": 36
+    },
+    "has_stats": false,
+    "counted": true
+   },
+   "matches": [
+    {
+     "tourney_date": "2025-11-22",
+     "match_date": null,
+     "tournament": "Davis Cup Finals SF: ESP vs GER",
+     "level": "D",
+     "surface": "Hard",
+     "round": "RR",
+     "result": "W",
+     "score": "7-6(2) 7-6(5)",
+     "player_score": "7-6(2) 7-6(5)",
+     "result_type": "completed",
+     "minutes": null,
+     "rank": 3,
+     "opponent": {
+      "player_id": 144719,
+      "name": "Jaume Munar",
+      "rank": 36
+     },
+     "has_stats": false,
+     "counted": true
+    }
+   ]
+  }
+ ]
+}

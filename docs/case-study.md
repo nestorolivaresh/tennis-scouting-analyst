@@ -36,7 +36,8 @@ So the goal was narrower than "an AI analyst":
   against the rest of the tour; and, from matches charted shot by shot, where they serve on each
   court, how they do in short and long rallies, and at the net (D-029, D-030).
 - **Player stats.** Any player's record by surface and season, serve and return figures,
-  scouting patterns, recent matches and head-to-head, with no model involved.
+  scouting patterns, recent matches and head-to-head, with no model involved. A season path lists
+  each tournament of a season and how it ended, with walkovers shown but not counted (D-035).
 - **Match prep.** Two players side by side over the report's window: each serve figure against
   the other player's return of the same serve, sets and tiebreaks, charted patterns and every
   meeting, with no model involved (D-033).
@@ -50,7 +51,7 @@ public CSVs ── download, hash-pinned ──▶ data/ ── load, one transa
                                                                               │
                                     raw tables ◀──────────────────────────────┤
                                         │                                     ▼
-                              evals/truth.py                       api/stats.py: 7 tools,
+                              evals/truth.py                       api/stats.py: 11 tools,
                               (separate SQL)                       the only path to the data
                                         │                                     ▼
                                         │                          api/agent.py: tool loop

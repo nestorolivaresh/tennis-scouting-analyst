@@ -203,9 +203,10 @@ def rate(numerator: int | None, denominator: int | None, unit: str = "fraction")
 # unknown (D-029). The opponent's ranking is the one in the match file, at the time.
 SCOPE_SQL = """
 WITH scope AS (
-  SELECT m.match_id, m.tourney_name, m.tourney_level, m.tourney_date, m.match_date, m.surface,
+  SELECT m.match_id, m.tourney_id, m.tourney_name, m.tourney_level, m.tourney_date, m.match_date, m.surface,
          m.round, m.round_order, m.match_num, m.score, m.result_type, m.has_stats, m.season,
          m.best_of, m.minutes, pm.player_id, pm.won, pm.rank, pm.opponent_id, o.full_name AS opponent_name, opp.rank AS opponent_rank,
+         o.hand AS opponent_hand,
          pm.aces, pm.serve_points, pm.first_in, pm.first_won, pm.second_won, pm.bp_saved, pm.bp_faced,
          opp.serve_points AS opp_serve_points, opp.first_in AS opp_first_in, opp.first_won AS opp_first_won,
          opp.second_won AS opp_second_won, opp.bp_saved AS opp_bp_saved, opp.bp_faced AS opp_bp_faced,
@@ -299,6 +300,24 @@ FROM scope
 WHERE excluded_as IS NULL
 ORDER BY {NEWEST_FIRST}
 LIMIT %(limit)s
+"""
+
+# A season path (D-035): the counted matches plus walkovers, which a path shows but no count uses.
+# A walkover is shown only where a counted match would be: a filter that leaves out matches with
+# an unknown surface, opponent hand or opponent ranking leaves out such walkovers too. Within a
+# tournament, matches run in play order: round, then match date where the source has one, then
+# match number.
+SEASON_PATH_SQL = SCOPE_SQL + """
+SELECT tourney_id, tourney_name, tourney_level, tourney_date, match_date, surface, round, round_order,
+       match_num, score, result_type, won, rank, opponent_id, opponent_name, opponent_rank, has_stats,
+       minutes, excluded_as
+FROM scope
+WHERE excluded_as IS NULL
+   OR (excluded_as = 'walkovers'
+       AND (%(surface)s::text IS NULL OR surface IS NOT NULL)
+       AND (%(opponent_hand)s::text IS NULL OR opponent_hand IS NOT NULL)
+       AND (%(opponent_rank_max)s::int IS NULL OR opponent_rank IS NOT NULL))
+ORDER BY tourney_date, tourney_id, round_order, match_date NULLS LAST, match_num
 """
 
 # The counted matches' scores, for set_patterns (D-029).
@@ -780,6 +799,81 @@ def recent_form(
         time_on_court=time_on_court,
         matches=[_match_entry(r) for r in rows],
     )
+
+
+# Team events other than Davis Cup: the rows of ingest/special_events.csv whose note says "Team"
+# (a test keeps the two in step). One player's matches can't say how the team did (D-035).
+TEAM_EVENTS = frozenset({"Atp Cup", "Laver Cup", "United Cup"})
+
+
+def event_outcome(level: str, name: str, last: Mapping[str, Any]) -> str:
+    """How a player's tournament ended, read from their last match there (D-035).
+
+    tie: a Davis Cup tie, stored as its own event; one player has no round reached in it.
+    team: another team event; the row gives the furthest round they played, never a title.
+    withdrew: their last entry is a walkover they gave, before that round.
+    round_robin: their last match was in a group stage (Tour Finals, United Cup).
+    title / bronze: they won the final / the bronze medal match.
+    lost / fourth: they lost that round / the bronze medal match.
+    no_later_match: their last match was a win and the data has nothing after it, as when the
+    tournament is still being played.
+    """
+    if level == "D":
+        return "tie"
+    if name in TEAM_EVENTS:
+        return "team"
+    walkover = last["result_type"] == "walkover"
+    if walkover and not last["won"]:
+        return "withdrew"
+    if last["round"] == "RR":
+        return "round_robin"
+    if last["won"]:
+        return {"F": "title", "BR": "bronze"}.get(last["round"], "no_later_match")
+    return "fourth" if last["round"] == "BR" else "lost"
+
+
+def season_path(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:
+    """Each tournament a player played in one season, in date order: their record there, how it
+    ended and their matches in play order (D-035). Walkovers are listed, marked not counted, and
+    never enter a record. Tournaments a player withdrew from before playing, and qualifying,
+    aren't in the match files."""
+    pid, parsed = parse_player_id(player_id), _filters(filters)
+    if parsed.season is None:
+        raise ToolInputError("season_path needs filters.season: a path covers one season")
+    with conn.transaction():
+        player = _player(conn, pid)
+        params = _scope_params(player, parsed)
+        sample = _sample(conn, params)
+        rows = conn.execute(SEASON_PATH_SQL, params).fetchall()
+    by_event: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        by_event.setdefault(row["tourney_id"], []).append(row)
+    events = []
+    for event_rows in by_event.values():
+        first, last = event_rows[0], event_rows[-1]
+        counted = [r for r in event_rows if r["excluded_as"] is None]
+        wins = sum(1 for r in counted if r["won"])
+        events.append({
+            "tournament": first["tourney_name"],
+            "level": first["tourney_level"],
+            "surface": first["surface"],
+            "tourney_date": _iso(first["tourney_date"]),
+            "record": {"matches": len(counted), "wins": wins, "losses": len(counted) - wins},
+            "walkovers": len(event_rows) - len(counted),
+            "outcome": event_outcome(first["tourney_level"], first["tourney_name"], last),
+            "round": last["round"],
+            "last_match": {**_match_entry(last), "counted": last["excluded_as"] is None},
+            "matches": [{**_match_entry(r), "counted": r["excluded_as"] is None} for r in event_rows],
+        })
+    counted_rows = [r for r in rows if r["excluded_as"] is None]
+    season_wins = sum(1 for r in counted_rows if r["won"])
+    summary = {
+        "events": len(events),
+        "titles": sum(1 for e in events if e["outcome"] == "title"),
+        "record": {"matches": len(counted_rows), "wins": season_wins, "losses": len(counted_rows) - season_wins},
+        "walkovers_shown": len(rows) - len(counted_rows),
+    }
+    return _envelope("season_path", player, parsed, sample, summary=summary, events=events)
 
 
 def set_patterns(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:

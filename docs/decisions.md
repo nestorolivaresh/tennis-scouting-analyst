@@ -1557,3 +1557,61 @@ files (`docs/deploy.md`, section 2). The app's role keeps its access through a r
 (`infra/neon_setup.sql` sets default privileges), and no deploy is needed. After the load,
 `docs/quality-report.md` should differ only in its date, which checks that Neon and the local
 database hold the same rows.
+
+## D-035 Milestone 12: the season path
+
+*2026-11-24. Approved by Nestor: where it appears (Player stats and chat) and how walkovers are
+shown were his choices; the rest was presented and accepted ("finish the season path").*
+
+**Context.** A coach scouting an opponent wants their season: which tournaments, how far they
+went, who stopped them, and where they withdrew. The recent-matches tool returns at most 50
+matches, and a busy player has up to 90 in a season. This adds an eleventh tool to the spec's
+list; which matches count is unchanged (D-014).
+
+**Chosen.**
+- **`season_path(player_id, filters)`**, with `filters.season` required. One entry per
+  tournament, in date order: the counted win-loss, how it ended, the round of the last entry,
+  that last match, and every match in play order (round, then match date where the source has
+  one, then match number). A season summary gives tournaments, titles and the counted record. It
+  reads the same match scope as every tool (`SCOPE_SQL`), which now also carries the tournament ID
+  and the opponent's hand.
+- **How a tournament ended**, from the player's last entry there, with no tournament names except
+  the team events: a Davis Cup tie (level D, stored one tie per event) is a `tie`; the ATP Cup,
+  Laver Cup and United Cup are `team`, giving the furthest round played and never a title, since
+  one player's matches can't say how the team did (`TEAM_EVENTS`, kept in step with the rows of
+  `ingest/special_events.csv` whose note says "Team"); a walkover given is `withdrew`; a last
+  match in a group stage is `round_robin`; a final won (by walkover too) is a `title`; the bronze
+  medal match is `bronze` or `fourth`; a loss is `lost`; a win with nothing after it is
+  `no_later_match`, as while a tournament is still being played. A retirement is a loss for the
+  player who quit (D-007) and is named on the last-match line.
+- **Walkovers are shown, never counted** (Nestor's choice). They are listed with `counted: false`,
+  stay out of every record, and are still counted in `excluded`. One is shown only where a counted
+  match would be: under a surface, hand or ranking filter, a walkover whose value is unknown is
+  left out, as a counted match would be. The data has no walkover without a surface today, so
+  that case has no real test.
+- **On Player stats**, a section after the last 10 matches for the page's season, or the newest
+  season with a counted match under the surface filter when none is chosen; each row opens to its
+  matches. A response cached before this change has no season path, and the section is left out.
+  **In chat and reports**, it's a tool like the others: the grounding check needs nothing new,
+  since each tournament's record carries its `matches`, and a cited number's card names the
+  tournament ("wins at Cincinnati Masters").
+- **Left out on purpose**: computed gaps between tournaments, since 2015-2025 has no match dates,
+  only start dates. Tournaments a player pulled out of before playing, and qualifying, aren't in
+  the match files; the section says so.
+
+**How it was checked.**
+- Hand check 30 reads the raw CSVs: Sinner's 2025 (12 tournaments, 58-6, six titles, the
+  Cincinnati final retired), Fils's walkover at Roland Garros 2025, the 2024 Olympic bronze match,
+  the Tour Finals round robin, the United Cup for Zverev and Fritz, and a Davis Cup tie. The tool
+  matches every line. A test also shows the season record equals `surface_splits` under the same
+  filters, for five players and filters.
+- Breaking each rule on purpose fails its tests: no team rule (Fritz "wins" the United Cup), a
+  walkover counted, no bronze rule, matches ordered by match number, walkovers dropped.
+- Web: the view is tested from two saved responses (Sinner and Zverev, 2025), in the three
+  languages. In a browser against the local API: Zverev's 2025 with its round robin, team event,
+  Davis Cup ties and a walkover tagged "Not counted" (Vienna), the default season, a surface
+  filter, an empty season, the keyboard and 375 px. 441 Python and 235 web tests, the typecheck
+  and the build pass.
+
+**Not checked.** The model using the tool in a live report or chat (a paid call), the route on
+Vercel, and browsers other than Chromium.

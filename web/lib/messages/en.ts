@@ -6,6 +6,11 @@ import { type Locale, type SurfaceWords, enFormat, lowerFirst } from "./format.t
 
 const { int } = enFormat;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// Round names, shown as they are and inside sentences ("Lost in the final").
+const ROUND_NAMES: Record<string, string> = {
+  F: "Final", SF: "Semifinal", QF: "Quarterfinal", R16: "Round of 16", R32: "Round of 32", R64: "Round of 64",
+  R128: "Round of 128", RR: "Round robin", BR: "Bronze medal match",
+};
 const andList = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
 const matchCount = (n: number) => `${int(n)} ${n === 1 ? "match" : "matches"}`;
 const ordinal = (n: number) => {
@@ -29,10 +34,7 @@ export const en = {
   monthYear: (month: number, year: number) => `${MONTHS[month].slice(0, 3)} ${year}`,
   rightHanded: "right-handed",
   leftHanded: "left-handed",
-  rounds: {
-    F: "Final", SF: "Semifinal", QF: "Quarterfinal", R16: "Round of 16", R32: "Round of 32", R64: "Round of 64",
-    R128: "Round of 128", RR: "Round robin", BR: "Bronze medal match",
-  } as Record<string, string>,
+  rounds: ROUND_NAMES,
   surfaces: { Hard: surface("Hard"), Clay: surface("Clay"), Grass: surface("Grass"), Carpet: surface("Carpet") } as Record<string, SurfaceWords>,
   roundOn: (round: string, surfaceText: string) => `${round} on ${surfaceText}`,
   unknownSurface: "unknown surface",
@@ -148,6 +150,7 @@ export const en = {
     set_patterns: "Set patterns",
     tour_comparison: "Tour comparison",
     shot_patterns: "Charted shot patterns",
+    season_path: "Season path",
   } as Record<string, string>,
   stats: {
     first_serve_in: "First serve in",
@@ -171,6 +174,8 @@ export const en = {
     net_points_won: "Net points won",
     share_of_points_at_net: "Points played at the net",
     charted_matches: "Charted matches",
+    titles: "Titles",
+    events: "Tournaments played",
   } as Record<string, string>,
   levels: { G: "Grand Slams", M: "Masters 1000", A: "ATP 250 and 500", F: "Tour Finals", D: "Davis Cup", O: "Olympics" } as Record<string, string>,
   groups: {
@@ -518,6 +523,31 @@ export const en = {
   recordLine: (wins: number, losses: number, where: string) => `${int(wins)}-${int(losses)} ${where}`,
   matchesWord: "matches",
   playerStatsOf: (name: string) => `${name}'s player stats`,
+
+  // ---------- season path (D-035) ----------
+  pathTitle: (season: number) => `Season path, ${season}`,
+  pathNote: (where: string) =>
+    `Every tournament ${where}, in date order. Walkovers are listed but not counted. Tournaments a player pulled out of before their first match, and qualifying, aren't in the data.`,
+  pathSummary: (events: number, titles: number, wins: number, losses: number) =>
+    `${int(events)} ${events === 1 ? "tournament" : "tournaments"}, ${int(titles)} ${titles === 1 ? "title" : "titles"}, ${int(wins)}-${int(losses)} in counted matches.`,
+  pathEmpty: (where: string) => `No tournaments ${where}.`,
+  pathOutcome: {
+    title: "Won the title",
+    bronze: "Won the bronze medal",
+    fourth: "Lost the bronze medal match",
+    round_robin: "Out in the round robin",
+    tie: "Davis Cup tie",
+    no_later_match: "No later match in the data",
+  } as Record<string, string>,
+  pathLost: (round: string) => `Lost in the ${(ROUND_NAMES[round] ?? round).toLowerCase()}`,
+  pathWithdrew: (round: string) => `Withdrew before the ${(ROUND_NAMES[round] ?? round).toLowerCase()}`,
+  pathTeam: (round: string) => (round === "RR" ? "Team event, group stage" : `Team event, played up to the ${(ROUND_NAMES[round] ?? round).toLowerCase()}`),
+  pathLast: (won: boolean, name: string, score: string) => `Last match: ${won ? "beat" : "lost to"} ${name}, ${score}`,
+  pathLastWalkover: (won: boolean, name: string) => (won ? `Last: ${name} withdrew, a walkover` : `Last: walkover to ${name}`),
+  notCounted: "Not counted",
+  colWinLoss: "Win-loss",
+  colEnded: "How it ended",
+  measureAtEvent: (measure: string, event: string) => `${measure} at ${event}`,
 };
 
 export type Messages = typeof en;

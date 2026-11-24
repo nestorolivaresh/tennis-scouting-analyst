@@ -6,6 +6,11 @@ import { type Locale, type SurfaceWords, esFormat, lowerFirst } from "./format.t
 const { int } = esFormat;
 const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"];
+// Rounds inside a sentence, with their article: "Perdió en la final", "en cuartos de final".
+const ROUND_PHRASES: Record<string, string> = {
+  F: "la final", SF: "la semifinal", QF: "cuartos de final", R16: "octavos de final", R32: "la ronda de 32",
+  R64: "la ronda de 64", R128: "la ronda de 128", RR: "la fase de grupos", BR: "el partido por el bronce",
+};
 const andList = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`);
 const matchCount = (n: number) => `${int(n)} ${n === 1 ? "partido" : "partidos"}`;
 const meetingCount = (n: number) => `${int(n)} ${n === 1 ? "enfrentamiento" : "enfrentamientos"}`;
@@ -164,6 +169,7 @@ export const es: Messages = {
     set_patterns: "Patrones por sets",
     tour_comparison: "Comparación con el circuito",
     shot_patterns: "Patrones de golpes registrados",
+    season_path: "Trayectoria de la temporada",
   },
   stats: {
     first_serve_in: "Primeros saques dentro",
@@ -187,6 +193,8 @@ export const es: Messages = {
     net_points_won: "Puntos ganados en la red",
     share_of_points_at_net: "Puntos jugados en la red",
     charted_matches: "Partidos registrados",
+    titles: "Títulos",
+    events: "Torneos jugados",
   },
   levels: { G: "Grand Slams", M: "Masters 1000", A: "ATP 250 y 500", F: "ATP Finals", D: "Copa Davis", O: "Juegos Olímpicos" },
   groups: {
@@ -529,4 +537,29 @@ export const es: Messages = {
   recordLine: (wins, losses, where) => `${int(wins)}-${int(losses)} ${where}`,
   matchesWord: "partidos",
   playerStatsOf: (name) => `Estadísticas de ${name}`,
+
+  // ---------- season path (D-035) ----------
+  pathTitle: (season) => `Trayectoria de la temporada ${season}`,
+  pathNote: (where) =>
+    `Todos los torneos ${where}, por fecha. Los walkovers aparecen pero no cuentan. Los torneos que un jugador dejó antes de su primer partido, y la fase previa, no están en los datos.`,
+  pathSummary: (events, titles, wins, losses) =>
+    `${int(events)} ${events === 1 ? "torneo" : "torneos"}, ${int(titles)} ${titles === 1 ? "título" : "títulos"}, ${int(wins)}-${int(losses)} en partidos contados.`,
+  pathEmpty: (where) => `Sin torneos ${where}.`,
+  pathOutcome: {
+    title: "Ganó el título",
+    bronze: "Ganó la medalla de bronce",
+    fourth: "Perdió el partido por el bronce",
+    round_robin: "Eliminado en la fase de grupos",
+    tie: "Eliminatoria de Copa Davis",
+    no_later_match: "Sin partidos posteriores en los datos",
+  },
+  pathLost: (round) => `Perdió en ${ROUND_PHRASES[round] ?? round}`,
+  pathWithdrew: (round) => `Se dio de baja antes de ${ROUND_PHRASES[round] ?? round}`,
+  pathTeam: (round) => (round === "RR" ? "Evento por equipos, fase de grupos" : `Evento por equipos, jugó hasta ${ROUND_PHRASES[round] ?? round}`),
+  pathLast: (won, name, score) => `Último partido: ${won ? "ganó a" : "perdió ante"} ${name}, ${score}`,
+  pathLastWalkover: (won, name) => (won ? `Último: ${name} se dio de baja, walkover` : `Último: walkover ante ${name}`),
+  notCounted: "No cuenta",
+  colWinLoss: "Balance",
+  colEnded: "Cómo terminó",
+  measureAtEvent: (measure, event) => `${measure} en ${event}`,
 };

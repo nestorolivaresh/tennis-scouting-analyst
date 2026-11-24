@@ -90,7 +90,8 @@ export function describeStat(stat: KeyStat, source: Evidence | undefined, t: T =
   const result = source?.result;
   if (!result) return { title: t.toolCallMissing(stat.tool_call_id), filters: [] };
   const parts = stat.field.split(".");
-  const key = parts.find((p) => p in STAT_NAMES && p !== "matches") ?? parts[parts.length - 1];
+  // The last stat name on the path: "events.5.record.wins" is wins (at one tournament), not events.
+  const key = [...parts].reverse().find((p) => p in STAT_NAMES && p !== "matches") ?? parts[parts.length - 1];
   let measure = (Object.hasOwn(t.stats, key) ? t.stats[key] : undefined) ?? stat.field;
   if (source.tool === "tour_comparison" && parts[0] === "stats") measure = tourMeasure(measure, parts[2], t);
   if (source.tool === "shot_patterns") measure = shotMeasure(parts, t) ?? measure;
@@ -98,6 +99,10 @@ export function describeStat(stat: KeyStat, source: Evidence | undefined, t: T =
   if ((listName === "surfaces" || listName === "by_surface") && /^\d+$/.test(parts[1] ?? "")) {
     const row = (result[listName] as { surface?: string }[] | undefined)?.[Number(parts[1])];
     if (row?.surface) measure = t.measureOnSurface(measure, surfaceWords(t, row.surface));
+  }
+  if (source.tool === "season_path" && listName === "events" && /^\d+$/.test(parts[1] ?? "")) {
+    const event = (result.events as { tournament?: string }[] | undefined)?.[Number(parts[1])];
+    if (event?.tournament) measure = t.measureAtEvent(measure, eventName(event.tournament));
   }
   if (source.tool === "head_to_head") measure = t.measureHeadToHead(measure);
   if (source.tool === "recent_form") measure = t.measureRecent(measure, String(result.n ?? ""));
@@ -587,6 +592,7 @@ function groupName(stat: KeyStat, source: Evidence | undefined): string {
     case "pressure_stats": return "Pressure";
     case "head_to_head": return "Head-to-head";
     case "recent_form": return "Recent form";
+    case "season_path": return "Recent form";
     case "set_patterns": return "Patterns";
     case "tour_comparison": return "Patterns";
     case "shot_patterns": return "Charted";

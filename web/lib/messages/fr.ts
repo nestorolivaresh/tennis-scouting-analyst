@@ -7,6 +7,11 @@ const { int } = frFormat;
 const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 const plural = (n: number) => (n > 1 ? "s" : "");
+// Rounds inside a sentence: "Battu en finale", "Forfait en 16e de finale".
+const ROUND_PHRASES: Record<string, string> = {
+  F: "finale", SF: "demi-finale", QF: "quart de finale", R16: "8e de finale", R32: "16e de finale",
+  R64: "32e de finale", R128: "64e de finale", RR: "phase de groupes", BR: "match pour la médaille de bronze",
+};
 const andList = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} et ${items[items.length - 1]}`);
 const matchCount = (n: number) => `${int(n)} match${n > 1 ? "s" : ""}`;
 const meetingCount = (n: number) => `${int(n)} confrontation${plural(n)}`;
@@ -165,6 +170,7 @@ export const fr: Messages = {
     set_patterns: "Tendances par set",
     tour_comparison: "Comparaison avec le circuit",
     shot_patterns: "Tendances des coups relevés",
+    season_path: "Parcours de la saison",
   },
   stats: {
     first_serve_in: "Premières balles passées",
@@ -188,6 +194,8 @@ export const fr: Messages = {
     net_points_won: "Points gagnés au filet",
     share_of_points_at_net: "Points joués au filet",
     charted_matches: "Matchs relevés",
+    titles: "Titres",
+    events: "Tournois joués",
   },
   levels: { G: "Grand Chelem", M: "Masters 1000", A: "ATP 250 et 500", F: "ATP Finals", D: "Coupe Davis", O: "Jeux olympiques" },
   groups: {
@@ -528,4 +536,29 @@ export const fr: Messages = {
   recordLine: (wins, losses, where) => `${int(wins)}-${int(losses)} ${where}`,
   matchesWord: "matchs",
   playerStatsOf: (name) => `Statistiques de ${name}`,
+
+  // ---------- season path (D-035) ----------
+  pathTitle: (season) => `Parcours de la saison ${season}`,
+  pathNote: (where) =>
+    `Tous les tournois ${where}, par date. Les forfaits apparaissent mais ne comptent pas. Les tournois quittés avant le premier match, et les qualifications, ne sont pas dans les données.`,
+  pathSummary: (events, titles, wins, losses) =>
+    `${int(events)} tournoi${events > 1 ? "s" : ""}, ${int(titles)} titre${titles > 1 ? "s" : ""}, ${int(wins)}-${int(losses)} sur les matchs comptés.`,
+  pathEmpty: (where) => `Aucun tournoi ${where}.`,
+  pathOutcome: {
+    title: "A remporté le titre",
+    bronze: "A remporté la médaille de bronze",
+    fourth: "A perdu le match pour la médaille de bronze",
+    round_robin: "Éliminé en phase de groupes",
+    tie: "Rencontre de Coupe Davis",
+    no_later_match: "Aucun match plus tard dans les données",
+  },
+  pathLost: (round) => `Battu en ${ROUND_PHRASES[round] ?? round}`,
+  pathWithdrew: (round) => `Forfait en ${ROUND_PHRASES[round] ?? round}`,
+  pathTeam: (round) => (round === "RR" ? "Épreuve par équipes, phase de groupes" : `Épreuve par équipes, jusqu'en ${ROUND_PHRASES[round] ?? round}`),
+  pathLast: (won, name, score) => `Dernier match : ${won ? "a battu" : "battu par"} ${name}, ${score}`,
+  pathLastWalkover: (won, name) => (won ? `Dernier : forfait de ${name}` : `Dernier : forfait face à ${name}`),
+  notCounted: "Non compté",
+  colWinLoss: "Bilan",
+  colEnded: "Issue",
+  measureAtEvent: (measure, event) => `${measure} à ${event}`,
 };

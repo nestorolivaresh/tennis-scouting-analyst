@@ -87,8 +87,9 @@ spend cap. Never set it in a deployment: there, the API refuses model calls unle
 
 ### Stats tools
 
-`api/stats.py` holds the ten tools the agent calls: `resolve_player`, `player_profile`,
-`surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head`, `recent_form`, and three
+`api/stats.py` holds the eleven tools the agent calls: `resolve_player`, `player_profile`,
+`surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head`, `recent_form`,
+`season_path` (each tournament of a season and how it ended, [D-035](docs/decisions.md)), and three
 for scouting patterns ([D-029, D-030](docs/decisions.md)):
 - `set_patterns`: tiebreaks, deciding sets, and results after winning or losing the first set;
 - `tour_comparison`: a player's serve, return and break-point rates ranked against every player

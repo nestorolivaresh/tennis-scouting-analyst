@@ -15,6 +15,7 @@ import pytest
 from api import stats
 
 SINNER, ALCARAZ, A_ZVEREV, M_ZVEREV = 206173, 207989, 100644, 104999  # hand 9
+FILS, MUSETTI, AUGER_ALIASSIME, FRITZ = 209950, 207518, 200000, 126203  # hand 9
 GASQUET, HASSAN, CATARINA = 104755, 133975, 200031  # hand 9
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
 # Checks on 2026 stop at the last tournament start in the 2026-11-07 TML snapshot, as the hand
@@ -334,6 +335,118 @@ def test_recent_form_sinner_last_five(conn):
     assert result["matches"][0]["match_date"] == "2026-07-12"  # hand 6
     assert (result["record"]["wins"], result["record"]["losses"]) == (5, 0)
     assert result["sample"]["matches_counted"] == 5
+
+
+# ---------- season_path (D-035) ----------
+
+
+def path_rows(result):
+    return [(e["tourney_date"], e["tournament"], (e["record"]["wins"], e["record"]["losses"]), e["walkovers"], e["outcome"], e["round"])
+            for e in result["events"]]
+
+
+def test_season_path_sinner_2025(conn):
+    result = stats.season_path(conn, SINNER, {"season": 2025})
+    assert path_rows(result) == [  # hand 30: start, name, counted win-loss, walkovers, last round and its result
+        ("2025-01-13", "Australian Open", (7, 0), 0, "title", "F"),
+        ("2025-05-07", "Rome Masters", (5, 1), 0, "lost", "F"),
+        ("2025-05-26", "Roland Garros", (6, 1), 0, "lost", "F"),
+        ("2025-06-16", "Halle", (1, 1), 0, "lost", "R16"),
+        ("2025-06-30", "Wimbledon", (7, 0), 0, "title", "F"),
+        ("2025-08-07", "Cincinnati Masters", (5, 1), 0, "lost", "F"),
+        ("2025-08-25", "Us Open", (6, 1), 0, "lost", "F"),
+        ("2025-09-25", "Beijing", (5, 0), 0, "title", "F"),
+        ("2025-10-01", "Shanghai Masters", (1, 1), 0, "lost", "R32"),
+        ("2025-10-20", "Vienna", (5, 0), 0, "title", "F"),
+        ("2025-10-27", "Paris Masters", (5, 0), 0, "title", "F"),
+        ("2025-11-09", "Tour Finals", (5, 0), 0, "title", "F"),
+    ]
+    assert result["summary"] == {"events": 12, "titles": 6, "record": {"matches": 64, "wins": 58, "losses": 6}, "walkovers_shown": 0}
+    cincinnati = result["events"][5]["last_match"]
+    assert (cincinnati["opponent"]["player_id"], cincinnati["result_type"], cincinnati["player_score"]) == (ALCARAZ, "retired", "0-5 RET")
+    assert [m["round"] for m in result["events"][0]["matches"]] == ["R128", "R64", "R32", "R16", "QF", "SF", "F"]  # play order
+
+
+def test_season_path_shows_a_walkover_but_never_counts_it(conn):
+    result = stats.season_path(conn, FILS, {"season": 2025})
+    rg = next(e for e in result["events"] if e["tournament"] == "Roland Garros")
+    assert (rg["record"], rg["walkovers"], rg["outcome"], rg["round"]) == ({"matches": 2, "wins": 2, "losses": 0}, 1, "withdrew", "R32")  # hand 30
+    assert (rg["last_match"]["result"], rg["last_match"]["score"], rg["last_match"]["counted"]) == ("L", "W/O", False)
+    assert [m["counted"] for m in rg["matches"]] == [True, True, False]
+    assert result["summary"]["record"]["matches"] == result["sample"]["matches_counted"]
+    assert result["summary"]["walkovers_shown"] == result["excluded"]["walkovers"] == 1
+
+
+@pytest.mark.parametrize(
+    ("player_id", "season", "tournament", "expected"),
+    [  # hand 30
+        (MUSETTI, 2024, "Paris Olympics", ((5, 1), "bronze", "BR")),
+        (AUGER_ALIASSIME, 2024, "Paris Olympics", ((4, 2), "fourth", "BR")),
+        (MUSETTI, 2024, "Davis Cup Finals QF: ITA vs ARG", ((0, 1), "tie", "RR")),
+        (A_ZVEREV, 2025, "Tour Finals", ((1, 2), "round_robin", "RR")),
+        (A_ZVEREV, 2025, "United Cup", ((2, 0), "team", "RR")),
+        (FRITZ, 2025, "United Cup", ((4, 1), "team", "F")),  # won his final match; the team result isn't his
+    ],
+)
+def test_season_path_endings(conn, player_id, season, tournament, expected):
+    event = next(e for e in stats.season_path(conn, player_id, {"season": season})["events"] if e["tournament"] == tournament)
+    assert ((event["record"]["wins"], event["record"]["losses"]), event["outcome"], event["round"]) == expected
+
+
+@pytest.mark.parametrize(
+    ("player_id", "filters"),
+    [(SINNER, {"season": 2025}), (FILS, {"season": 2025}), (A_ZVEREV, {"season": 2025, "surface": "Clay"}),
+     (ALCARAZ, {"season": 2026, **PINNED}), (MUSETTI, {"season": 2024, "opponent_rank_max": 20})],
+)
+def test_season_path_counts_what_every_tool_counts(conn, player_id, filters):
+    path = stats.season_path(conn, player_id, filters)
+    record = stats.surface_splits(conn, player_id, filters)["overall"]
+    assert path["summary"]["record"] == {k: record[k] for k in ("matches", "wins", "losses")}
+    assert sum(e["record"]["matches"] for e in path["events"]) == record["matches"]
+    if filters.get("surface"):
+        assert {m["surface"] for e in path["events"] for m in e["matches"]} == {filters["surface"]}
+
+
+def test_season_path_needs_a_season(conn):
+    with pytest.raises(stats.ToolInputError, match="season"):
+        stats.season_path(conn, SINNER, {"surface": "Clay"})
+
+
+def test_season_path_with_no_matches_is_empty_not_an_error(conn):
+    result = stats.season_path(conn, SINNER, {"season": 2015})
+    assert (result["events"], result["summary"]["events"], result["summary"]["record"]["matches"]) == ([], 0, 0)
+
+
+def row(round_, won, result_type="completed"):
+    return {"round": round_, "won": won, "result_type": result_type}
+
+
+@pytest.mark.parametrize(
+    ("level", "name", "last", "outcome"),
+    [
+        ("D", "Davis Cup Finals QF: ITA vs ARG", row("RR", True), "tie"),
+        ("A", "United Cup", row("F", True), "team"),
+        ("G", "Roland Garros", row("R32", False, "walkover"), "withdrew"),
+        ("G", "Roland Garros", row("R32", True, "walkover"), "no_later_match"),  # the opponent withdrew; nothing after
+        ("F", "Tour Finals", row("RR", True), "round_robin"),
+        ("F", "Tour Finals", row("F", True), "title"),
+        ("M", "Paris Masters", row("F", True, "walkover"), "title"),  # a final won by walkover is still a title
+        ("O", "Paris Olympics", row("BR", True), "bronze"),
+        ("O", "Paris Olympics", row("BR", False), "fourth"),
+        ("M", "Cincinnati Masters", row("F", False, "retired"), "lost"),
+        ("A", "Stockholm", row("QF", True), "no_later_match"),  # still being played
+    ],
+)
+def test_event_outcome_rules(level, name, last, outcome):
+    assert stats.event_outcome(level, name, last) == outcome
+
+
+def test_team_events_are_the_special_events_marked_team():
+    import csv
+    from pathlib import Path
+
+    rows = csv.DictReader((Path(__file__).parents[2] / "ingest" / "special_events.csv").open())
+    assert stats.TEAM_EVENTS == {r["tourney_name"] for r in rows if r["note"].startswith("Team")}
 
 
 # ---------- Milestone 8: scouting patterns from the match data (D-029) ----------

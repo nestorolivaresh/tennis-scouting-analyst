@@ -179,6 +179,15 @@ TOOLS = [
         ["player_id"],
     ),
     _tool(
+        "season_path",
+        "Each tournament a player played in one season (filters.season is required), in date order: their "
+        "win-loss there, how it ended (title, lost in a round and to whom, withdrew by walkover, out in a round "
+        "robin, a team event or a Davis Cup tie) and every match. Walkovers are listed but never counted. "
+        "Tournaments a player pulled out of before playing, and qualifying, aren't in the data.",
+        {"player_id": PLAYER_ID, "filters": FILTERS_SCHEMA},
+        ["player_id", "filters"],
+    ),
+    _tool(
         "set_patterns",
         "From the scores of completed matches: tiebreaks won, deciding sets won, and matches won after "
         "winning or after losing the first set. Retirements are left out and counted.",

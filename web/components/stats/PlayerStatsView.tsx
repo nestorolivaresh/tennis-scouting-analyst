@@ -31,6 +31,7 @@ import { AgainstBox } from "./AgainstBox.tsx";
 import { NoPlayerYet } from "./NoPlayerYet.tsx";
 import { PlayerBoard } from "./PlayerBoard.tsx";
 import { RecentMatches } from "./RecentMatches.tsx";
+import { SeasonPath } from "./SeasonPath.tsx";
 import { SeasonBoard } from "./SeasonBoard.tsx";
 import { ServeReturn } from "./ServeReturn.tsx";
 import { SetsAndTour } from "./SetsAndTour.tsx";
@@ -172,6 +173,7 @@ export function PlayerStatsView() {
           <SetsAndTour data={data} />
           <ShotPatterns data={data} />
           <RecentMatches form={data.recent_form} />
+          <SeasonPath key={url} path={data.season_path} />
         </div>
       )}
     </main>

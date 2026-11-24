@@ -17,7 +17,7 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 
 | Tool | Check | Expected | Source | Tool result |
 | --- | --- | --- | --- | --- |
-| `resolve_player` | IDs for Sinner, both Zverevs, Auger Aliassime, Bu Yunchaokete, Alcaraz, Djokovic, Medvedev, Gasquet, Hassan, Catarina | 206173, 100644 / 104999, 200000, 207352, 207989, 104925, 106421, 104755, 133975, 200031 | Hand 9 | match |
+| `resolve_player` | IDs for Sinner, both Zverevs, Auger Aliassime, Bu Yunchaokete, Alcaraz, Djokovic, Medvedev, Gasquet, Hassan, Catarina, Fils, Musetti, Fritz | 206173, 100644 / 104999, 200000, 207352, 207989, 104925, 106421, 104755, 133975, 200031, 209950, 207518, 126203 | Hand 9 | match |
 | `player_profile` | Sinner's hand, country, height | R, ITA, 191 cm | Hand 16 | match |
 | `player_profile` | Sinner's newest match and latest rank | Wimbledon 2026 final on 2026-07-12, won; rank 1 | Hand 6 | match |
 | `player_profile` | Latest rank when the newest match has none (Catarina) | newest match Davis Cup FIN v MON, 2026-09-18, no rank; latest rank 452 at Davis Cup MON v ECU (2023) | Hand 19 | match |
@@ -51,6 +51,10 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | all stats tools | Djokovic 2024 against opponents ranked 10 or better; unranked opponents excluded (D-029) | 2-4; 1 excluded (Matthew Ebden) | Hand 22 | match |
 | `head_to_head` | The 2025 Roland Garros final from Sinner's side (`player_score`) | written "4-6 6-7(4) 6-4 7-6(3) 7-6(2)"; Sinner's side "6-4 7-6(4) 4-6 6-7(3) 6-7(2)" | Hand 27 | match |
 | `recent_form` | Sinner's last 10 matches in 2026, up to the cutoff: minutes on court | 10 with minutes, 1,592 in total, longest 226 | Hand 23 | match |
+| `season_path` | Sinner 2025: each tournament's start, counted win-loss and last round with its result (D-035) | 12 tournaments from the Australian Open (7-0, won the final) to the Tour Finals (5-0, won the final); losses in the final at Rome, Roland Garros, Cincinnati (retired) and the US Open; Halle lost in the R16, Shanghai in the R32 (retired); 58-6 | Hand 30 | match |
+| `season_path` | A walkover shown, not counted: Fils, Roland Garros 2025 | 2-0, then a walkover before the R32 | Hand 30 | match |
+| `season_path` | Olympic bronze medal match 2024: Musetti won, Auger Aliassime lost | Musetti 5-1, Auger Aliassime 4-2, both last in BR | Hand 30 | match |
+| `season_path` | Round robin and team events 2025: Zverev and Fritz at the Tour Finals; Zverev and Fritz at the United Cup; Musetti's 2024 Davis Cup tie against Argentina | Tour Finals 1-2 each, last in RR; United Cup Zverev 2-0 (RR), Fritz 4-1 (won his final match); Musetti 0-1 | Hand 30 | match |
 | `recent_form` | Sinner's 2023 Davis Cup matches: no durations | 3 matches, none with minutes, so no total (never 0) | Hand 25 | match |
 | `set_patterns` | Sinner 2024: tiebreaks, deciding sets, after winning / losing the first set | 24/32, 13/19, 62/66, 10/12; 78 completed, 1 ended early | Hand 21 | match |
 | `set_patterns` | Laaksonen 2015: tiebreaks, including a bare "6-7" set | 2/3 | Hand 28 | match |
