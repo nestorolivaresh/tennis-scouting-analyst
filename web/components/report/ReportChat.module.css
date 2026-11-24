@@ -122,6 +122,17 @@
   color: var(--muted-2);
 }
 
+.answer .check {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--muted-2);
+}
+
+.answer .check[data-missing="true"] {
+  color: var(--brass-deep);
+}
+
 .answer .error {
   font-size: 17px;
   font-weight: 600;

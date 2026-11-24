@@ -6,6 +6,7 @@ import { type Locale, type SurfaceWords, esFormat, lowerFirst } from "./format.t
 const { int } = esFormat;
 const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"];
+const andList = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`);
 const matchCount = (n: number) => `${int(n)} ${n === 1 ? "partido" : "partidos"}`;
 const meetingCount = (n: number) => `${int(n)} ${n === 1 ? "enfrentamiento" : "enfrentamientos"}`;
 
@@ -269,6 +270,23 @@ export const es: Messages = {
     `El porcentaje de victorias, el saque y la presión cubren los torneos que empiezan del ${from} al ${to}.${headToHead ? " El cara a cara cubre todos los enfrentamientos de los datos." : ""} Abre una cifra para ver de dónde sale.`,
   aboutData: "Sobre los datos",
   textNotChecked: "El texto que las rodea no se comprueba de la misma forma.",
+  notFoundMark: " (no está en los datos)",
+  sourceOf: " (fuente)",
+  answerNumbersFound: (n) =>
+    n === 1
+      ? "La cifra de esta respuesta está en los datos que consultó o en tus preguntas."
+      : `Las ${int(n)} cifras de esta respuesta están en los datos que consultó o en tus preguntas.`,
+  answerNotChecked: "No se pudieron comprobar las cifras de esta respuesta.",
+  answerNumbersNotFound: (items) =>
+    items.length === 1
+      ? `No está en los datos que consultó esta respuesta: ${items[0]}. Aparece subrayada.`
+      : `No están en los datos que consultó esta respuesta: ${andList(items)}. Aparecen subrayadas.`,
+  textNumbersFound: (n) =>
+    n === 1 ? "La cifra del texto está en los datos estadísticos." : `Las ${int(n)} cifras del texto están en los datos estadísticos.`,
+  textNumbersNotFound: (items) =>
+    items.length === 1
+      ? `Una cifra del texto no está en los datos estadísticos: ${items[0]}. Aparece subrayada.`
+      : `${int(items.length)} cifras del texto no están en los datos estadísticos: ${andList(items)}. Aparecen subrayadas.`,
   keyNumbersFailed: (failing, total) =>
     `${failing} de ${total} cifras clave no coincidieron con los datos. Están marcadas abajo, y el texto del informe puede repetirlas, así que léelo con cuidado.`,
   reportNotFinished: "No se pudo terminar el informe.",
@@ -336,8 +354,8 @@ export const es: Messages = {
   questionPlaceholder: "¿Cómo sacó Alcaraz en tierra batida en 2025?",
   stop: "Detener",
   ask: "Preguntar",
-  chatIntro: "Pregunta por cualquier jugador ATP desde 2015, por ejemplo “¿Cómo sacó Alcaraz en tierra batida en 2025?”. Las respuestas usan las herramientas estadísticas, pero sus cifras no se comprueban como las cifras clave de un informe.",
-  chatSheetIntro: "Las respuestas usan las herramientas estadísticas, pero sus cifras no se comprueban como las cifras clave de un informe.",
+  chatIntro: "Pregunta por cualquier jugador ATP desde 2015, por ejemplo “¿Cómo sacó Alcaraz en tierra batida en 2025?”. Las respuestas usan las herramientas estadísticas, y cada cifra se busca en los datos que consultó la respuesta.",
+  chatSheetIntro: "Las respuestas usan las herramientas estadísticas, y cada cifra se busca en los datos que consultó la respuesta.",
   close: "Cerrar",
   callFor: (tool, q) => `${tool} para “${q}”`,
   chipServe: (w) => `¿Cómo saca cada jugador ${w.on}?`,

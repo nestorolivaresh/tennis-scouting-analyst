@@ -17,7 +17,9 @@ import psycopg
 from api import stats
 from api.agent import OUTCOME_MESSAGES, Limits, Run, Settings, run_loop, system_prompt
 from api.grounding import MIN_KEY_STATS, check_report
+from api.citations import render, results_by_id
 from api.logs import log_event
+from api.numbers import check_report_text, checked_numbers, for_browser
 from api.streaming import HEARTBEAT_S, sse
 
 WINDOW_YEARS = 2  # the report's "recent" window, ending at the newest tournament in the data
@@ -110,10 +112,10 @@ Write the report:
   - label: what it is, whose it is, and the filters, e.g. "{o["name"]}: break points saved, {surface}, {date_from[:4]}-{date_to[:4]}".
 - data_caveats: small samples, matches without stats, excluded matches, and the data's end date.
 
-In the text (every field except key_stats), write rates as percentages with one decimal,
-per-match averages with one decimal (4.5, not 4.5312), and dates in words (5 April 2026, or
-April 2026 for a month; never 2026-04-05 or 2026-04). Include only numbers that appear in tool
-results, rounded as above.""" + REPORT_LANGUAGE_RULES.get(language, "")
+In the text (every field except key_stats), cite every number from a tool result as the rules
+above say ([[c3:stats.first_serve_in.value]]); the app writes it in. Write dates in words
+(5 April 2026, or April 2026 for a month; never 2026-04-05 or 2026-04). key_stats keep their
+values as numbers, copied exactly.""" + REPORT_LANGUAGE_RULES.get(language, "")
 
 
 def two_years_before(day: dt.date) -> dt.date:
@@ -242,12 +244,25 @@ def _checked_report(client, conn, settings, req, run, limits, clock, endpoint, h
         status = "incomplete"
     else:
         status = "verified" if not errors else "unverified"
+    # The written text's numbers, checked against the same tool results (D-031). They don't
+    # change the status, which is about the key numbers.
+    numbers, citations = None, []
+    if status != "incomplete":
+        try:
+            report, citations = render_report(report, results_by_id(run.tool_calls), req.language)
+        except Exception as e:  # noqa: BLE001 - logged by type; the paid report is kept as written
+            log_event("citations_failed", logging.ERROR, request_id=run.request_id, error_type=type(e).__name__)
+        numbers = checked_numbers(run.request_id, check_report_text, report, [call.result for call in run.tool_calls.values()], req.language)
+        if numbers is not None:
+            numbers = {**numbers, "not_found": [for_browser(field_text(report, s["field"]), [s])[0] for s in numbers["not_found"]]}
     result = {
         "request_id": run.request_id,
         "status": status,
         "message": OUTCOME_MESSAGES.get(run.outcome) if status == "incomplete" else None,
         "report": report if status != "incomplete" else None,
         "grounding": {"passed": status == "verified", "attempts": attempts, "errors": errors},
+        "numbers": numbers,
+        "citations": citations,
         "request": req.public(),
         "evidence": [call.evidence() for call in run.tool_calls.values()],
         "usage": run.summary(),
@@ -258,6 +273,37 @@ def _checked_report(client, conn, settings, req, run, limits, clock, endpoint, h
     )  # fmt: skip
     on_end(status, run.summary())
     yield "report", result
+
+
+def field_text(report: dict[str, Any], field: str) -> str:
+    """A report's text field by name: "summary" or "game_plan.2"."""
+    name, _, index = field.partition(".")
+    value = report[name][int(index)] if index else report[name]
+    return value if isinstance(value, str) else ""
+
+
+def render_report(report: Any, results: dict[str, Any], language: str) -> tuple[Any, list[dict[str, Any]]]:
+    """The report with each citation in its text replaced by the value (D-032), and where each
+    cited number is: its text field ("summary", "game_plan.2"), position, call and field."""
+    if not isinstance(report, dict):
+        return report, []
+    rendered, citations = dict(report), []
+
+    def one(name: str, text: Any) -> Any:
+        if not isinstance(text, str):
+            return text
+        out, cited = render(text, results, language)
+        found = [{"text_field": name, "text": c.text, "start": c.start, "end": c.end, "tool_call_id": c.tool_call_id, "field": c.field}
+                 for c in cited if c.ok and c.numeric]  # fmt: skip
+        citations.extend(for_browser(out, found))
+        return out
+
+    rendered["summary"] = one("summary", report.get("summary"))
+    for name in ("strengths", "weaknesses", "game_plan", "data_caveats"):
+        items = report.get(name)
+        if isinstance(items, list):
+            rendered[name] = [one(f"{name}.{i}", item) for i, item in enumerate(items)]
+    return rendered, citations
 
 
 def build_report(

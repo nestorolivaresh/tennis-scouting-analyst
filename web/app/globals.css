@@ -87,6 +87,46 @@ a:hover {
   white-space: nowrap;
 }
 
+/* A number the model cited, which opens its source (D-032). */
+button.cited {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline dotted var(--brass-deep);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+button.cited:hover,
+button.cited[aria-expanded="true"] {
+  text-decoration-style: solid;
+}
+
+/* A cited number that is part of something not found ("11-3" from two records): the wavy line
+   has to be set on the button itself, which a mark's underline doesn't reach. */
+mark.not-found button.cited {
+  text-decoration: underline wavy var(--clay);
+  text-decoration-thickness: 1.5px;
+}
+
+button.cited:focus-visible {
+  outline: 2px solid var(--bottle);
+  outline-offset: 2px;
+}
+
+/* A number in model text that the check didn't find in the data (D-031). */
+mark.not-found {
+  background: none;
+  color: inherit;
+  text-decoration: underline wavy var(--clay);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+}
+
 .stripe {
   height: 10px;
   background: repeating-linear-gradient(90deg, var(--bottle) 0, var(--bottle) 72px, var(--slat-green) 72px, var(--slat-green) 144px);

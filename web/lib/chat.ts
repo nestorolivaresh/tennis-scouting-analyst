@@ -3,7 +3,8 @@
 
 import { describeFilters } from "./evidence.ts";
 import { EN, type T, failureText, serverText, surfaceWords } from "./i18n.ts";
-import type { ChatEvent, ChatMessage, ReportResponse } from "./types.ts";
+import { answerCheckLine } from "./numbers.ts";
+import type { ChatEvent, ChatMessage, Citation, Evidence, NumberCheck, ReportResponse } from "./types.ts";
 
 export const MAX_PAIRS = 8; // context (2) + 8 pairs (16) + the question = 19 messages
 export const MAX_CHARS = 3_900;
@@ -59,7 +60,16 @@ export function reportContext(data: ReportResponse): ChatMessage[] {
 }
 
 export type Activity = { id: string; label: string; ok: boolean | null };
-export type LiveTurn = Turn & { activity: Activity[]; error?: string; done: boolean };
+/** Once the answer has finished: `numbers`, the API's check on its numbers (D-031), and
+ * `citations` with the `evidence` they cite (D-032). */
+export type LiveTurn = Turn & {
+  activity: Activity[];
+  error?: string;
+  done: boolean;
+  numbers?: NumberCheck | null;
+  citations?: Citation[];
+  evidence?: Evidence[];
+};
 
 export const CUT_OFF_MESSAGE = "The answer stopped partway. Try asking again.";
 
@@ -82,7 +92,8 @@ export function applyChatEvent(turn: LiveTurn, event: ChatEvent, t: T = EN): Liv
     case "done": {
       const completed = event.data.outcome === "completed";
       const stopped = event.data.message === null ? t.answerStoppedEarly : serverText(event.data.message, t);
-      return { ...turn, done: true, complete: completed, error: completed ? undefined : stopped };
+      const { numbers, citations, evidence } = event.data;
+      return { ...turn, done: true, complete: completed, error: completed ? undefined : stopped, numbers, citations, evidence };
     }
     case "error":
       return { ...turn, done: true, complete: false, error: failureText(event.data.kind, event.data.message, t) };
@@ -97,8 +108,9 @@ export function closeTurn(turn: LiveTurn, message: string): LiveTurn {
   return turn.done ? turn : { ...turn, done: true, complete: false, error: message };
 }
 
-/** What a screen reader hears, once: the whole answer when it has finished, and nothing before. */
-export function finishedAnnouncement(turn: LiveTurn | undefined): string {
+/** What a screen reader hears, once: the whole answer when it has finished, with what the check
+ * on its numbers found, and nothing before. */
+export function finishedAnnouncement(turn: LiveTurn | undefined, t: T = EN): string {
   if (!turn?.done) return "";
-  return [turn.content.trim(), turn.error].filter(Boolean).join(" ");
+  return [turn.content.trim(), answerCheckLine(turn.numbers, t), turn.error].filter(Boolean).join(" ");
 }

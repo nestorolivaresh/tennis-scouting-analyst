@@ -1,0 +1,3 @@
+category,questions,passed,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,cost_usd,mean_latency_s,tokens
+scouting_pattern,1,1/1,1/1,1/1,1/1,,,0.006,3.6,22400
+all,1,1/1,1/1,1/1,1/1,,,0.006,3.6,22400

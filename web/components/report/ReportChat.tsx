@@ -10,6 +10,7 @@ import { type FormEvent, type RefObject, useEffect, useId, useRef, useState, use
 import { useLanguage, useT } from "@/components/ui/LanguageProvider.tsx";
 import { ApiFailure, streamChat } from "@/lib/api.ts";
 import { type LiveTurn, MAX_CHARS, applyChatEvent, buildHistory, closeTurn, finishedAnnouncement } from "@/lib/chat.ts";
+import { answerCheckLine, citationsIn, spansIn } from "@/lib/numbers.ts";
 import { failureText, surfaceWords } from "@/lib/i18n.ts";
 import type { ChatMessage, Surface } from "@/lib/types.ts";
 import { ChatAnswer } from "./ChatAnswer.tsx";
@@ -140,14 +141,22 @@ function Conversation({ chat }: { chat: Chat }) {
                 ))}
               </ul>
             )}
-            <ChatAnswer text={turn.content} />
+            <ChatAnswer
+              text={turn.content}
+              notFound={turn.numbers ? spansIn(turn.content, turn.numbers.not_found) : []}
+              cites={citationsIn(turn.content, turn.citations ?? [])}
+              evidence={turn.evidence ?? []}
+            />
+            {answerCheckLine(turn.numbers, t) && (
+              <p className={styles.check} data-missing={Boolean(turn.numbers?.not_found.length)}>{answerCheckLine(turn.numbers, t)}</p>
+            )}
             {!turn.done && !turn.content && !turn.activity.length && <p className={styles.thinking}>{t.thinking}</p>}
             {turn.error && <p className={styles.error}>{turn.error}</p>}
           </div>
         );
       })}
       {/* The text above streams in pieces, so only this is live: each answer is heard once, when it has finished. */}
-      <div className="vh" role="status">{finishedAnnouncement(lastAnswer?.kind === "turn" ? lastAnswer.turn : undefined)}</div>
+      <div className="vh" role="status">{finishedAnnouncement(lastAnswer?.kind === "turn" ? lastAnswer.turn : undefined, t)}</div>
     </>
   );
 }

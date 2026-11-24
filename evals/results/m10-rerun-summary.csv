@@ -1,0 +1,5 @@
+category,questions,passed,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,cost_usd,mean_latency_s,tokens
+head_to_head,1,1/1,1/1,1/1,1/1,,1/1,0.0107,9.4,23979
+refuse_or_caveat,1,1/1,,,1/1,1/1,,0.0086,6.3,22834
+scouting_pattern,1,0/1,1/1,1/1,0/1,,,0.006,3.4,22393
+all,3,2/3,2/2,2/2,2/3,1/1,1/1,0.0252,6.4,69206

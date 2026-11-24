@@ -7,6 +7,7 @@ const { int } = frFormat;
 const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 const plural = (n: number) => (n > 1 ? "s" : "");
+const andList = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} et ${items[items.length - 1]}`);
 const matchCount = (n: number) => `${int(n)} match${n > 1 ? "s" : ""}`;
 const meetingCount = (n: number) => `${int(n)} confrontation${plural(n)}`;
 
@@ -269,6 +270,23 @@ export const fr: Messages = {
     `Le taux de victoire, le service et la pression portent sur les tournois commençant du ${from} au ${to}.${headToHead ? " Le face-à-face porte sur toutes les confrontations des données." : ""} Ouvrez un chiffre pour voir son origine.`,
   aboutData: "À propos des données",
   textNotChecked: "Le texte qui les entoure n'est pas vérifié de la même façon.",
+  notFoundMark: " (introuvable dans les données)",
+  sourceOf: " (source)",
+  answerNumbersFound: (n) =>
+    n === 1
+      ? "Le chiffre de cette réponse figure dans les données consultées ou dans vos questions."
+      : `Les ${int(n)} chiffres de cette réponse figurent dans les données consultées ou dans vos questions.`,
+  answerNotChecked: "Les chiffres de cette réponse n'ont pas pu être vérifiés.",
+  answerNumbersNotFound: (items) =>
+    items.length === 1
+      ? `Introuvable dans les données consultées pour cette réponse : ${items[0]}. Il est souligné.`
+      : `Introuvables dans les données consultées pour cette réponse : ${andList(items)}. Ils sont soulignés.`,
+  textNumbersFound: (n) =>
+    n === 1 ? "Le chiffre du texte figure dans les données statistiques." : `Les ${int(n)} chiffres du texte figurent dans les données statistiques.`,
+  textNumbersNotFound: (items) =>
+    items.length === 1
+      ? `Un chiffre du texte est introuvable dans les données statistiques : ${items[0]}. Il est souligné.`
+      : `${int(items.length)} chiffres du texte sont introuvables dans les données statistiques : ${andList(items)}. Ils sont soulignés.`,
   keyNumbersFailed: (failing, total) =>
     `${failing} chiffres clés sur ${total} ne correspondent pas aux données. Ils sont signalés plus bas, et le texte du rapport peut les reprendre : lisez-le avec prudence.`,
   reportNotFinished: "Le rapport n'a pas pu être terminé.",
@@ -336,8 +354,8 @@ export const fr: Messages = {
   questionPlaceholder: "Comment Alcaraz a-t-il servi sur terre battue en 2025 ?",
   stop: "Arrêter",
   ask: "Demander",
-  chatIntro: "Posez une question sur n'importe quel joueur ATP depuis 2015, par exemple « Comment Alcaraz a-t-il servi sur terre battue en 2025 ? ». Les réponses utilisent les outils statistiques, mais leurs chiffres ne sont pas vérifiés comme les chiffres clés d'un rapport.",
-  chatSheetIntro: "Les réponses utilisent les outils statistiques, mais leurs chiffres ne sont pas vérifiés comme les chiffres clés d'un rapport.",
+  chatIntro: "Posez une question sur n'importe quel joueur ATP depuis 2015, par exemple « Comment Alcaraz a-t-il servi sur terre battue en 2025 ? ». Les réponses utilisent les outils statistiques, et chaque chiffre est recherché dans les données consultées pour la réponse.",
+  chatSheetIntro: "Les réponses utilisent les outils statistiques, et chaque chiffre est recherché dans les données consultées pour la réponse.",
   close: "Fermer",
   callFor: (tool, q) => `${tool} pour « ${q} »`,
   chipServe: (w) => `Comment chaque joueur sert-il ${w.on} ?`,

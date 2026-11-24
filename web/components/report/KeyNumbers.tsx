@@ -6,9 +6,10 @@
 
 import { useState } from "react";
 import { useT } from "@/components/ui/LanguageProvider.tsx";
-import { checkStat, describeStat, formatValue, groupKeyStats, isSmallKeyStat, matchCount, sourcePanel } from "@/lib/evidence.ts";
+import { checkStat, describeStat, formatValue, groupKeyStats, isSmallKeyStat, matchCount } from "@/lib/evidence.ts";
 import type { Evidence, KeyStat } from "@/lib/types.ts";
 import styles from "./ReportView.module.css";
+import { SourceCard } from "./SourceCard.tsx";
 
 export function KeyNumbers({ stats, evidence }: { stats: KeyStat[]; evidence: Evidence[] }) {
   const t = useT();
@@ -35,7 +36,6 @@ function NumberRow({ stat, evidence, index, isOpen, onToggle }: RowProps) {
   const t = useT();
   const check = checkStat(stat, evidence);
   const { title } = describeStat(stat, check.evidence, t);
-  const panel = sourcePanel(stat, check, t);
   const panelId = `evidence-${index}`;
   return (
     <div>
@@ -55,26 +55,7 @@ function NumberRow({ stat, evidence, index, isOpen, onToggle }: RowProps) {
           ? <span className={styles.numValue}>{formatValue(check.value, check.rate, t)}</span>
           : <span className={`${styles.numValue} ${styles.numValueWord}`}>{t.notAvailable}</span>}
       </button>
-      {isOpen && (
-        <div id={panelId} className={styles.card}>
-          {panel ? (
-            <dl>
-              <dt>{t.source}</dt>
-              <dd>{panel.source}</dd>
-              <dt>{t.filters}</dt>
-              <dd>{panel.filters}</dd>
-              <dt>{t.sample}</dt>
-              <dd>{panel.sample}</dd>
-              <dt>{t.leftOut}</dt>
-              <dd>{panel.leftOut}</dd>
-              <dt>{t.value}</dt>
-              <dd>{panel.value}<code className={styles.field}>{panel.field}</code></dd>
-            </dl>
-          ) : (
-            <p className={styles.cardMissing}>{t.callMissing(stat.tool_call_id)}</p>
-          )}
-        </div>
-      )}
+      {isOpen && <SourceCard stat={stat} evidence={evidence} id={panelId} />}
     </div>
   );
 }

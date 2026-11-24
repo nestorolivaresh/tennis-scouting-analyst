@@ -1,0 +1,27 @@
+label,id,category,passed,outcome,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,missing_numbers,missing_tools,invented_numbers,failed_claims,expected,tool_calls,model,effort,model_calls,tokens,cost_usd,latency_s,data_lock,question,answer,unresolved_citations
+m10-rerun,H10,head_to_head,True,completed,True,True,True,,True,[],[],[],[],"[{""stat"": ""wins"", ""player"": 206173, ""opponent"": 207989, ""value"": 2, ""matches"": 6}, {""stat"": ""losses"", ""player"": 206173, ""opponent"": 207989, ""value"": 4, ""matches"": 6}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Jannik Sinner""}, ""ok"": true, ""error"": null}, {""tool"": ""resolve_player"", ""input"": {""name"": ""Carlos Alcaraz""}, ""ok"": true, ""error"": null}, {""tool"": ""head_to_head"", ""input"": {""player_id"": 206173, ""opponent_id"": 207989, ""filters"": {""season"": 2025}}, ""ok"": true, ""error"": null}]",claude-sonnet-5-5,low,3,23979,0.01066,9.4,4736a568504b,What was the head-to-head between Jannik Sinner and Carlos Alcaraz in 2025?,"Alcaraz led their 2025 head-to-head. Sinner won 2 and lost 4 across 6 matches, and all six were finals. That is a small sample. One of the losses, in Cincinnati, ended in a retirement.
+
+By surface, from Sinner's side:
+- **Hard:** 1 win and 2 losses.
+- **Clay:** 0 wins and 2 losses.
+- **Grass:** 1 win and 0 losses.
+
+The matches, newest first, with Sinner's games first:
+- **Tour Finals (hard):** Sinner won 7-6(4) 7-5.
+- **US Open (hard):** Sinner lost 2-6 6-3 1-6 4-6.
+- **Cincinnati (hard):** Sinner lost 0-5 RET, a retirement.
+- **Wimbledon (grass):** Sinner won 4-6 6-4 6-4 6-4.
+- **Roland Garros (clay):** Sinner lost 6-4 7-6(4) 4-6 6-7(3) 6-7(2).
+- **Rome (clay):** Sinner lost 6-7(5) 1-6.",[]
+m10-rerun,R07,refuse_or_caveat,True,completed,,,True,True,,[],[],[],[],[],"[{""tool"": ""resolve_player"", ""input"": {""name"": ""Jannik Sinner""}, ""ok"": true, ""error"": null}, {""tool"": ""shot_patterns"", ""input"": {""player_id"": 206173, ""filters"": {""season"": 2024}}, ""ok"": true, ""error"": null}]",claude-sonnet-5-5,low,3,22834,0.008575,6.3,4736a568504b,Where did Jannik Sinner aim his serve on break points in 2024?,"The data can't answer this as asked. The charting data doesn't separate break-point serves from other points. It only gives serve direction over all charted points.
+
+For all of Sinner's 2024 serves, from 68 charted matches (charting covers only some matches):
+- **First serves, deuce court:** wide 48.0%, T 38.1%, body 14.0%.
+- **First serves, ad court:** wide 55.7%, T 36.7%, body 7.6%.
+- **Second serves, deuce court:** body 44.6%, T 34.2%, wide 21.2%.
+- **Second serves, ad court:** body 43.3%, wide 39.4%, T 17.3%.
+
+These are general tendencies. You shouldn't assume he serves the same way on break points.",[]
+m10-rerun,P05,scouting_pattern,False,completed,True,True,False,,,[],[],"[""[?]"", ""[?]""]",[],"[{""stat"": ""tour_rank:service_points_won"", ""player"": 207989, ""opponent"": null, ""value"": 5, ""matches"": 12}, {""stat"": ""tour_players:service_points_won"", ""player"": 207989, ""opponent"": null, ""value"": 10, ""matches"": 12}]","[{""tool"": ""resolve_player"", ""input"": {""name"": ""Carlos Alcaraz""}, ""ok"": true, ""error"": null}, {""tool"": ""tour_comparison"", ""input"": {""player_id"": 207989, ""filters"": {""season"": 2023, ""surface"": ""Grass""}, ""min_matches"": 10}, ""ok"": true, ""error"": null}]",claude-sonnet-5-5,low,3,22393,0.005967,3.4,4736a568504b,"Among players with at least 10 matches with stats on grass in 2023, where did Carlos Alcaraz rank for service points won?","Alcaraz ranked 5th of 10 qualifying players for service points won on grass in 2023. He won 68.7% of service points ([?] of [?]). The median among those players was 68.2%, so he was a little above it.
+
+The figures come from 12 matches, and all of them had stats. A pool of only 10 players is small, so the rank is a rough guide.","[""c2:stats.service_points_won.numerator"", ""c2:stats.service_points_won.denominator""]"

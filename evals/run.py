@@ -17,10 +17,8 @@ from __future__ import annotations
 
 import argparse
 import csv
-import functools
 import hashlib
 import json
-import operator
 import sys
 import time
 from collections import defaultdict
@@ -31,6 +29,7 @@ import anthropic
 
 from api.agent import Limits, Run, Settings, run_loop
 from api.chat import chat_system_prompt
+from api.citations import render, results_by_id
 from api.db import connect as connect_api
 from evals import score
 from evals.cases import CASES, COUNTS, NAMES, Case, Expect
@@ -42,7 +41,7 @@ CATEGORIES = ("single_stat", "filtered_stat", "head_to_head", "comparison", "ref
 FIELDS = [
     "label", "id", "category", "passed", "outcome", "numbers_ok", "tools_ok", "invented_ok", "refusal_ok", "claims_ok",
     "missing_numbers", "missing_tools", "invented_numbers", "failed_claims", "expected", "tool_calls", "model",
-    "effort", "model_calls", "tokens", "cost_usd", "latency_s", "data_lock", "question", "answer",
+    "effort", "model_calls", "tokens", "cost_usd", "latency_s", "data_lock", "question", "answer", "unresolved_citations",
 ]  # fmt: skip
 
 
@@ -98,14 +97,14 @@ def generated_claims(case: Case, expected: list[dict]) -> tuple[list[str], list[
 
 
 def score_case(case: Case, expected: list[dict], answer: str, calls: list[dict], outcome: str) -> dict[str, Any]:
-    pool = set().union(*(score.values_in(call["result"]) for call in calls)) | {n.value for n in score.numbers_in(case.question)}
     missing_numbers = [e for e in expected if not score.contains_expected(answer, e["value"], e["kind"])]
     missing_tools = [
         check.tool for check in case.tools
         if not any(score.call_matches(call, check.tool, check.player, check.opponent, check.filters) for call in calls)
     ]  # fmt: skip
-    results_pairs = functools.reduce(operator.or_, (score.pairs_in(call["result"]) for call in calls), score.Pairs())
-    invented = score.invented(answer, pool) + score.unsupported_pairs(answer, results_pairs)
+    # The check the app runs on chat answers (D-031): the run's tool results and the question.
+    check = score.check_answer(answer, [call["result"] for call in calls], [case.question])
+    invented = [span["text"] for span in check["not_found"]]
 
     must, must_not = generated_claims(case, expected)
     if case.claims:
@@ -320,7 +319,9 @@ def main(argv: list[str] | None = None) -> int:
                 {"tool": call.name, "input": call.input, "result": call.result, "error": call.error}
                 for call in run.tool_calls.values()
             ]
-            result = score_case(case, expected[case.id], run.final_text, calls, run.outcome or "")
+            answer, cited = render(run.final_text, results_by_id(run.tool_calls))  # citations become numbers (D-032)
+            unresolved = [f"{c.tool_call_id}:{c.field}" for c in cited if not c.ok]
+            result = score_case(case, expected[case.id], answer, calls, run.outcome or "")
             row = {
                 "label": args.label, "id": case.id, "category": case.category, "outcome": run.outcome, **result,
                 "expected": public(expected[case.id]),
@@ -328,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
                                for c in calls],
                 "model": settings.model, "effort": settings.effort, "model_calls": run.model_calls,
                 "tokens": run.total_tokens, "cost_usd": run.cost_usd, "latency_s": round(latency, 1),
-                "data_lock": lock, "question": case.question, "answer": run.final_text,
+                "data_lock": lock, "question": case.question, "answer": answer, "unresolved_citations": unresolved,
             }  # fmt: skip
             out.write(row)
             rows.append(row)

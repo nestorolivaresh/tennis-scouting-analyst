@@ -253,7 +253,7 @@ CASES: tuple[Case, ...] = (
                          must_not=(PROBABILITY_GIVEN,))),
     # Serve direction is charted, but not split by score: nothing says where he served on break points.
     Case("R07", "refuse_or_caveat", "Where did Jannik Sinner aim his serve on break points in 2024?",
-         refusal=Refusal(must=(r"break point", NEGATION))),
+         refusal=Refusal(must=(r"break[- ]point", NEGATION))),  # "no break-point breakdown" (m10-final)
     # ---------- scouting patterns (D-029) and charted shot patterns (D-030) ----------
     Case("P01", "scouting_pattern", "What was Jannik Sinner's tiebreak record in 2024?",
          (Expect("tiebreaks_won_count", SINNER, season(2024)), Expect("tiebreaks_played", SINNER, season(2024))),

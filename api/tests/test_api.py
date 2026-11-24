@@ -46,7 +46,7 @@ def gather(_request):
     )
 
 
-def write_report(nudge=0.0):
+def write_report(nudge=0.0, summary=lambda serve, h2h: "s"):
     """A model that copies values from the tool results it was sent; `nudge` corrupts one. Like
     the real model, it cites only what it can see in a result: the tool_call_id written there.
     (The API's tool_use IDs, "t1" and "t2" here, are invisible to a real model.)"""
@@ -68,7 +68,8 @@ def write_report(nudge=0.0):
             cite(h2h, "Sinner's head-to-head wins", "record.wins", h2h["record"]["wins"], h2h["record"]["matches"]),
             cite(h2h, "Sinner's head-to-head losses", "record.losses", h2h["record"]["losses"], h2h["record"]["matches"]),
         ]  # fmt: skip
-        report = {"summary": "s", "strengths": [], "weaknesses": [], "game_plan": [], "key_stats": key_stats, "data_caveats": []}
+        report = {"summary": summary(serve, h2h), "strengths": [], "weaknesses": [], "game_plan": [], "key_stats": key_stats,
+                  "data_caveats": []}  # fmt: skip
         return message(text(json.dumps(report)))
 
     return respond
@@ -91,6 +92,37 @@ def test_report_verified(http, use_model):
     assert first["output_config"]["format"]["type"] == "json_schema"
     assert "date_from\": \"2024-10-26\"" in first["messages"][0]["content"]
     assert body["usage"]["cost_usd"] is not None and body["usage"]["tool_calls"] == 2
+
+
+def test_report_text_numbers_are_checked_against_its_tool_results(http, use_model):
+    """D-031: a number in the written text that no result states is marked, by field and position."""
+
+    def summary(serve, h2h):
+        return f"Sinner leads {h2h['record']['wins']}-{h2h['record']['losses']}; Alcaraz serves 123.4% on clay."
+
+    use_model(FakeClient([gather, write_report(summary=summary)]))
+    body = http.post("/report", json=REPORT).json()
+    text = body["report"]["summary"]
+    assert body["status"] == "verified"  # the key numbers decide the status, not the text
+    assert body["numbers"] == {
+        "checked": 3,
+        "not_found": [{"field": "summary", "text": "123.4%", "start": text.index("123.4%"), "end": text.index("123.4%") + 6}],
+    }
+
+
+def test_a_failing_number_check_never_costs_the_report_or_the_answer(http, use_model, monkeypatch, caplog):
+    def broken(*args):
+        raise RuntimeError("a bug in the check")
+
+    monkeypatch.setattr("api.report.check_report_text", broken)
+    monkeypatch.setattr("api.chat.check_answer", broken)
+    use_model(FakeClient([gather, write_report()]))
+    body = http.post("/report", json=REPORT).json()
+    assert (body["status"], body["numbers"]) == ("verified", None)
+    use_model(FakeClient(answer_with(lambda serve: "So.")))
+    done = events(http.post("/chat", json={"messages": [{"role": "user", "content": "Serve?"}]}))[-1]
+    assert done[0] == "done" and done[1]["outcome"] == "completed" and done[1]["numbers"] is None
+    assert caplog.text.count("number_check_failed") == 2
 
 
 def test_report_retries_once_with_the_grounding_errors(http, use_model):
@@ -184,6 +216,144 @@ def test_chat_streams_tool_calls_and_text(http, use_model):
     assert sequence[2][1]["ok"] is True
     assert sequence[-1][1]["outcome"] == "completed"
     assert "Recompute every number" in model.requests[0]["system"]
+
+
+def answer_with(numbers_text):
+    """A chat model that looks up Alcaraz's serve on clay, then answers with `numbers_text(result)`,
+    after a first bit of text, so positions run across the whole streamed answer."""
+
+    def respond(request):
+        serve = tool_results(request)["t1"]
+        return message(text("So: "), text(numbers_text(serve)))
+
+    return [message(text("Checking. "), tool_use("t1", "serve_return_stats", {"player_id": ALCARAZ, "filters": {"surface": "Clay"}})), respond]
+
+
+def test_chat_done_carries_the_check_on_the_answers_numbers(http, use_model):
+    """D-031: numbers come from this turn's tool results or the user's own words; positions are
+    in the text as the browser puts it together from the text events."""
+
+    def say(serve):
+        rate = serve["stats"]["first_serve_in"]
+        return f"{100 * rate['value']:.1f}% ({rate['numerator']} of {rate['denominator']}), not 4321, and 77.7% in tiebreaks."
+
+    use_model(FakeClient(answer_with(say)))
+    question = "Did Alcaraz hit 4321 aces on clay?"
+    sequence = events(http.post("/chat", json={"messages": [{"role": "user", "content": question}]}))
+    answer = "".join(data["delta"] for name, data in sequence if name == "text")
+    done = sequence[-1][1]
+    assert answer.startswith("Checking. So: ")
+    assert done["numbers"]["checked"] == 5
+    assert done["numbers"]["not_found"] == [{"text": "77.7%", "start": answer.index("77.7%"), "end": answer.index("77.7%") + 5}]
+
+
+def percent(rate):
+    """One decimal, halves up, from the counts: how the page writes a rate (D-032)."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    return f"{(Decimal(100 * rate['numerator']) / Decimal(rate['denominator'])).quantize(Decimal('0.1'), ROUND_HALF_UP)}%"
+
+
+def test_chat_writes_cited_numbers_and_says_where_they_are(http, use_model):
+    """D-032: a citation split across two pieces of the stream reaches the browser as a number;
+    `done` says where each cited number is and carries the evidence it came from."""
+    use_model(FakeClient([
+        message(tool_use("t1", "serve_return_stats", {"player_id": ALCARAZ, "filters": {"surface": "Clay"}})),
+        message(text("He puts [[c1:stats.first_ser"), text("ve_in.value]] in, over [[c1:sample.matches_with_stats]] matches; [[c1:nope]].")),
+    ]))  # fmt: skip
+    sequence = events(http.post("/chat", json={"messages": [{"role": "user", "content": "How does Alcaraz serve on clay?"}]}))
+    deltas = [data["delta"] for name, data in sequence if name == "text"]
+    answer, done = "".join(deltas), sequence[-1][1]
+    serve = done["evidence"][0]["result"]
+    figure, matches = percent(serve["stats"]["first_serve_in"]), str(serve["sample"]["matches_with_stats"])
+    assert not any("[[" in d or "]]" in d for d in deltas)
+    assert answer == f"He puts {figure} in, over {matches} matches; [?]."
+    assert [(answer[c["start"] : c["end"]], c["tool_call_id"], c["field"]) for c in done["citations"]] == [
+        (figure, "c1", "stats.first_serve_in.value"), (matches, "c1", "sample.matches_with_stats"),
+    ]
+    assert [e["tool_call_id"] for e in done["evidence"]] == ["c1"]
+    assert done["numbers"]["not_found"] == [{"text": "[?]", "start": answer.index("[?]"), "end": answer.index("[?]") + 3}]
+
+
+def test_text_held_back_for_a_citation_is_sent_before_an_error(http, use_model):
+    """Found by the review: a model error mid-citation lost the held-back text."""
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+    calls = {"n": 0}
+
+    def fail_on_second_block():
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise anthropic.APIConnectionError(request=request)
+
+    use_model(FakeClient([message(text("Partly [[c1:rec"), text("ord.wins]]"))], on_event=fail_on_second_block))
+    sequence = events(http.post("/chat", json={"messages": [{"role": "user", "content": "hi"}]}))
+    assert "".join(d["delta"] for n, d in sequence if n == "text") == "Partly [[c1:rec"
+    assert sequence[-1][0] == "error"
+
+
+def test_a_cited_score_is_written_in_but_opens_no_card(http, use_model):
+    use_model(FakeClient([
+        message(tool_use("t1", "head_to_head", {"player_id": SINNER, "opponent_id": ALCARAZ})),
+        message(text("Last time: [[c1:matches.0.player_score]], [[c1:record.wins]] wins.")),
+    ]))  # fmt: skip
+    sequence = events(http.post("/chat", json={"messages": [{"role": "user", "content": "H2H?"}]}))
+    done = sequence[-1][1]
+    meeting = done["evidence"][0]["result"]["matches"][0]
+    answer = "".join(d["delta"] for n, d in sequence if n == "text")
+    assert answer.startswith(f"Last time: {meeting['player_score']}, ")
+    assert [c["field"] for c in done["citations"]] == ["record.wins"]
+
+
+def test_positions_are_counted_as_the_browser_counts_them(http, use_model):
+    """JavaScript counts an emoji as two units; positions sent to the page count the same way."""
+    use_model(FakeClient([
+        message(tool_use("t1", "serve_return_stats", {"player_id": ALCARAZ, "filters": {"surface": "Clay"}})),
+        message(text("\U0001f3be Serve: [[c1:stats.first_serve_in.value]], and 77.7%.")),
+    ]))  # fmt: skip
+    sequence = events(http.post("/chat", json={"messages": [{"role": "user", "content": "Serve?"}]}))
+    answer, done = "".join(d["delta"] for n, d in sequence if n == "text"), sequence[-1][1]
+    utf16 = answer.encode("utf-16-le")
+    in_browser = lambda item: utf16[2 * item["start"] : 2 * item["end"]].decode("utf-16-le")  # noqa: E731
+    assert [in_browser(c) for c in done["citations"]] == [done["citations"][0]["text"]]
+    assert [in_browser(s) for s in done["numbers"]["not_found"]] == ["77.7%"]
+    assert done["citations"][0]["start"] == answer.index(done["citations"][0]["text"]) + 1  # one emoji before it
+
+
+def test_report_text_citations_are_written_in(http, use_model):
+    def summary(serve, h2h):
+        return "Sinner trails [[c2:record.wins]]-[[c2:record.losses]]; Alcaraz serves [[c1:stats.first_serve_in.value]] in."
+
+    use_model(FakeClient([gather, write_report(summary=summary)]))
+    body = http.post("/report", json=REPORT).json()
+    serve, h2h = body["evidence"][0]["result"], body["evidence"][1]["result"]
+    text = body["report"]["summary"]
+    assert text == f"Sinner trails {h2h['record']['wins']}-{h2h['record']['losses']}; Alcaraz serves {percent(serve['stats']['first_serve_in'])} in."
+    assert [(c["text_field"], text[c["start"] : c["end"]], c["field"]) for c in body["citations"]] == [
+        ("summary", str(h2h["record"]["wins"]), "record.wins"),
+        ("summary", str(h2h["record"]["losses"]), "record.losses"),
+        ("summary", percent(serve["stats"]["first_serve_in"]), "stats.first_serve_in.value"),
+    ]
+    assert body["numbers"] == {"checked": 3, "not_found": []}
+
+
+def test_a_record_made_of_two_records_is_caught(http, use_model):
+    """Two real numbers from different records make a record no result states (D-031, D-032)."""
+
+    def summary(serve, h2h):
+        return "Sinner trails [[c2:record.wins]]-[[c1:sample.matches_with_stats]]."
+
+    use_model(FakeClient([gather, write_report(summary=summary)]))
+    body = http.post("/report", json=REPORT).json()
+    assert [s["text"] for s in body["numbers"]["not_found"]] == [body["report"]["summary"][len("Sinner trails ") : -1]]
+
+
+def test_chat_check_reads_numbers_in_the_pages_language(http, use_model):
+    def say(serve):
+        return f"{100 * serve['stats']['first_serve_in']['value']:.1f}".replace(".", ",") + " % de primeros saques."
+
+    use_model(FakeClient(answer_with(say)))
+    body = {"messages": [{"role": "user", "content": "¿Qué tal saca?"}], "language": "es"}
+    assert events(http.post("/chat", json=body))[-1][1]["numbers"] == {"checked": 1, "not_found": []}
 
 
 @pytest.mark.parametrize(

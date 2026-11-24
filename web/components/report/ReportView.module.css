@@ -798,6 +798,11 @@
   color: var(--muted-2);
 }
 
+.cardTitle {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
 .cardMissing {
   margin: 0;
 }

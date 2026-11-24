@@ -9,11 +9,13 @@ import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { checkStat, checkedPercents, hasCareerHeadToHead } from "@/lib/evidence.ts";
 import { contextLabel, reportContext } from "@/lib/chat.ts";
 import { serverText } from "@/lib/i18n.ts";
+import { fieldCitations, fieldSpans, textCheckLine } from "@/lib/numbers.ts";
 import { longDate } from "@/lib/people.ts";
 import type { ReportResponse } from "@/lib/types.ts";
 import { GamePlan } from "./GamePlan.tsx";
 import { HonoursBoard } from "./HonoursBoard.tsx";
 import { KeyNumbers } from "./KeyNumbers.tsx";
+import { CitedText } from "./CitedText.tsx";
 import { ReportChat } from "./ReportChat.tsx";
 import { Scoreboard } from "./Scoreboard.tsx";
 import { ScoutingNotes } from "./ScoutingNotes.tsx";
@@ -58,8 +60,14 @@ export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
 
         {report && (
           <>
-            <GamePlan items={report.game_plan} player={player} opponent={opponent} checked={checked} />
-            <ScoutingNotes summary={report.summary} strengths={report.strengths} weaknesses={report.weaknesses} player={player} opponent={opponent} checked={checked} />
+            <GamePlan
+              items={report.game_plan} player={player} opponent={opponent} checked={checked}
+              numbers={data.numbers} citations={data.citations} evidence={evidence}
+            />
+            <ScoutingNotes
+              summary={report.summary} strengths={report.strengths} weaknesses={report.weaknesses}
+              player={player} opponent={opponent} checked={checked} numbers={data.numbers} citations={data.citations} evidence={evidence}
+            />
             <SideBySide evidence={evidence} player={player} opponent={opponent} surface={surface} window={request} />
             <HonoursBoard evidence={evidence} player={player} opponent={opponent} />
 
@@ -77,7 +85,14 @@ export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
                 <h2 className="h2">{t.aboutData}</h2>
                 <div className={`courtline ${styles.lineWide}`} aria-hidden="true" />
                 <ul className={styles.caveats}>
-                  {report.data_caveats.map((caveat, i) => <li key={i}>{caveat}</li>)}
+                  {report.data_caveats.map((caveat, i) => (
+                    <li key={i}>
+                      <CitedText
+                        as="span" text={caveat} spans={fieldSpans(data.numbers, `data_caveats.${i}`, caveat)}
+                        cites={fieldCitations(data.citations, `data_caveats.${i}`, caveat)} evidence={evidence}
+                      />
+                    </li>
+                  ))}
                 </ul>
               </section>
             )}
@@ -116,7 +131,7 @@ function Status({ data }: { data: ReportResponse }) {
       <div className={styles.status} role="status">
         <Seal kind="verified" />
         <p className={styles.statusText}>
-          <strong>{t.allKeyNumbersMatch(total)}</strong> {t.textNotChecked}
+          <strong>{t.allKeyNumbersMatch(total)}</strong> {textCheckLine(data.numbers, t)}
         </p>
       </div>
     );
@@ -131,6 +146,7 @@ function Status({ data }: { data: ReportResponse }) {
             <strong>{t.keyNumbersFailed(failing, total)}</strong>
           </p>
           <ul className={styles.statusErrors}>{data.grounding.errors.map((error, i) => <li key={i}>{error}</li>)}</ul>
+          {textCheckLine(data.numbers, t) && <p className={styles.statusText}>{textCheckLine(data.numbers, t)}</p>}
         </div>
       </div>
     );

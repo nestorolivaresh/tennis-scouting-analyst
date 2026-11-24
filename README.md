@@ -120,7 +120,11 @@ and sends the results back, within 8 tool steps, 60 seconds and a token budget p
 `POST /report` returns a structured report in which each key number names the tool call and field
 it came from. `api/grounding.py` checks every one against that run's tool results, retries once
 with the errors, and otherwise marks the report unverified. `POST /chat` streams follow-up answers
-as server-sent events. Every request logs its tool calls, tokens and estimated cost as JSON lines
+as server-sent events. In chat answers and a report's text the model cites numbers instead of
+typing them (`[[c2:stats.first_serve_in.value]]`); `api/citations.py` writes each value in, and
+the page opens its source on a tap (D-032). `api/numbers.py` looks for every other number in the
+same request's tool results, and the page underlines the ones it doesn't find (D-031).
+Every request logs its tool calls, tokens and estimated cost as JSON lines
 ([D-017 to D-022](docs/decisions.md)).
 
 ```bash

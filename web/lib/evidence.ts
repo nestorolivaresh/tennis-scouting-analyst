@@ -67,7 +67,12 @@ export function checkStat(stat: KeyStat, evidence: Evidence[]): StatCheck {
   const { found, value, seen } = resolvePath(source.result, stat.field);
   if (!found || !isNumber(value)) return { status: "missing", value: null, rate: null, sample: null, evidence: source };
   const parent = seen[seen.length - 2];
-  const rate = stat.field.endsWith(".value") && isRate(parent) ? parent : null;
+  // tour_comparison's tour_median is written like the rate beside it (api/citations.py does the
+  // same): a percentage or a per-match figure, with no counts of its own.
+  const beside = stat.field.endsWith(".tour_median") && parent && typeof parent === "object" ? (parent as { value?: unknown }).value : null;
+  const rate = stat.field.endsWith(".value") && isRate(parent)
+    ? parent
+    : isRate(beside) ? { value, numerator: 0, denominator: 0, unit: beside.unit } : null;
   const sizes = sampleSizes(source.result, seen);
   const matched = isNumber(stat.value) && Math.abs(stat.value - value) <= TOLERANCE && sizes.includes(stat.sample_matches);
   // The sample shown is the tool's: the stated one when it is one of the result's counts,
@@ -624,6 +629,7 @@ export function describeValue(stat: KeyStat, check: StatCheck, t: T = EN): strin
   const key = parts.find((p) => p in COUNTED || p === "win_rate" || p === "aces_per_match") ?? parts[parts.length - 1];
   const shown = formatValue(check.value, check.rate, t);
   const headToHead = check.evidence?.tool === "head_to_head";
+  if (parts[parts.length - 1] === "tour_median") return null; // no counts to give: the figure alone
   if (check.evidence?.tool === "tour_comparison" && parts[parts.length - 1] === "rank") {
     const line = resolvePath(result, parts.slice(0, -1).join(".")).value as { players_ranked?: number } | undefined;
     return isNumber(line?.players_ranked) ? t.valueRank(check.value, line.players_ranked) : null;

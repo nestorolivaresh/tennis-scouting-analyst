@@ -86,7 +86,16 @@ Four layers, each meant to catch what the others can't.
    come from the tool results. A large figure appears beside a game-plan point only when that
    exact value is among the report's checked numbers. The rest of the text is shown as prose
    (D-024, D-026).
-4. **Evals with independent ground truth.** `evals/truth.py` recomputes every expected answer
+4. **The model cites the numbers in its text, and the app writes them.** In chat answers and a
+   report's text the model writes `[[c2:stats.first_serve_in.value]]` instead of a number;
+   `api/citations.py` writes the value in, and a tap opens its source, so a figure attached to
+   the wrong claim can be seen (D-032). Every other number is looked for in the request's tool
+   results, with the rules the evals use for invented numbers, now in `api/numbers.py`, and
+   one not found is underlined where it appears, with a line saying which ones. In the last
+   eval run's 51 answers (`m10-final`), 4 of 731 numbers were flagged: 3 the model's own, 1 a
+   false flag. With numbers changed on purpose, it caught 94% of changed percentages, 89% of
+   changed records and scores, and 77% of changed whole numbers (D-031, D-032).
+5. **Evals with independent ground truth.** `evals/truth.py` recomputes every expected answer
    in SQL over the raw tables, and a test enforces that it never imports the stats layer or
    the loader. It agrees with the loader on all 30,616 Sackmann matches, which means two
    separate implementations of the same rules agree. Scoring is deterministic and uses no
@@ -114,11 +123,19 @@ Each answer is scored on several checks:
 | `final-v2` | 43 | the final scorer | 42/43 | $0.779 | 3.9 s |
 | `m8-m9` | 51 | the final scorer | 50/51 | $1.268 | 4.1 s |
 | `m8-m9-rescored` | 51 | the final scorer, R02's refusal widened | 51/51 | (same answers) | |
+| `m10` | 51 | the app's number check, citations in the prompt | 45/51 | $1.347 | 4.5 s |
+| `m10-final` | 51 | the same, head-to-head prompt fix | 45/51 | $1.367 | 4.6 s |
+| `m10-final-rescored` | 51 | rally ranges, years after "of" and R07's refusal fixed | 47/51 | (same answers) | |
 
 `final-v2` by category: single stat 10/10, filtered stat 10/10, head-to-head 10/11,
 comparison 6/6, refuse or caveat 6/6. `m8-m9`, after the scorer fix: every category passed,
 including scouting patterns 7/7. On the spec's original 40 questions, scored the same way,
-the baseline passed 37 and `final-v2` passed 39.
+the baseline passed 37 and `final-v2` passed 39. Milestone 10 (D-031, D-032) made the
+invented-number check stricter: number words that count something, and records with three or
+four digits, are now checked. Of `m10-final-rescored`'s four failures, three are the model's own
+numbers ("two of the five" counted from a list, "a bit under 20 matches") and one is the check's
+("14 of his 28 matches were charted", two tools' counts put together, which no tool states as
+a pair).
 
 **What failed, by cause.**
 1. A number from general knowledge: "a second-serve win rate under 50% is common".
@@ -177,8 +194,11 @@ an answer varies.
   Match Charting Project's volunteers charted: 4,454 of the tour matches, mostly top players and
   big matches. They don't split serve direction by score, so "where does he serve on break
   points" is declined.
-- **Checking.** Only a report's key numbers are checked against the data. Its prose and the
-  chat answers are not.
+- **Checking.** A report's key numbers are checked exactly, and numbers cited in the text are
+  the data's own. A cited number can still be attached to the wrong claim: that's visible on
+  its source card, not caught by code. Numbers the model types instead are only looked for in
+  the data: a small whole number usually appears somewhere in the results, so a wrong one is
+  missed about one time in four (D-031, D-032).
 - **Evals.** English only, one run per question, and scoring with regular expressions over
   prose. The invented-number check is lenient for whole numbers, which often match some
   number in the results by chance (D-023).
@@ -186,9 +206,9 @@ an answer varies.
   download is a newer snapshot than the one the tests were written against (see the README).
 - **Limits on use.** The daily spend cap covers reports and chat. The Player stats routes use
   no model and aren't metered, so varied queries reach the database uncached (D-025, D-026).
-- **Not checked.** The French hasn't been read by a native speaker, no real chat answer has
-  been run in Spanish or French (D-027), and browsers other than Chromium haven't been
-  tested (D-026).
+- **Not checked.** The French hasn't been read by a native speaker, only two real chat answers
+  have been run in Spanish and one in French (D-027, D-031, D-032), and browsers other than
+  Chromium haven't been tested (D-026).
 
 ## What's next
 

@@ -1,0 +1,19 @@
+kind,change,injected,caught,caught_share
+a_of_b,1,38,37,0.974
+a_of_b,all,38,37,0.974
+decimal,0.3,10,9,0.9
+decimal,1.0,10,9,0.9
+decimal,all,20,18,0.9
+percentage,0.3pp,120,113,0.942
+percentage,1.0pp,120,110,0.917
+percentage,5.0pp,120,117,0.975
+percentage,all,360,340,0.944
+record_or_score,1,88,78,0.886
+record_or_score,all,88,78,0.886
+whole number,1,1272,972,0.764
+whole number,10%,1272,977,0.768
+whole number,2,1239,969,0.782
+whole number,all,3783,2918,0.771
+whole number,"all, value 20 or less",3081,2276,0.739
+whole number,"all, value over 20",702,642,0.915
+real answers,"51 answers, 731 numbers",0,4,

@@ -50,6 +50,30 @@ export function capitalized(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** A part of a point as shown, and where it starts in the point's text; -1 when it isn't there
+ * as written (then it's shown without marks, D-031). */
+export interface PlacedPart {
+  text: string;
+  at: number;
+}
+
+/** The point's parts as shown, each with its place in the point's text. The inference is shown
+ * capitalized; it keeps its place only if that doesn't change its length. */
+export function placedParts(text: string): { head: PlacedPart; body: PlacedPart; inference: PlacedPart | null } {
+  const { head, body, inference } = parsePlanItem(text);
+  const find = (part: string, from: number) => (part ? text.indexOf(part, Math.max(from, 0)) : -1);
+  const headAt = find(head, 0);
+  const bodyAt = find(body, headAt + head.length);
+  if (!inference) return { head: { text: head, at: headAt }, body: { text: body, at: bodyAt }, inference: null };
+  const shown = capitalized(inference);
+  const inferenceAt = find(inference, Math.max(headAt + head.length, bodyAt + body.length));
+  return {
+    head: { text: head, at: headAt },
+    body: { text: body, at: bodyAt },
+    inference: { text: shown, at: shown.length === inference.length ? inferenceAt : -1 },
+  };
+}
+
 export interface Figure {
   text: string; // "75.7%"
   sub: string | null; // "against 68.7% for Alcaraz"

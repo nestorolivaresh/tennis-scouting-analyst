@@ -19,7 +19,9 @@ import psycopg
 
 from api import stats
 from api.agent import OUTCOME_MESSAGES, Limits, Run, Settings, run_loop, system_prompt
+from api.citations import Renderer, results_by_id
 from api.logs import log_event
+from api.numbers import check_answer, checked_numbers, for_browser
 from api.streaming import HEARTBEAT_S, sse
 
 MAX_MESSAGES = 21  # ten exchanges plus the new question
@@ -88,8 +90,9 @@ def chat_events(
     language: str = "en",
 ) -> Iterator[str]:
     """Server-sent events: start, then text / tool_call / tool_result as they happen, then
-    done (outcome, usage and cost) or error. The connection opens and closes inside the
-    stream, because the response outlives the request handler. `on_end(status, summary)` is
+    done (outcome, usage, cost, and the check on the answer's numbers, D-031) or error. The
+    connection opens and closes inside the stream, because the response outlives the request
+    handler. `on_end(status, summary)` is
     called once when the request ends, however it ends (api/spend.py)."""
     run = Run(model=settings.model, messages=list(history), started=clock())
     if request_id:
@@ -104,11 +107,29 @@ def chat_events(
         on_end("database_unavailable", {"cost_usd": 0.0, "usage_complete": True})
         yield sse("error", {"kind": "database_unavailable", "message": "The database is unavailable."})
         return
+    streamed: list[str] = []  # the answer exactly as the browser puts it together
+    # Citations become numbers before the browser sees them; one split across pieces is held
+    # back until it closes (D-032).
+    renderer = Renderer(lambda: results_by_id(run.tool_calls), language)
     try:
         loop = run_loop(client, conn, settings, run, chat_system_prompt(conn, language), limits, clock=clock, heartbeat_s=HEARTBEAT_S)
         with closing(loop):  # closing it ends the model's HTTP stream right away
             for event, data in loop:
-                yield sse(event, data)
+                if event == "text":
+                    shown = renderer.feed(data["delta"])
+                elif event == "tool_call":
+                    shown = renderer.flush()  # text before a tool call can't wait for it
+                else:
+                    shown = ""
+                if shown:
+                    streamed.append(shown)
+                    yield sse("text", {"delta": shown})
+                if event != "text":
+                    yield sse(event, data)
+            rest = renderer.flush()
+            if rest:
+                streamed.append(rest)
+                yield sse("text", {"delta": rest})
     except GeneratorExit:  # the client went away; the model stream closes with the loop
         log_event("request_end", logging.WARNING, request_id=run.request_id, endpoint="/chat",
                   status="client_disconnected", **run.summary())  # fmt: skip
@@ -118,12 +139,16 @@ def chat_events(
         kind, message = api_error(e)
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status=kind, **run.summary())
         on_end(kind, run.summary())
+        if rest := renderer.flush():  # text held back for a citation is still part of what was said
+            yield sse("text", {"delta": rest})
         yield sse("error", {"kind": kind, "message": message})
         return
     except Exception as e:  # noqa: BLE001 - reported to the client and logged by type, never hidden
         log_event("request_end", logging.ERROR, request_id=run.request_id, endpoint="/chat", status="internal_error",
                   error_type=type(e).__name__, **run.summary())  # fmt: skip
         on_end("internal_error", {**run.summary(), "usage_complete": False})
+        if rest := renderer.flush():
+            yield sse("text", {"delta": rest})
         yield sse("error", {"kind": "internal_error", "message": "The answer failed on the server. Try again."})
         return
     finally:
@@ -133,7 +158,20 @@ def chat_events(
         request_id=run.request_id, endpoint="/chat", status=run.outcome, **run.summary(),
     )  # fmt: skip
     on_end(run.outcome, run.summary())
-    yield sse("done", {"outcome": run.outcome, "message": OUTCOME_MESSAGES.get(run.outcome), "usage": run.summary()})
+    numbers = checked_numbers(
+        run.request_id, check_answer, "".join(streamed), [call.result for call in run.tool_calls.values()],
+        [m["content"] for m in history if m["role"] == "user"], language,
+    )  # fmt: skip
+    answer = "".join(streamed)
+    if numbers is not None:
+        numbers = {**numbers, "not_found": for_browser(answer, numbers["not_found"])}
+    cited = [c for c in renderer.citations if c.ok and c.numeric]  # a score or name written in opens no card
+    sources = sorted({c.tool_call_id for c in cited}, key=lambda call_id: int(call_id[1:]))
+    citations = [{"text": c.text, "start": c.start, "end": c.end, "tool_call_id": c.tool_call_id, "field": c.field} for c in cited]
+    yield sse("done", {
+        "outcome": run.outcome, "message": OUTCOME_MESSAGES.get(run.outcome), "usage": run.summary(), "numbers": numbers,
+        "citations": for_browser(answer, citations), "evidence": [run.tool_calls[call_id].evidence() for call_id in sources],
+    })  # fmt: skip
 
 
 def api_error(error: anthropic.APIError) -> tuple[str, str]:

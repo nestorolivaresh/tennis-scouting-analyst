@@ -205,7 +205,7 @@ The report schema makes this possible, because each key stat carries its value a
 }
 ```
 
-The values above only show the format. On a failed check, retry once with the error; if it fails again, return the report marked as unverified. Narrative text can still contain a wrong number, so the evals check for that as well.
+The values above only show the format. On a failed check, retry once with the error; if it fails again, return the report marked as unverified. Narrative text can still contain a wrong number, so the evals check for that as well, and since Milestone 10 the app runs the same check on chat answers and a report's text, marking numbers it doesn't find (D-031).
 
 ### API
 
@@ -280,6 +280,7 @@ Each milestone ends with something that runs.
 | 7 | README, case study, demo script | A stranger can run it from the README, and the case study reports real eval results |
 | 8 | Scouting patterns from the match data: an opponent-ranking filter, scores from the asked player's side, time on court, `set_patterns`, `tour_comparison` (D-029) | Every new number matches a hand check or Tennis Abstract, each rule's test fails when the rule is broken, and new eval questions pass |
 | 9 | Shot patterns from the Match Charting Project: serve direction, rally length, net points (`shot_patterns`, D-030) | Charted matches link to tour matches with reasons for the rest, the numbers match hand checks over the stats files, and new eval questions pass |
+| 10 | Checking the numbers in chat answers and a report's written text against that request's tool results, with numbers not found marked on screen (D-031); the model cites numbers in its text and the app writes them, each opening its source (D-032) | The evals use the same check as the app, its false flags and its catch rate on injected errors are measured and committed, and marks work in English, Spanish and French |
 
 **Quality checks for Milestone 1:**
 
@@ -328,7 +329,7 @@ The decision log feeds the case study. Keep the code simple enough that I can ex
 
 ### After the MVP
 
-These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data.
+These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data. Milestone 10 (approved 2026-11-23 and 2026-11-24, D-031 and D-032) checks the numbers in the written text, and has the model cite them.
 
 ## Sources
 

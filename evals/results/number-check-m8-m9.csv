@@ -1,0 +1,4160 @@
+id,kind,change,original,injected,caught
+S01,decimal,+0.3,7.5,7.8,True
+S01,decimal,-0.3,7.5,7.2,True
+S01,decimal,+1.0,7.5,8.5,True
+S01,decimal,-1.0,7.5,6.5,True
+S01,whole number,+1,594,595,True
+S01,whole number,-1,594,593,True
+S01,whole number,+2,594,596,True
+S01,whole number,-2,594,592,True
+S01,whole number,+10%,594,653,True
+S01,whole number,-10%,594,535,True
+S01,whole number,+1,79,80,False
+S01,whole number,-1,79,78,True
+S01,whole number,+2,79,81,True
+S01,whole number,-2,79,77,True
+S01,whole number,+10%,79,87,True
+S01,whole number,-10%,79,71,False
+S01,whole number,+1,2,3,True
+S01,whole number,-1,2,1,False
+S01,whole number,+2,2,4,False
+S01,whole number,-2,2,0,False
+S01,whole number,+10%,2,3,True
+S01,whole number,-10%,2,1,False
+S01,whole number,+1,79,80,True
+S01,whole number,-1,79,78,True
+S01,whole number,+2,79,81,True
+S01,whole number,-2,79,77,True
+S01,whole number,+10%,79,87,True
+S01,whole number,-10%,79,71,True
+S02,percentage,+0.3pp,63.9%,64.2%,True
+S02,percentage,-0.3pp,63.9%,63.6%,True
+S02,percentage,+1.0pp,63.9%,64.9%,True
+S02,percentage,-1.0pp,63.9%,62.9%,False
+S02,percentage,+5.0pp,63.9%,68.9%,True
+S02,percentage,-5.0pp,63.9%,58.9%,True
+S02,whole number,+1,"3,378","3,379",True
+S02,whole number,-1,"3,378","3,377",True
+S02,whole number,+2,"3,378","3,380",True
+S02,whole number,-2,"3,378","3,376",True
+S02,whole number,+10%,"3,378","3,716",True
+S02,whole number,-10%,"3,378","3,040",True
+S02,whole number,+1,"5,290","5,291",True
+S02,whole number,-1,"5,290","5,289",True
+S02,whole number,+2,"5,290","5,292",True
+S02,whole number,-2,"5,290","5,288",True
+S02,whole number,+10%,"5,290","5,819",True
+S02,whole number,-10%,"5,290","4,761",True
+S02,whole number,+1,63,64,False
+S02,whole number,-1,63,62,True
+S02,whole number,+2,63,65,True
+S02,whole number,-2,63,61,True
+S02,whole number,+10%,63,69,False
+S02,whole number,-10%,63,57,False
+S02,a_of_b,+1 on one side,"3,378 of 5,290","3,379 of 5,290",True
+S03,percentage,+0.3pp,61.3%,61.6%,True
+S03,percentage,-0.3pp,61.3%,61.0%,True
+S03,percentage,+1.0pp,61.3%,62.3%,True
+S03,percentage,-1.0pp,61.3%,60.3%,True
+S03,percentage,+5.0pp,61.3%,66.3%,True
+S03,percentage,-5.0pp,61.3%,56.3%,True
+S03,whole number,+1,182,183,True
+S03,whole number,-1,182,181,True
+S03,whole number,+2,182,184,True
+S03,whole number,-2,182,180,True
+S03,whole number,+10%,182,200,True
+S03,whole number,-10%,182,164,True
+S03,whole number,+1,297,298,True
+S03,whole number,-1,297,296,True
+S03,whole number,+2,297,299,True
+S03,whole number,-2,297,295,True
+S03,whole number,+10%,297,327,True
+S03,whole number,-10%,297,267,True
+S03,whole number,+1,71,72,True
+S03,whole number,-1,71,70,True
+S03,whole number,+2,71,73,True
+S03,whole number,-2,71,69,True
+S03,whole number,+10%,71,78,True
+S03,whole number,-10%,71,64,True
+S03,whole number,+1,75,76,True
+S03,whole number,-1,75,74,True
+S03,whole number,+2,75,77,True
+S03,whole number,-2,75,73,True
+S03,whole number,+10%,75,83,True
+S03,whole number,-10%,75,67,True
+S03,a_of_b,+1 on one side,182 of 297,183 of 297,True
+S04,percentage,+0.3pp,42.5%,42.8%,True
+S04,percentage,-0.3pp,42.5%,42.2%,True
+S04,percentage,+1.0pp,42.5%,43.5%,True
+S04,percentage,-1.0pp,42.5%,41.5%,True
+S04,percentage,+5.0pp,42.5%,47.5%,True
+S04,percentage,-5.0pp,42.5%,37.5%,True
+S04,whole number,+1,"2,097","2,098",True
+S04,whole number,-1,"2,097","2,096",True
+S04,whole number,+2,"2,097","2,099",True
+S04,whole number,-2,"2,097","2,095",True
+S04,whole number,+10%,"2,097","2,307",True
+S04,whole number,-10%,"2,097","1,887",True
+S04,whole number,+1,"4,935","4,936",True
+S04,whole number,-1,"4,935","4,934",True
+S04,whole number,+2,"4,935","4,937",True
+S04,whole number,-2,"4,935","4,933",True
+S04,whole number,+10%,"4,935","5,429",True
+S04,whole number,-10%,"4,935","4,441",True
+S04,whole number,+1,64,65,False
+S04,whole number,-1,64,63,True
+S04,whole number,+2,64,66,True
+S04,whole number,-2,64,62,True
+S04,whole number,+10%,64,70,False
+S04,whole number,-10%,64,58,True
+S04,whole number,+1,4,5,False
+S04,whole number,-1,4,3,True
+S04,whole number,+2,4,6,True
+S04,whole number,-2,4,2,True
+S04,whole number,+10%,4,5,False
+S04,whole number,-10%,4,3,True
+S04,whole number,+1,1,2,True
+S04,whole number,-1,1,0,False
+S04,whole number,+2,1,3,True
+S04,whole number,+10%,1,2,True
+S04,whole number,-10%,1,0,False
+S04,a_of_b,+1 on one side,"2,097 of 4,935","2,098 of 4,935",True
+S05,percentage,+0.3pp,72.1%,72.4%,True
+S05,percentage,-0.3pp,72.1%,71.8%,True
+S05,percentage,+1.0pp,72.1%,73.1%,True
+S05,percentage,-1.0pp,72.1%,71.1%,True
+S05,percentage,+5.0pp,72.1%,77.1%,True
+S05,percentage,-5.0pp,72.1%,67.1%,True
+S05,whole number,+1,"3,172","3,173",True
+S05,whole number,-1,"3,172","3,171",True
+S05,whole number,+2,"3,172","3,174",True
+S05,whole number,-2,"3,172","3,170",True
+S05,whole number,+10%,"3,172","3,489",True
+S05,whole number,-10%,"3,172","2,855",True
+S05,whole number,+1,"4,400","4,401",True
+S05,whole number,-1,"4,400","4,399",True
+S05,whole number,+2,"4,400","4,402",True
+S05,whole number,-2,"4,400","4,398",True
+S05,whole number,+10%,"4,400","4,840",True
+S05,whole number,-10%,"4,400","3,960",True
+S05,whole number,+1,57,58,True
+S05,whole number,-1,57,56,True
+S05,whole number,+2,57,59,False
+S05,whole number,-2,57,55,True
+S05,whole number,+10%,57,63,False
+S05,whole number,-10%,57,51,True
+S05,percentage,+0.3pp,79.8%,80.1%,True
+S05,percentage,-0.3pp,79.8%,79.5%,True
+S05,percentage,+1.0pp,79.8%,80.8%,True
+S05,percentage,-1.0pp,79.8%,78.8%,True
+S05,percentage,+5.0pp,79.8%,84.8%,True
+S05,percentage,-5.0pp,79.8%,74.8%,True
+S05,percentage,+0.3pp,59.5%,59.8%,True
+S05,percentage,-0.3pp,59.5%,59.2%,True
+S05,percentage,+1.0pp,59.5%,60.5%,True
+S05,percentage,-1.0pp,59.5%,58.5%,True
+S05,percentage,+5.0pp,59.5%,64.5%,True
+S05,percentage,-5.0pp,59.5%,54.5%,True
+S05,a_of_b,+1 on one side,"3,172 of 4,400","3,173 of 4,400",True
+S06,percentage,+0.3pp,44.2%,44.5%,True
+S06,percentage,-0.3pp,44.2%,43.9%,True
+S06,percentage,+1.0pp,44.2%,45.2%,True
+S06,percentage,-1.0pp,44.2%,43.2%,True
+S06,percentage,+5.0pp,44.2%,49.2%,True
+S06,percentage,-5.0pp,44.2%,39.2%,True
+S06,whole number,+1,788,789,True
+S06,whole number,-1,788,787,True
+S06,whole number,+2,788,790,True
+S06,whole number,-2,788,786,True
+S06,whole number,+10%,788,867,True
+S06,whole number,-10%,788,709,True
+S06,whole number,+1,"1,781","1,782",True
+S06,whole number,-1,"1,781","1,780",True
+S06,whole number,+2,"1,781","1,783",True
+S06,whole number,-2,"1,781","1,779",True
+S06,whole number,+10%,"1,781","1,959",True
+S06,whole number,-10%,"1,781","1,603",True
+S06,whole number,+1,67,68,True
+S06,whole number,-1,67,66,False
+S06,whole number,+2,67,69,True
+S06,whole number,-2,67,65,False
+S06,whole number,+10%,67,74,False
+S06,whole number,-10%,67,60,True
+S06,percentage,+0.3pp,74.9%,75.2%,True
+S06,percentage,-0.3pp,74.9%,74.6%,True
+S06,percentage,+1.0pp,74.9%,75.9%,True
+S06,percentage,-1.0pp,74.9%,73.9%,True
+S06,percentage,+5.0pp,74.9%,79.9%,True
+S06,percentage,-5.0pp,74.9%,69.9%,True
+S06,a_of_b,+1 on one side,"788 of 1,781","789 of 1,781",True
+S07,percentage,+0.3pp,81.1%,81.4%,True
+S07,percentage,-0.3pp,81.1%,80.8%,True
+S07,percentage,+1.0pp,81.1%,82.1%,True
+S07,percentage,-1.0pp,81.1%,80.1%,True
+S07,percentage,+5.0pp,81.1%,86.1%,True
+S07,percentage,-5.0pp,81.1%,76.1%,True
+S07,whole number,+1,"3,065","3,066",True
+S07,whole number,-1,"3,065","3,064",True
+S07,whole number,+2,"3,065","3,067",True
+S07,whole number,-2,"3,065","3,063",True
+S07,whole number,+10%,"3,065","3,371",True
+S07,whole number,-10%,"3,065","2,759",True
+S07,whole number,+1,"3,780","3,781",True
+S07,whole number,-1,"3,780","3,779",True
+S07,whole number,+2,"3,780","3,782",True
+S07,whole number,-2,"3,780","3,778",True
+S07,whole number,+10%,"3,780","4,158",True
+S07,whole number,-10%,"3,780","3,402",True
+S07,whole number,+1,56,57,False
+S07,whole number,-1,56,55,True
+S07,whole number,+2,56,58,True
+S07,whole number,-2,56,54,True
+S07,whole number,+10%,56,62,True
+S07,whole number,-10%,56,50,True
+S07,whole number,+1,56,57,False
+S07,whole number,-1,56,55,True
+S07,whole number,+2,56,58,True
+S07,whole number,-2,56,54,True
+S07,whole number,+10%,56,62,True
+S07,whole number,-10%,56,50,True
+S07,a_of_b,+1 on one side,"3,065 of 3,780","3,066 of 3,780",True
+S08,percentage,+0.3pp,37.5%,37.8%,True
+S08,percentage,-0.3pp,37.5%,37.2%,True
+S08,percentage,+1.0pp,37.5%,38.5%,True
+S08,percentage,-1.0pp,37.5%,36.5%,True
+S08,percentage,+5.0pp,37.5%,42.5%,True
+S08,percentage,-5.0pp,37.5%,32.5%,True
+S08,whole number,+1,203,204,True
+S08,whole number,-1,203,202,True
+S08,whole number,+2,203,205,True
+S08,whole number,-2,203,201,True
+S08,whole number,+10%,203,223,True
+S08,whole number,-10%,203,183,True
+S08,whole number,+1,542,543,True
+S08,whole number,-1,542,541,True
+S08,whole number,+2,542,544,True
+S08,whole number,-2,542,540,True
+S08,whole number,+10%,542,596,True
+S08,whole number,-10%,542,488,True
+S08,whole number,+1,71,72,False
+S08,whole number,-1,71,70,True
+S08,whole number,+2,71,73,True
+S08,whole number,-2,71,69,True
+S08,whole number,+10%,71,78,True
+S08,whole number,-10%,71,64,False
+S08,whole number,+1,72,73,True
+S08,whole number,-1,72,71,False
+S08,whole number,+2,72,74,True
+S08,whole number,-2,72,70,True
+S08,whole number,+10%,72,79,True
+S08,whole number,-10%,72,65,True
+S08,a_of_b,+1 on one side,203 of 542,204 of 542,True
+S09,whole number,+1,65,66,True
+S09,whole number,-1,65,64,True
+S09,whole number,+2,65,67,True
+S09,whole number,-2,65,63,True
+S09,whole number,+10%,65,71,True
+S09,whole number,-10%,65,59,True
+S09,whole number,+1,12,13,True
+S09,whole number,-1,12,11,True
+S09,whole number,+2,12,14,True
+S09,whole number,-2,12,10,True
+S09,whole number,+10%,12,13,True
+S09,whole number,-10%,12,11,True
+S09,whole number,+1,77,78,True
+S09,whole number,-1,77,76,False
+S09,whole number,+2,77,79,True
+S09,whole number,-2,77,75,False
+S09,whole number,+10%,77,85,False
+S09,whole number,-10%,77,69,True
+S09,percentage,+0.3pp,84.4%,84.7%,True
+S09,percentage,-0.3pp,84.4%,84.1%,True
+S09,percentage,+1.0pp,84.4%,85.4%,True
+S09,percentage,-1.0pp,84.4%,83.4%,True
+S09,percentage,+5.0pp,84.4%,89.4%,True
+S09,percentage,-5.0pp,84.4%,79.4%,True
+S09,whole number,+1,28,29,True
+S09,whole number,-1,28,27,True
+S09,whole number,+2,28,30,True
+S09,whole number,-2,28,26,True
+S09,whole number,+10%,28,31,True
+S09,whole number,-10%,28,25,True
+S09,whole number,+1,9,10,True
+S09,whole number,-1,9,8,True
+S09,whole number,+2,9,11,True
+S09,whole number,-2,9,7,True
+S09,whole number,+10%,9,10,True
+S09,whole number,-10%,9,8,True
+S09,percentage,+0.3pp,75.7%,76.0%,True
+S09,percentage,-0.3pp,75.7%,75.4%,True
+S09,percentage,+1.0pp,75.7%,76.7%,True
+S09,percentage,-1.0pp,75.7%,74.7%,True
+S09,percentage,+5.0pp,75.7%,80.7%,True
+S09,percentage,-5.0pp,75.7%,70.7%,True
+S09,whole number,+1,37,38,True
+S09,whole number,-1,37,36,True
+S09,whole number,+2,37,39,True
+S09,whole number,-2,37,35,True
+S09,whole number,+10%,37,41,True
+S09,whole number,-10%,37,33,True
+S09,whole number,+1,25,26,True
+S09,whole number,-1,25,24,True
+S09,whole number,+2,25,27,True
+S09,whole number,-2,25,23,True
+S09,whole number,+10%,25,27,True
+S09,whole number,-10%,25,23,True
+S09,whole number,+1,3,4,True
+S09,whole number,-1,3,2,True
+S09,whole number,+2,3,5,True
+S09,whole number,-2,3,1,True
+S09,whole number,+10%,3,4,True
+S09,whole number,-10%,3,2,True
+S09,percentage,+0.3pp,89.3%,89.6%,True
+S09,percentage,-0.3pp,89.3%,89.0%,True
+S09,percentage,+1.0pp,89.3%,90.3%,True
+S09,percentage,-1.0pp,89.3%,88.3%,True
+S09,percentage,+5.0pp,89.3%,94.3%,True
+S09,percentage,-5.0pp,89.3%,84.3%,True
+S09,whole number,+1,28,29,True
+S09,whole number,-1,28,27,True
+S09,whole number,+2,28,30,True
+S09,whole number,-2,28,26,False
+S09,whole number,+10%,28,31,True
+S09,whole number,-10%,28,25,False
+S09,whole number,+1,12,13,True
+S09,whole number,-1,12,11,True
+S09,whole number,+2,12,14,True
+S09,whole number,-2,12,10,True
+S09,whole number,+10%,12,13,True
+S09,whole number,-10%,12,11,True
+S09,whole number,+1,0,1,True
+S09,whole number,+2,0,2,True
+S09,whole number,+10%,0,1,True
+S09,percentage,-1.0pp,100%,99%,False
+S09,percentage,-5.0pp,100%,95%,True
+S09,whole number,+1,12,13,False
+S09,whole number,-1,12,11,False
+S09,whole number,+2,12,14,True
+S09,whole number,-2,12,10,False
+S09,whole number,+10%,12,13,False
+S09,whole number,-10%,12,11,False
+S09,record_or_score,+1 on one side,65-12,66-12,True
+S09,record_or_score,+1 on one side,28-9,29-9,True
+S09,record_or_score,+1 on one side,25-3,26-3,True
+S09,record_or_score,+1 on one side,12-0,13-0,True
+S10,decimal,+0.3,16.8,17.1,True
+S10,decimal,-0.3,16.8,16.5,True
+S10,decimal,+1.0,16.8,17.8,True
+S10,decimal,-1.0,16.8,15.8,True
+S10,whole number,+1,621,622,True
+S10,whole number,-1,621,620,True
+S10,whole number,+2,621,623,True
+S10,whole number,-2,621,619,True
+S10,whole number,+10%,621,683,True
+S10,whole number,-10%,621,559,True
+S10,whole number,+1,37,38,True
+S10,whole number,-1,37,36,True
+S10,whole number,+2,37,39,True
+S10,whole number,-2,37,35,True
+S10,whole number,+10%,37,41,True
+S10,whole number,-10%,37,33,True
+S10,whole number,+1,37,38,True
+S10,whole number,-1,37,36,True
+S10,whole number,+2,37,39,True
+S10,whole number,-2,37,35,True
+S10,whole number,+10%,37,41,True
+S10,whole number,-10%,37,33,True
+F01,percentage,+0.3pp,68.5%,68.8%,True
+F01,percentage,-0.3pp,68.5%,68.2%,True
+F01,percentage,+1.0pp,68.5%,69.5%,True
+F01,percentage,-1.0pp,68.5%,67.5%,True
+F01,percentage,+5.0pp,68.5%,73.5%,True
+F01,percentage,-5.0pp,68.5%,63.5%,True
+F01,whole number,+1,76,77,True
+F01,whole number,-1,76,75,True
+F01,whole number,+2,76,78,True
+F01,whole number,-2,76,74,True
+F01,whole number,+10%,76,84,True
+F01,whole number,-10%,76,68,True
+F01,whole number,+1,111,112,True
+F01,whole number,-1,111,110,True
+F01,whole number,+2,111,113,True
+F01,whole number,-2,111,109,True
+F01,whole number,+10%,111,122,True
+F01,whole number,-10%,111,100,True
+F01,whole number,+1,24,25,True
+F01,whole number,-1,24,23,True
+F01,whole number,+2,24,26,False
+F01,whole number,-2,24,22,True
+F01,whole number,+10%,24,26,False
+F01,whole number,-10%,24,22,True
+F01,record_or_score,+1 on one side,04-15,5-15,True
+F01,record_or_score,+1 on one side,05-27,6-27,True
+F01,a_of_b,+1 on one side,76 of 111,77 of 111,True
+F02,percentage,+0.3pp,40.0%,40.3%,True
+F02,percentage,-0.3pp,40.0%,39.7%,True
+F02,percentage,+1.0pp,40.0%,41.0%,True
+F02,percentage,-1.0pp,40.0%,39.0%,True
+F02,percentage,+5.0pp,40.0%,45.0%,True
+F02,percentage,-5.0pp,40.0%,35.0%,False
+F02,whole number,+1,326,327,True
+F02,whole number,-1,326,325,True
+F02,whole number,+2,326,328,True
+F02,whole number,-2,326,324,True
+F02,whole number,+10%,326,359,True
+F02,whole number,-10%,326,293,True
+F02,whole number,+1,815,816,True
+F02,whole number,-1,815,814,True
+F02,whole number,+2,815,817,True
+F02,whole number,-2,815,813,True
+F02,whole number,+10%,815,897,True
+F02,whole number,-10%,815,733,True
+F02,whole number,+1,12,13,True
+F02,whole number,-1,12,11,False
+F02,whole number,+2,12,14,True
+F02,whole number,-2,12,10,False
+F02,whole number,+10%,12,13,True
+F02,whole number,-10%,12,11,False
+F02,whole number,+1,12,13,True
+F02,whole number,-1,12,11,True
+F02,whole number,+2,12,14,True
+F02,whole number,-2,12,10,True
+F02,whole number,+10%,12,13,True
+F02,whole number,-10%,12,11,True
+F02,a_of_b,+1 on one side,326 of 815,327 of 815,True
+F03,whole number,+1,18,19,True
+F03,whole number,-1,18,17,True
+F03,whole number,+2,18,20,True
+F03,whole number,-2,18,16,True
+F03,whole number,+10%,18,20,True
+F03,whole number,-10%,18,16,True
+F03,whole number,+1,1,2,True
+F03,whole number,-1,1,0,True
+F03,whole number,+2,1,3,True
+F03,whole number,+10%,1,2,True
+F03,whole number,-10%,1,0,True
+F03,percentage,+0.3pp,94.7%,95.0%,True
+F03,percentage,-0.3pp,94.7%,94.4%,True
+F03,percentage,+1.0pp,94.7%,95.7%,True
+F03,percentage,-1.0pp,94.7%,93.7%,True
+F03,percentage,+5.0pp,94.7%,99.7%,True
+F03,percentage,-5.0pp,94.7%,89.7%,True
+F03,whole number,+1,19,20,True
+F03,whole number,-1,19,18,False
+F03,whole number,+2,19,21,True
+F03,whole number,-2,19,17,True
+F03,whole number,+10%,19,21,True
+F03,whole number,-10%,19,17,True
+F03,whole number,+1,11,12,True
+F03,whole number,-1,11,10,True
+F03,whole number,+2,11,13,True
+F03,whole number,-2,11,9,True
+F03,whole number,+10%,11,12,True
+F03,whole number,-10%,11,10,True
+F03,whole number,+1,1,2,True
+F03,whole number,-1,1,0,True
+F03,whole number,+2,1,3,True
+F03,whole number,+10%,1,2,True
+F03,whole number,-10%,1,0,True
+F03,whole number,+1,12,13,True
+F03,whole number,-1,12,11,False
+F03,whole number,+2,12,14,True
+F03,whole number,-2,12,10,False
+F03,whole number,+10%,12,13,True
+F03,whole number,-10%,12,11,False
+F03,whole number,+1,7,8,True
+F03,whole number,-1,7,6,True
+F03,whole number,+2,7,9,True
+F03,whole number,-2,7,5,True
+F03,whole number,+10%,7,8,True
+F03,whole number,-10%,7,6,True
+F03,whole number,+1,0,1,True
+F03,whole number,+2,0,2,True
+F03,whole number,+10%,0,1,True
+F03,whole number,+1,7,8,False
+F03,whole number,-1,7,6,False
+F03,whole number,+2,7,9,True
+F03,whole number,-2,7,5,True
+F03,whole number,+10%,7,8,False
+F03,whole number,-10%,7,6,False
+F03,record_or_score,+1 on one side,18–1,19–1,True
+F03,record_or_score,+1 on one side,11–1,12–1,True
+F03,record_or_score,+1 on one side,7–0,8–0,True
+F04,percentage,+0.3pp,59.7%,60.0%,True
+F04,percentage,-0.3pp,59.7%,59.4%,True
+F04,percentage,+1.0pp,59.7%,60.7%,True
+F04,percentage,-1.0pp,59.7%,58.7%,True
+F04,percentage,+5.0pp,59.7%,64.7%,True
+F04,percentage,-5.0pp,59.7%,54.7%,True
+F04,whole number,+1,"1,035","1,036",True
+F04,whole number,-1,"1,035","1,034",True
+F04,whole number,+2,"1,035","1,037",True
+F04,whole number,-2,"1,035","1,033",True
+F04,whole number,+10%,"1,035","1,139",True
+F04,whole number,-10%,"1,035",931,True
+F04,whole number,+1,"1,734","1,735",True
+F04,whole number,-1,"1,734","1,733",True
+F04,whole number,+2,"1,734","1,736",True
+F04,whole number,-2,"1,734","1,732",True
+F04,whole number,+10%,"1,734","1,907",True
+F04,whole number,-10%,"1,734","1,561",True
+F04,whole number,+1,29,30,True
+F04,whole number,-1,29,28,False
+F04,whole number,+2,29,31,True
+F04,whole number,-2,29,27,True
+F04,whole number,+10%,29,32,True
+F04,whole number,-10%,29,26,False
+F04,a_of_b,+1 on one side,"1,035 of 1,734","1,036 of 1,734",True
+F05,percentage,+0.3pp,64.2%,64.5%,True
+F05,percentage,-0.3pp,64.2%,63.9%,True
+F05,percentage,+1.0pp,64.2%,65.2%,True
+F05,percentage,-1.0pp,64.2%,63.2%,True
+F05,percentage,+5.0pp,64.2%,69.2%,True
+F05,percentage,-5.0pp,64.2%,59.2%,True
+F05,whole number,+1,122,123,True
+F05,whole number,-1,122,121,True
+F05,whole number,+2,122,124,True
+F05,whole number,-2,122,120,True
+F05,whole number,+10%,122,134,True
+F05,whole number,-10%,122,110,True
+F05,whole number,+1,190,191,True
+F05,whole number,-1,190,189,True
+F05,whole number,+2,190,192,True
+F05,whole number,-2,190,188,True
+F05,whole number,+10%,190,209,True
+F05,whole number,-10%,190,171,True
+F05,whole number,+1,27,28,True
+F05,whole number,-1,27,26,False
+F05,whole number,+2,27,29,False
+F05,whole number,-2,27,25,True
+F05,whole number,+10%,27,30,True
+F05,whole number,-10%,27,24,True
+F05,a_of_b,+1 on one side,122 of 190,123 of 190,True
+F06,percentage,+0.3pp,71.2%,71.5%,True
+F06,percentage,-0.3pp,71.2%,70.9%,True
+F06,percentage,+1.0pp,71.2%,72.2%,True
+F06,percentage,-1.0pp,71.2%,70.2%,True
+F06,percentage,+5.0pp,71.2%,76.2%,True
+F06,percentage,-5.0pp,71.2%,66.2%,True
+F06,whole number,+1,"2,397","2,398",True
+F06,whole number,-1,"2,397","2,396",True
+F06,whole number,+2,"2,397","2,399",True
+F06,whole number,-2,"2,397","2,395",True
+F06,whole number,+10%,"2,397","2,637",True
+F06,whole number,-10%,"2,397","2,157",True
+F06,whole number,+1,"3,368","3,369",True
+F06,whole number,-1,"3,368","3,367",True
+F06,whole number,+2,"3,368","3,370",True
+F06,whole number,-2,"3,368","3,366",True
+F06,whole number,+10%,"3,368","3,705",True
+F06,whole number,-10%,"3,368","3,031",True
+F06,whole number,+1,38,39,True
+F06,whole number,-1,38,37,True
+F06,whole number,+2,38,40,False
+F06,whole number,-2,38,36,True
+F06,whole number,+10%,38,42,True
+F06,whole number,-10%,38,34,True
+F06,a_of_b,+1 on one side,"2,397 of 3,368","2,398 of 3,368",True
+F07,percentage,+0.3pp,58.9%,59.2%,True
+F07,percentage,-0.3pp,58.9%,58.6%,True
+F07,percentage,+1.0pp,58.9%,59.9%,True
+F07,percentage,-1.0pp,58.9%,57.9%,True
+F07,percentage,+5.0pp,58.9%,63.9%,True
+F07,percentage,-5.0pp,58.9%,53.9%,True
+F07,whole number,+1,918,919,True
+F07,whole number,-1,918,917,True
+F07,whole number,+2,918,920,True
+F07,whole number,-2,918,916,True
+F07,whole number,+10%,918,1010,True
+F07,whole number,-10%,918,826,True
+F07,whole number,+1,"1,559","1,560",True
+F07,whole number,-1,"1,559","1,558",True
+F07,whole number,+2,"1,559","1,561",True
+F07,whole number,-2,"1,559","1,557",True
+F07,whole number,+10%,"1,559","1,715",True
+F07,whole number,-10%,"1,559","1,403",True
+F07,whole number,+1,56,57,True
+F07,whole number,-1,56,55,True
+F07,whole number,+2,56,58,False
+F07,whole number,-2,56,54,True
+F07,whole number,+10%,56,62,True
+F07,whole number,-10%,56,50,True
+F07,a_of_b,+1 on one side,"918 of 1,559","919 of 1,559",True
+F08,whole number,+1,27,28,True
+F08,whole number,-1,27,26,True
+F08,whole number,+2,27,29,True
+F08,whole number,-2,27,25,True
+F08,whole number,+10%,27,30,True
+F08,whole number,-10%,27,24,True
+F08,whole number,+1,4,5,True
+F08,whole number,-1,4,3,True
+F08,whole number,+2,4,6,True
+F08,whole number,-2,4,2,True
+F08,whole number,+10%,4,5,True
+F08,whole number,-10%,4,3,True
+F08,percentage,+0.3pp,87.1%,87.4%,True
+F08,percentage,-0.3pp,87.1%,86.8%,True
+F08,percentage,+1.0pp,87.1%,88.1%,True
+F08,percentage,-1.0pp,87.1%,86.1%,True
+F08,percentage,+5.0pp,87.1%,92.1%,True
+F08,percentage,-5.0pp,87.1%,82.1%,True
+F08,whole number,+1,31,32,True
+F08,whole number,-1,31,30,True
+F08,whole number,+2,31,33,True
+F08,whole number,-2,31,29,True
+F08,whole number,+10%,31,34,True
+F08,whole number,-10%,31,28,True
+F08,record_or_score,+1 on one side,27–4,28–4,True
+F09,percentage,+0.3pp,42.7%,43.0%,True
+F09,percentage,-0.3pp,42.7%,42.4%,True
+F09,percentage,+1.0pp,42.7%,43.7%,True
+F09,percentage,-1.0pp,42.7%,41.7%,True
+F09,percentage,+5.0pp,42.7%,47.7%,True
+F09,percentage,-5.0pp,42.7%,37.7%,True
+F09,whole number,+1,214,215,True
+F09,whole number,-1,214,213,True
+F09,whole number,+2,214,216,True
+F09,whole number,-2,214,212,True
+F09,whole number,+10%,214,235,True
+F09,whole number,-10%,214,193,True
+F09,whole number,+1,501,502,True
+F09,whole number,-1,501,500,True
+F09,whole number,+2,501,503,True
+F09,whole number,-2,501,499,True
+F09,whole number,+10%,501,551,True
+F09,whole number,-10%,501,451,True
+F09,whole number,+1,58,59,True
+F09,whole number,-1,58,57,True
+F09,whole number,+2,58,60,False
+F09,whole number,-2,58,56,True
+F09,whole number,+10%,58,64,False
+F09,whole number,-10%,58,52,True
+F09,whole number,+1,64,65,True
+F09,whole number,-1,64,63,True
+F09,whole number,+2,64,66,True
+F09,whole number,-2,64,62,True
+F09,whole number,+10%,64,70,True
+F09,whole number,-10%,64,58,False
+F09,a_of_b,+1 on one side,214 of 501,215 of 501,True
+F10,decimal,+0.3,4.9,5.2,True
+F10,decimal,-0.3,4.9,4.6,True
+F10,decimal,+1.0,4.9,5.9,True
+F10,decimal,-1.0,4.9,3.9,False
+F10,whole number,+1,136,137,True
+F10,whole number,-1,136,135,True
+F10,whole number,+2,136,138,True
+F10,whole number,-2,136,134,True
+F10,whole number,+10%,136,150,True
+F10,whole number,-10%,136,122,True
+F10,whole number,+1,28,29,True
+F10,whole number,-1,28,27,True
+F10,whole number,+2,28,30,True
+F10,whole number,-2,28,26,False
+F10,whole number,+10%,28,31,True
+F10,whole number,-10%,28,25,True
+F10,whole number,+1,28,29,True
+F10,whole number,-1,28,27,True
+F10,whole number,+2,28,30,True
+F10,whole number,-2,28,26,False
+F10,whole number,+10%,28,31,True
+F10,whole number,-10%,28,25,True
+H01,whole number,+1,6,7,False
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,False
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,5,6,True
+H01,whole number,-1,5,4,False
+H01,whole number,+2,5,7,False
+H01,whole number,-2,5,3,False
+H01,whole number,+10%,5,6,True
+H01,whole number,-10%,5,4,False
+H01,whole number,+1,11,12,False
+H01,whole number,-1,11,10,False
+H01,whole number,+2,11,13,False
+H01,whole number,-2,11,9,False
+H01,whole number,+10%,11,12,False
+H01,whole number,-10%,11,10,False
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,True
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,True
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,True
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,False
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,5,6,True
+H01,whole number,-1,5,4,True
+H01,whole number,+2,5,7,True
+H01,whole number,-2,5,3,True
+H01,whole number,+10%,5,6,True
+H01,whole number,-10%,5,4,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,True
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,True
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,1,2,True
+H01,whole number,-1,1,0,True
+H01,whole number,+2,1,3,True
+H01,whole number,+10%,1,2,True
+H01,whole number,-10%,1,0,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,5,6,True
+H01,whole number,-1,5,4,True
+H01,whole number,+2,5,7,True
+H01,whole number,-2,5,3,True
+H01,whole number,+10%,5,6,True
+H01,whole number,-10%,5,4,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,4,5,False
+H01,whole number,-1,4,3,False
+H01,whole number,+2,4,6,False
+H01,whole number,-2,4,2,False
+H01,whole number,+10%,4,5,False
+H01,whole number,-10%,4,3,False
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,True
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,True
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,True
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,True
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,4,5,False
+H01,whole number,-1,4,3,False
+H01,whole number,+2,4,6,False
+H01,whole number,-2,4,2,False
+H01,whole number,+10%,4,5,False
+H01,whole number,-10%,4,3,False
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,2,3,True
+H01,whole number,-1,2,1,True
+H01,whole number,+2,2,4,True
+H01,whole number,-2,2,0,True
+H01,whole number,+10%,2,3,True
+H01,whole number,-10%,2,1,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,1,2,False
+H01,whole number,-1,1,0,True
+H01,whole number,+2,1,3,True
+H01,whole number,+10%,1,2,False
+H01,whole number,-10%,1,0,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,4,5,True
+H01,whole number,-1,4,3,True
+H01,whole number,+2,4,6,True
+H01,whole number,-2,4,2,True
+H01,whole number,+10%,4,5,True
+H01,whole number,-10%,4,3,True
+H01,whole number,+1,2,3,True
+H01,whole number,-1,2,1,False
+H01,whole number,+2,2,4,True
+H01,whole number,-2,2,0,True
+H01,whole number,+10%,2,3,True
+H01,whole number,-10%,2,1,False
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,4,5,True
+H01,whole number,-1,4,3,True
+H01,whole number,+2,4,6,True
+H01,whole number,-2,4,2,True
+H01,whole number,+10%,4,5,True
+H01,whole number,-10%,4,3,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,False
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,False
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,4,5,False
+H01,whole number,-1,4,3,False
+H01,whole number,+2,4,6,False
+H01,whole number,-2,4,2,False
+H01,whole number,+10%,4,5,False
+H01,whole number,-10%,4,3,False
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,False
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,True
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,False
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,0,1,True
+H01,whole number,+2,0,2,True
+H01,whole number,+10%,0,1,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,4,5,True
+H01,whole number,-1,4,3,True
+H01,whole number,+2,4,6,True
+H01,whole number,-2,4,2,True
+H01,whole number,+10%,4,5,True
+H01,whole number,-10%,4,3,True
+H01,whole number,+1,1,2,True
+H01,whole number,-1,1,0,True
+H01,whole number,+2,1,3,True
+H01,whole number,+10%,1,2,True
+H01,whole number,-10%,1,0,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,0,1,True
+H01,whole number,+2,0,2,True
+H01,whole number,+10%,0,1,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,2,3,True
+H01,whole number,-1,2,1,True
+H01,whole number,+2,2,4,True
+H01,whole number,-2,2,0,True
+H01,whole number,+10%,2,3,True
+H01,whole number,-10%,2,1,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,5,6,True
+H01,whole number,-1,5,4,True
+H01,whole number,+2,5,7,True
+H01,whole number,-2,5,3,True
+H01,whole number,+10%,5,6,True
+H01,whole number,-10%,5,4,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,5,6,True
+H01,whole number,-1,5,4,True
+H01,whole number,+2,5,7,True
+H01,whole number,-2,5,3,True
+H01,whole number,+10%,5,6,True
+H01,whole number,-10%,5,4,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,1,2,True
+H01,whole number,-1,1,0,True
+H01,whole number,+2,1,3,True
+H01,whole number,+10%,1,2,True
+H01,whole number,-10%,1,0,True
+H01,whole number,+1,3,4,True
+H01,whole number,-1,3,2,True
+H01,whole number,+2,3,5,True
+H01,whole number,-2,3,1,True
+H01,whole number,+10%,3,4,True
+H01,whole number,-10%,3,2,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,2,3,True
+H01,whole number,-1,2,1,True
+H01,whole number,+2,2,4,True
+H01,whole number,-2,2,0,True
+H01,whole number,+10%,2,3,True
+H01,whole number,-10%,2,1,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,4,5,True
+H01,whole number,-1,4,3,True
+H01,whole number,+2,4,6,True
+H01,whole number,-2,4,2,True
+H01,whole number,+10%,4,5,True
+H01,whole number,-10%,4,3,True
+H01,whole number,+1,2,3,True
+H01,whole number,-1,2,1,True
+H01,whole number,+2,2,4,True
+H01,whole number,-2,2,0,True
+H01,whole number,+10%,2,3,True
+H01,whole number,-10%,2,1,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,6,7,True
+H01,whole number,-1,6,5,True
+H01,whole number,+2,6,8,True
+H01,whole number,-2,6,4,True
+H01,whole number,+10%,6,7,True
+H01,whole number,-10%,6,5,True
+H01,whole number,+1,7,8,True
+H01,whole number,-1,7,6,True
+H01,whole number,+2,7,9,True
+H01,whole number,-2,7,5,True
+H01,whole number,+10%,7,8,True
+H01,whole number,-10%,7,6,True
+H01,whole number,+1,4,5,False
+H01,whole number,-1,4,3,False
+H01,whole number,+2,4,6,False
+H01,whole number,-2,4,2,False
+H01,whole number,+10%,4,5,False
+H01,whole number,-10%,4,3,False
+H01,record_or_score,+1 on one side,6–5,7–5,False
+H01,record_or_score,+1 on one side,6-3 6-3,7-3 6-3,True
+H01,record_or_score,+1 on one side,7-5 6-3 6-1,8-5 6-3 6-1,True
+H01,record_or_score,+1 on one side,7-5 7-6(4),8-5 7-6(4),True
+H01,record_or_score,+1 on one side,3-6 6-3 7-6(4) 6-2,4-6 6-3 7-6(4) 6-2,True
+H01,record_or_score,+1 on one side,6-1 6-4,7-1 6-4,True
+H01,record_or_score,+1 on one side,2-6 4-6,3-6 4-6,True
+H01,record_or_score,+1 on one side,6-7(4) 3-6,7-7(4) 3-6,True
+H01,record_or_score,+1 on one side,0-6 6-4 1-6,1-6 6-4 1-6,True
+H01,record_or_score,+1 on one side,0-6 2-6 5-7,1-6 2-6 5-7,True
+H01,record_or_score,+1 on one side,5-7 6-1 3-6,6-7 6-1 3-6,True
+H01,record_or_score,+1 on one side,2-6 6-4 2-6 6-7(4),3-6 6-4 2-6 6-7(4),True
+H02,whole number,+1,5,6,True
+H02,whole number,-1,5,4,True
+H02,whole number,+2,5,7,True
+H02,whole number,-2,5,3,True
+H02,whole number,+10%,5,6,True
+H02,whole number,-10%,5,4,True
+H02,whole number,+1,0,1,True
+H02,whole number,+2,0,2,True
+H02,whole number,+10%,0,1,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,5,6,True
+H02,whole number,-1,5,4,True
+H02,whole number,+2,5,7,True
+H02,whole number,-2,5,3,True
+H02,whole number,+10%,5,6,True
+H02,whole number,-10%,5,4,True
+H02,whole number,+1,7,8,True
+H02,whole number,-1,7,6,True
+H02,whole number,+2,7,9,True
+H02,whole number,-2,7,5,True
+H02,whole number,+10%,7,8,True
+H02,whole number,-10%,7,6,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,4,5,True
+H02,whole number,-1,4,3,True
+H02,whole number,+2,4,6,True
+H02,whole number,-2,4,2,True
+H02,whole number,+10%,4,5,True
+H02,whole number,-10%,4,3,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,1,2,True
+H02,whole number,-1,1,0,True
+H02,whole number,+2,1,3,True
+H02,whole number,+10%,1,2,True
+H02,whole number,-10%,1,0,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,16,17,False
+H02,whole number,-1,16,15,True
+H02,whole number,+2,16,18,True
+H02,whole number,-2,16,14,True
+H02,whole number,+10%,16,18,True
+H02,whole number,-10%,16,14,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,2,3,True
+H02,whole number,-1,2,1,True
+H02,whole number,+2,2,4,False
+H02,whole number,-2,2,0,True
+H02,whole number,+10%,2,3,True
+H02,whole number,-10%,2,1,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,4,5,True
+H02,whole number,-1,4,3,True
+H02,whole number,+2,4,6,True
+H02,whole number,-2,4,2,True
+H02,whole number,+10%,4,5,True
+H02,whole number,-10%,4,3,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,4,5,True
+H02,whole number,-1,4,3,True
+H02,whole number,+2,4,6,True
+H02,whole number,-2,4,2,False
+H02,whole number,+10%,4,5,True
+H02,whole number,-10%,4,3,True
+H02,whole number,+1,6,7,True
+H02,whole number,-1,6,5,True
+H02,whole number,+2,6,8,True
+H02,whole number,-2,6,4,True
+H02,whole number,+10%,6,7,True
+H02,whole number,-10%,6,5,True
+H02,whole number,+1,3,4,True
+H02,whole number,-1,3,2,True
+H02,whole number,+2,3,5,True
+H02,whole number,-2,3,1,True
+H02,whole number,+10%,3,4,True
+H02,whole number,-10%,3,2,True
+H02,record_or_score,+1 on one side,5–0,6–0,True
+H02,record_or_score,+1 on one side,6-3 5-7 6-3,7-3 5-7 6-3,True
+H02,record_or_score,+1 on one side,6-4 3-6 6-1 3-6 6-3,7-4 3-6 6-1 3-6 6-3,True
+H02,record_or_score,+1 on one side,6-2 6-3,7-2 6-3,True
+H02,record_or_score,+1 on one side,6-3 6-4,7-3 6-4,True
+H02,record_or_score,+1 on one side,6-4 6-3,7-4 6-3,True
+H03,whole number,+1,11,12,True
+H03,whole number,-1,11,10,True
+H03,whole number,+2,11,13,True
+H03,whole number,-2,11,9,True
+H03,whole number,+10%,11,12,True
+H03,whole number,-10%,11,10,True
+H03,whole number,+1,8,9,True
+H03,whole number,-1,8,7,True
+H03,whole number,+2,8,10,True
+H03,whole number,-2,8,6,True
+H03,whole number,+10%,8,9,True
+H03,whole number,-10%,8,7,True
+H03,whole number,+1,19,20,True
+H03,whole number,-1,19,18,False
+H03,whole number,+2,19,21,True
+H03,whole number,-2,19,17,False
+H03,whole number,+10%,19,21,True
+H03,whole number,-10%,19,17,False
+H03,whole number,+1,4,5,True
+H03,whole number,-1,4,3,False
+H03,whole number,+2,4,6,True
+H03,whole number,-2,4,2,False
+H03,whole number,+10%,4,5,True
+H03,whole number,-10%,4,3,False
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,4,5,True
+H03,whole number,-1,4,3,False
+H03,whole number,+2,4,6,True
+H03,whole number,-2,4,2,True
+H03,whole number,+10%,4,5,True
+H03,whole number,-10%,4,3,False
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,3,4,False
+H03,whole number,-1,3,2,True
+H03,whole number,+2,3,5,True
+H03,whole number,-2,3,1,True
+H03,whole number,+10%,3,4,False
+H03,whole number,-10%,3,2,True
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,3,4,False
+H03,whole number,-1,3,2,False
+H03,whole number,+2,3,5,True
+H03,whole number,-2,3,1,True
+H03,whole number,+10%,3,4,False
+H03,whole number,-10%,3,2,False
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,2,3,True
+H03,whole number,-1,2,1,True
+H03,whole number,+2,2,4,True
+H03,whole number,-2,2,0,True
+H03,whole number,+10%,2,3,True
+H03,whole number,-10%,2,1,True
+H03,whole number,+1,3,4,True
+H03,whole number,-1,3,2,True
+H03,whole number,+2,3,5,True
+H03,whole number,-2,3,1,True
+H03,whole number,+10%,3,4,True
+H03,whole number,-10%,3,2,True
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,6,7,True
+H03,whole number,-1,6,5,True
+H03,whole number,+2,6,8,True
+H03,whole number,-2,6,4,True
+H03,whole number,+10%,6,7,True
+H03,whole number,-10%,6,5,True
+H03,whole number,+1,7,8,True
+H03,whole number,-1,7,6,True
+H03,whole number,+2,7,9,True
+H03,whole number,-2,7,5,True
+H03,whole number,+10%,7,8,True
+H03,whole number,-10%,7,6,True
+H03,whole number,+1,5,6,False
+H03,whole number,-1,5,4,False
+H03,whole number,+2,5,7,False
+H03,whole number,-2,5,3,False
+H03,whole number,+10%,5,6,False
+H03,whole number,-10%,5,4,False
+H03,record_or_score,+1 on one side,11–8,12–8,True
+H03,record_or_score,+1 on one side,4-6 4-6,5-6 4-6,True
+H03,record_or_score,+1 on one side,6-3 6-3,7-3 6-3,True
+H03,record_or_score,+1 on one side,6-2 3-6 6-7(5),7-2 3-6 6-7(5),True
+H04,whole number,+1,10,11,False
+H04,whole number,-1,10,9,False
+H04,whole number,+2,10,12,False
+H04,whole number,-2,10,8,False
+H04,whole number,+10%,10,11,False
+H04,whole number,-10%,10,9,False
+H04,whole number,+1,6,7,False
+H04,whole number,-1,6,5,False
+H04,whole number,+2,6,8,False
+H04,whole number,-2,6,4,False
+H04,whole number,+10%,6,7,False
+H04,whole number,-10%,6,5,False
+H04,whole number,+1,16,17,True
+H04,whole number,-1,16,15,True
+H04,whole number,+2,16,18,True
+H04,whole number,-2,16,14,True
+H04,whole number,+10%,16,18,True
+H04,whole number,-10%,16,14,True
+H04,whole number,+1,3,4,False
+H04,whole number,-1,3,2,False
+H04,whole number,+2,3,5,False
+H04,whole number,-2,3,1,False
+H04,whole number,+10%,3,4,False
+H04,whole number,-10%,3,2,False
+H04,whole number,+1,7,8,False
+H04,whole number,-1,7,6,False
+H04,whole number,+2,7,9,False
+H04,whole number,-2,7,5,False
+H04,whole number,+10%,7,8,False
+H04,whole number,-10%,7,6,False
+H04,whole number,+1,10,11,False
+H04,whole number,-1,10,9,False
+H04,whole number,+2,10,12,False
+H04,whole number,-2,10,8,False
+H04,whole number,+10%,10,11,False
+H04,whole number,-10%,10,9,False
+H04,whole number,+1,1,2,False
+H04,whole number,-1,1,0,False
+H04,whole number,+2,1,3,False
+H04,whole number,+10%,1,2,False
+H04,whole number,-10%,1,0,False
+H04,whole number,+1,3,4,False
+H04,whole number,-1,3,2,False
+H04,whole number,+2,3,5,False
+H04,whole number,-2,3,1,False
+H04,whole number,+10%,3,4,False
+H04,whole number,-10%,3,2,False
+H04,whole number,+1,4,5,False
+H04,whole number,-1,4,3,False
+H04,whole number,+2,4,6,False
+H04,whole number,-2,4,2,False
+H04,whole number,+10%,4,5,False
+H04,whole number,-10%,4,3,False
+H04,whole number,+1,2,3,False
+H04,whole number,-1,2,1,False
+H04,whole number,+2,2,4,False
+H04,whole number,-2,2,0,False
+H04,whole number,+10%,2,3,False
+H04,whole number,-10%,2,1,False
+H04,whole number,+1,0,1,False
+H04,whole number,+2,0,2,False
+H04,whole number,+10%,0,1,False
+H04,whole number,+1,2,3,False
+H04,whole number,-1,2,1,False
+H04,whole number,+2,2,4,False
+H04,whole number,-2,2,0,False
+H04,whole number,+10%,2,3,False
+H04,whole number,-10%,2,1,False
+H04,whole number,+1,7,8,True
+H04,whole number,-1,7,6,True
+H04,whole number,+2,7,9,True
+H04,whole number,-2,7,5,True
+H04,whole number,+10%,7,8,True
+H04,whole number,-10%,7,6,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,False
+H04,whole number,-1,4,3,False
+H04,whole number,+2,4,6,False
+H04,whole number,-2,4,2,False
+H04,whole number,+10%,4,5,False
+H04,whole number,-10%,4,3,False
+H04,whole number,+1,7,8,True
+H04,whole number,-1,7,6,True
+H04,whole number,+2,7,9,True
+H04,whole number,-2,7,5,True
+H04,whole number,+10%,7,8,True
+H04,whole number,-10%,7,6,True
+H04,whole number,+1,5,6,False
+H04,whole number,-1,5,4,True
+H04,whole number,+2,5,7,True
+H04,whole number,-2,5,3,True
+H04,whole number,+10%,5,6,False
+H04,whole number,-10%,5,4,True
+H04,whole number,+1,2,3,True
+H04,whole number,-1,2,1,True
+H04,whole number,+2,2,4,True
+H04,whole number,-2,2,0,True
+H04,whole number,+10%,2,3,True
+H04,whole number,-10%,2,1,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,3,4,True
+H04,whole number,-1,3,2,True
+H04,whole number,+2,3,5,True
+H04,whole number,-2,3,1,True
+H04,whole number,+10%,3,4,True
+H04,whole number,-10%,3,2,True
+H04,whole number,+1,1,2,True
+H04,whole number,-1,1,0,True
+H04,whole number,+2,1,3,True
+H04,whole number,+10%,1,2,True
+H04,whole number,-10%,1,0,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,0,1,True
+H04,whole number,+2,0,2,True
+H04,whole number,+10%,0,1,True
+H04,whole number,+1,5,6,True
+H04,whole number,-1,5,4,True
+H04,whole number,+2,5,7,True
+H04,whole number,-2,5,3,True
+H04,whole number,+10%,5,6,True
+H04,whole number,-10%,5,4,True
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,7,8,True
+H04,whole number,-1,7,6,True
+H04,whole number,+2,7,9,True
+H04,whole number,-2,7,5,True
+H04,whole number,+10%,7,8,True
+H04,whole number,-10%,7,6,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,4,5,False
+H04,whole number,-1,4,3,False
+H04,whole number,+2,4,6,False
+H04,whole number,-2,4,2,False
+H04,whole number,+10%,4,5,False
+H04,whole number,-10%,4,3,False
+H04,whole number,+1,4,5,True
+H04,whole number,-1,4,3,True
+H04,whole number,+2,4,6,True
+H04,whole number,-2,4,2,True
+H04,whole number,+10%,4,5,True
+H04,whole number,-10%,4,3,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,7,8,True
+H04,whole number,-1,7,6,True
+H04,whole number,+2,7,9,True
+H04,whole number,-2,7,5,True
+H04,whole number,+10%,7,8,True
+H04,whole number,-10%,7,6,True
+H04,whole number,+1,3,4,False
+H04,whole number,-1,3,2,False
+H04,whole number,+2,3,5,False
+H04,whole number,-2,3,1,False
+H04,whole number,+10%,3,4,False
+H04,whole number,-10%,3,2,False
+H04,whole number,+1,6,7,True
+H04,whole number,-1,6,5,True
+H04,whole number,+2,6,8,True
+H04,whole number,-2,6,4,True
+H04,whole number,+10%,6,7,True
+H04,whole number,-10%,6,5,True
+H04,whole number,+1,7,8,True
+H04,whole number,-1,7,6,True
+H04,whole number,+2,7,9,True
+H04,whole number,-2,7,5,True
+H04,whole number,+10%,7,8,True
+H04,whole number,-10%,7,6,True
+H04,whole number,+1,2,3,False
+H04,whole number,-1,2,1,False
+H04,whole number,+2,2,4,False
+H04,whole number,-2,2,0,False
+H04,whole number,+10%,2,3,False
+H04,whole number,-10%,2,1,False
+H04,whole number,+1,329,330,True
+H04,whole number,-1,329,328,True
+H04,whole number,+2,329,331,True
+H04,whole number,-2,329,327,True
+H04,whole number,+10%,329,362,True
+H04,whole number,-10%,329,296,True
+H04,record_or_score,+1 on one side,7-6(4) 7-5,8-6(4) 7-5,True
+H04,record_or_score,+1 on one side,2-6 6-3 1-6 4-6,3-6 6-3 1-6 4-6,True
+H04,record_or_score,+1 on one side,0-5,1-5,True
+H04,record_or_score,+1 on one side,4-6 6-4 6-4 6-4,5-6 6-4 6-4 6-4,True
+H04,record_or_score,+1 on one side,6-4 7-6(4) 4-6 6-7(3) 6-7(2),7-4 7-6(4) 4-6 6-7(3) 6-7(2),True
+H05,whole number,+1,7,8,True
+H05,whole number,-1,7,6,True
+H05,whole number,+2,7,9,True
+H05,whole number,-2,7,5,True
+H05,whole number,+10%,7,8,True
+H05,whole number,-10%,7,6,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,1,2,False
+H05,whole number,-1,1,0,False
+H05,whole number,+2,1,3,False
+H05,whole number,+10%,1,2,False
+H05,whole number,-10%,1,0,False
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,7,8,True
+H05,whole number,-1,7,6,True
+H05,whole number,+2,7,9,True
+H05,whole number,-2,7,5,True
+H05,whole number,+10%,7,8,True
+H05,whole number,-10%,7,6,True
+H05,whole number,+1,10,11,False
+H05,whole number,-1,10,9,True
+H05,whole number,+2,10,12,False
+H05,whole number,-2,10,8,False
+H05,whole number,+10%,10,11,False
+H05,whole number,-10%,10,9,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,4,5,True
+H05,whole number,-1,4,3,True
+H05,whole number,+2,4,6,True
+H05,whole number,-2,4,2,True
+H05,whole number,+10%,4,5,True
+H05,whole number,-10%,4,3,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,3,4,True
+H05,whole number,-1,3,2,True
+H05,whole number,+2,3,5,True
+H05,whole number,-2,3,1,True
+H05,whole number,+10%,3,4,True
+H05,whole number,-10%,3,2,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,4,5,True
+H05,whole number,-1,4,3,True
+H05,whole number,+2,4,6,True
+H05,whole number,-2,4,2,True
+H05,whole number,+10%,4,5,True
+H05,whole number,-10%,4,3,True
+H05,whole number,+1,5,6,True
+H05,whole number,-1,5,4,True
+H05,whole number,+2,5,7,True
+H05,whole number,-2,5,3,True
+H05,whole number,+10%,5,6,True
+H05,whole number,-10%,5,4,True
+H05,whole number,+1,7,8,True
+H05,whole number,-1,7,6,True
+H05,whole number,+2,7,9,True
+H05,whole number,-2,7,5,True
+H05,whole number,+10%,7,8,True
+H05,whole number,-10%,7,6,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,4,5,True
+H05,whole number,-1,4,3,True
+H05,whole number,+2,4,6,True
+H05,whole number,-2,4,2,True
+H05,whole number,+10%,4,5,True
+H05,whole number,-10%,4,3,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,4,5,True
+H05,whole number,-1,4,3,True
+H05,whole number,+2,4,6,True
+H05,whole number,-2,4,2,True
+H05,whole number,+10%,4,5,True
+H05,whole number,-10%,4,3,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,1,2,True
+H05,whole number,-1,1,0,True
+H05,whole number,+2,1,3,True
+H05,whole number,+10%,1,2,True
+H05,whole number,-10%,1,0,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,2,3,True
+H05,whole number,-1,2,1,True
+H05,whole number,+2,2,4,True
+H05,whole number,-2,2,0,True
+H05,whole number,+10%,2,3,True
+H05,whole number,-10%,2,1,True
+H05,whole number,+1,3,4,True
+H05,whole number,-1,3,2,True
+H05,whole number,+2,3,5,True
+H05,whole number,-2,3,1,True
+H05,whole number,+10%,3,4,True
+H05,whole number,-10%,3,2,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,3,4,True
+H05,whole number,-1,3,2,True
+H05,whole number,+2,3,5,True
+H05,whole number,-2,3,1,True
+H05,whole number,+10%,3,4,True
+H05,whole number,-10%,3,2,True
+H05,whole number,+1,7,8,True
+H05,whole number,-1,7,6,True
+H05,whole number,+2,7,9,True
+H05,whole number,-2,7,5,True
+H05,whole number,+10%,7,8,True
+H05,whole number,-10%,7,6,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,5,6,False
+H05,whole number,-1,5,4,False
+H05,whole number,+2,5,7,False
+H05,whole number,-2,5,3,False
+H05,whole number,+10%,5,6,False
+H05,whole number,-10%,5,4,False
+H05,whole number,+1,1,2,True
+H05,whole number,-1,1,0,True
+H05,whole number,+2,1,3,True
+H05,whole number,+10%,1,2,True
+H05,whole number,-10%,1,0,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,7,8,True
+H05,whole number,-1,7,6,True
+H05,whole number,+2,7,9,True
+H05,whole number,-2,7,5,True
+H05,whole number,+10%,7,8,True
+H05,whole number,-10%,7,6,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,4,5,False
+H05,whole number,-1,4,3,False
+H05,whole number,+2,4,6,False
+H05,whole number,-2,4,2,False
+H05,whole number,+10%,4,5,False
+H05,whole number,-10%,4,3,False
+H05,whole number,+1,4,5,True
+H05,whole number,-1,4,3,True
+H05,whole number,+2,4,6,True
+H05,whole number,-2,4,2,True
+H05,whole number,+10%,4,5,True
+H05,whole number,-10%,4,3,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,13,14,True
+H05,whole number,-1,13,12,True
+H05,whole number,+2,13,15,True
+H05,whole number,-2,13,11,True
+H05,whole number,+10%,13,14,True
+H05,whole number,-10%,13,12,True
+H05,whole number,+1,12,13,True
+H05,whole number,-1,12,11,True
+H05,whole number,+2,12,14,True
+H05,whole number,-2,12,10,True
+H05,whole number,+10%,12,13,True
+H05,whole number,-10%,12,11,True
+H05,whole number,+1,3,4,False
+H05,whole number,-1,3,2,False
+H05,whole number,+2,3,5,False
+H05,whole number,-2,3,1,False
+H05,whole number,+10%,3,4,False
+H05,whole number,-10%,3,2,False
+H05,whole number,+1,297,298,True
+H05,whole number,-1,297,296,True
+H05,whole number,+2,297,299,True
+H05,whole number,-2,297,295,True
+H05,whole number,+10%,297,327,True
+H05,whole number,-10%,297,267,True
+H05,whole number,+1,7,8,True
+H05,whole number,-1,7,6,True
+H05,whole number,+2,7,9,True
+H05,whole number,-2,7,5,True
+H05,whole number,+10%,7,8,True
+H05,whole number,-10%,7,6,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,1,2,False
+H05,whole number,-1,1,0,False
+H05,whole number,+2,1,3,False
+H05,whole number,+10%,1,2,False
+H05,whole number,-10%,1,0,False
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,4,5,True
+H05,whole number,-1,4,3,True
+H05,whole number,+2,4,6,True
+H05,whole number,-2,4,2,True
+H05,whole number,+10%,4,5,True
+H05,whole number,-10%,4,3,True
+H05,whole number,+1,6,7,True
+H05,whole number,-1,6,5,True
+H05,whole number,+2,6,8,True
+H05,whole number,-2,6,4,True
+H05,whole number,+10%,6,7,True
+H05,whole number,-10%,6,5,True
+H05,whole number,+1,3,4,True
+H05,whole number,-1,3,2,True
+H05,whole number,+2,3,5,True
+H05,whole number,-2,3,1,True
+H05,whole number,+10%,3,4,True
+H05,whole number,-10%,3,2,True
+H05,record_or_score,+1 on one side,7-6(1) 6-7(10) 6-4 6-3,8-6(1) 6-7(10) 6-4 6-3,True
+H05,record_or_score,+1 on one side,6-4 5-7 6-4 6-4,7-4 5-7 6-4 6-4,True
+H05,record_or_score,+1 on one side,6-1 6-2 3-6 6-3,7-1 6-2 3-6 6-3,True
+H05,record_or_score,+1 on one side,7-6(5) 1-6 7-6(4) 4-6 13-12(3),8-6(5) 1-6 7-6(4) 4-6 13-12(3),True
+H05,record_or_score,+1 on one side,7-6(1) 6-4 6-3,8-6(1) 6-4 6-3,True
+H06,whole number,+1,7,8,True
+H06,whole number,-1,7,6,False
+H06,whole number,+2,7,9,True
+H06,whole number,-2,7,5,True
+H06,whole number,+10%,7,8,True
+H06,whole number,-10%,7,6,False
+H06,whole number,+1,4,5,False
+H06,whole number,-1,4,3,True
+H06,whole number,+2,4,6,False
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,False
+H06,whole number,-10%,4,3,True
+H06,whole number,+1,11,12,False
+H06,whole number,-1,11,10,False
+H06,whole number,+2,11,13,True
+H06,whole number,-2,11,9,False
+H06,whole number,+10%,11,12,False
+H06,whole number,-10%,11,10,False
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,4,5,True
+H06,whole number,-1,4,3,True
+H06,whole number,+2,4,6,True
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,True
+H06,whole number,-10%,4,3,True
+H06,whole number,+1,4,5,True
+H06,whole number,-1,4,3,True
+H06,whole number,+2,4,6,True
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,True
+H06,whole number,-10%,4,3,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,7,8,True
+H06,whole number,-1,7,6,True
+H06,whole number,+2,7,9,True
+H06,whole number,-2,7,5,True
+H06,whole number,+10%,7,8,True
+H06,whole number,-10%,7,6,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,4,5,False
+H06,whole number,-1,4,3,False
+H06,whole number,+2,4,6,False
+H06,whole number,-2,4,2,False
+H06,whole number,+10%,4,5,False
+H06,whole number,-10%,4,3,False
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,4,5,True
+H06,whole number,-1,4,3,True
+H06,whole number,+2,4,6,True
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,True
+H06,whole number,-10%,4,3,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,3,4,False
+H06,whole number,-1,3,2,True
+H06,whole number,+2,3,5,True
+H06,whole number,-2,3,1,False
+H06,whole number,+10%,3,4,False
+H06,whole number,-10%,3,2,True
+H06,whole number,+1,7,8,True
+H06,whole number,-1,7,6,True
+H06,whole number,+2,7,9,True
+H06,whole number,-2,7,5,True
+H06,whole number,+10%,7,8,True
+H06,whole number,-10%,7,6,True
+H06,whole number,+1,5,6,True
+H06,whole number,-1,5,4,True
+H06,whole number,+2,5,7,True
+H06,whole number,-2,5,3,True
+H06,whole number,+10%,5,6,True
+H06,whole number,-10%,5,4,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,3,4,True
+H06,whole number,-1,3,2,True
+H06,whole number,+2,3,5,True
+H06,whole number,-2,3,1,True
+H06,whole number,+10%,3,4,True
+H06,whole number,-10%,3,2,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,4,5,True
+H06,whole number,-1,4,3,False
+H06,whole number,+2,4,6,True
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,True
+H06,whole number,-10%,4,3,False
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,4,5,True
+H06,whole number,-1,4,3,False
+H06,whole number,+2,4,6,True
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,True
+H06,whole number,-10%,4,3,False
+H06,whole number,+1,4,5,True
+H06,whole number,-1,4,3,True
+H06,whole number,+2,4,6,True
+H06,whole number,-2,4,2,True
+H06,whole number,+10%,4,5,True
+H06,whole number,-10%,4,3,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,3,4,True
+H06,whole number,-1,3,2,True
+H06,whole number,+2,3,5,True
+H06,whole number,-2,3,1,True
+H06,whole number,+10%,3,4,True
+H06,whole number,-10%,3,2,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,2,3,True
+H06,whole number,-1,2,1,True
+H06,whole number,+2,2,4,True
+H06,whole number,-2,2,0,True
+H06,whole number,+10%,2,3,True
+H06,whole number,-10%,2,1,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,3,4,True
+H06,whole number,-1,3,2,True
+H06,whole number,+2,3,5,True
+H06,whole number,-2,3,1,True
+H06,whole number,+10%,3,4,True
+H06,whole number,-10%,3,2,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,7,8,True
+H06,whole number,-1,7,6,True
+H06,whole number,+2,7,9,True
+H06,whole number,-2,7,5,True
+H06,whole number,+10%,7,8,True
+H06,whole number,-10%,7,6,True
+H06,whole number,+1,5,6,True
+H06,whole number,-1,5,4,True
+H06,whole number,+2,5,7,True
+H06,whole number,-2,5,3,True
+H06,whole number,+10%,5,6,True
+H06,whole number,-10%,5,4,True
+H06,whole number,+1,1,2,True
+H06,whole number,-1,1,0,True
+H06,whole number,+2,1,3,True
+H06,whole number,+10%,1,2,True
+H06,whole number,-10%,1,0,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,whole number,+1,1,2,True
+H06,whole number,-1,1,0,True
+H06,whole number,+2,1,3,True
+H06,whole number,+10%,1,2,True
+H06,whole number,-10%,1,0,True
+H06,whole number,+1,6,7,True
+H06,whole number,-1,6,5,True
+H06,whole number,+2,6,8,True
+H06,whole number,-2,6,4,True
+H06,whole number,+10%,6,7,True
+H06,whole number,-10%,6,5,True
+H06,record_or_score,+1 on one side,7–4,8–4,True
+H06,record_or_score,+1 on one side,6-4 4-6 7-6(4),7-4 4-6 7-6(4),True
+H06,record_or_score,+1 on one side,6-4 6-3,7-4 6-3,True
+H06,record_or_score,+1 on one side,7-5 6-3,8-5 6-3,True
+H06,record_or_score,+1 on one side,6-4 6-4,7-4 6-4,True
+H06,record_or_score,+1 on one side,4-6 3-6 2-6,5-6 3-6 2-6,True
+H06,record_or_score,+1 on one side,3-6 7-5 1-6 1-6,4-6 7-5 1-6 1-6,True
+H07,whole number,+1,10,11,True
+H07,whole number,-1,10,9,True
+H07,whole number,+2,10,12,True
+H07,whole number,-2,10,8,True
+H07,whole number,+10%,10,11,True
+H07,whole number,-10%,10,9,True
+H07,whole number,+1,4,5,True
+H07,whole number,-1,4,3,True
+H07,whole number,+2,4,6,True
+H07,whole number,-2,4,2,True
+H07,whole number,+10%,4,5,True
+H07,whole number,-10%,4,3,True
+H07,whole number,+1,14,15,False
+H07,whole number,-1,14,13,True
+H07,whole number,+2,14,16,False
+H07,whole number,-2,14,12,False
+H07,whole number,+10%,14,15,False
+H07,whole number,-10%,14,13,True
+H07,whole number,+1,14,15,False
+H07,whole number,-1,14,13,True
+H07,whole number,+2,14,16,False
+H07,whole number,-2,14,12,False
+H07,whole number,+10%,14,15,False
+H07,whole number,-10%,14,13,True
+H07,whole number,+1,8,9,True
+H07,whole number,-1,8,7,True
+H07,whole number,+2,8,10,True
+H07,whole number,-2,8,6,False
+H07,whole number,+10%,8,9,True
+H07,whole number,-10%,8,7,True
+H07,whole number,+1,3,4,True
+H07,whole number,-1,3,2,True
+H07,whole number,+2,3,5,True
+H07,whole number,-2,3,1,True
+H07,whole number,+10%,3,4,True
+H07,whole number,-10%,3,2,True
+H07,whole number,+1,3,4,False
+H07,whole number,-1,3,2,False
+H07,whole number,+2,3,5,False
+H07,whole number,-2,3,1,False
+H07,whole number,+10%,3,4,False
+H07,whole number,-10%,3,2,False
+H07,whole number,+1,8,9,True
+H07,whole number,-1,8,7,False
+H07,whole number,+2,8,10,False
+H07,whole number,-2,8,6,False
+H07,whole number,+10%,8,9,True
+H07,whole number,-10%,8,7,False
+H07,whole number,+1,11,12,False
+H07,whole number,-1,11,10,False
+H07,whole number,+2,11,13,True
+H07,whole number,-2,11,9,True
+H07,whole number,+10%,11,12,False
+H07,whole number,-10%,11,10,False
+H07,whole number,+1,2,3,True
+H07,whole number,-1,2,1,True
+H07,whole number,+2,2,4,True
+H07,whole number,-2,2,0,True
+H07,whole number,+10%,2,3,True
+H07,whole number,-10%,2,1,True
+H07,whole number,+1,1,2,True
+H07,whole number,-1,1,0,True
+H07,whole number,+2,1,3,True
+H07,whole number,+10%,1,2,True
+H07,whole number,-10%,1,0,True
+H07,whole number,+1,3,4,False
+H07,whole number,-1,3,2,False
+H07,whole number,+2,3,5,False
+H07,whole number,-2,3,1,False
+H07,whole number,+10%,3,4,False
+H07,whole number,-10%,3,2,False
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,5,6,False
+H07,whole number,-1,5,4,False
+H07,whole number,+2,5,7,False
+H07,whole number,-2,5,3,False
+H07,whole number,+10%,5,6,False
+H07,whole number,-10%,5,4,False
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,4,5,True
+H07,whole number,-1,4,3,False
+H07,whole number,+2,4,6,True
+H07,whole number,-2,4,2,True
+H07,whole number,+10%,4,5,True
+H07,whole number,-10%,4,3,False
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,3,4,True
+H07,whole number,-1,3,2,True
+H07,whole number,+2,3,5,True
+H07,whole number,-2,3,1,True
+H07,whole number,+10%,3,4,True
+H07,whole number,-10%,3,2,True
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,3,4,False
+H07,whole number,-1,3,2,False
+H07,whole number,+2,3,5,False
+H07,whole number,-2,3,1,False
+H07,whole number,+10%,3,4,False
+H07,whole number,-10%,3,2,False
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,5,6,True
+H07,whole number,-1,5,4,True
+H07,whole number,+2,5,7,True
+H07,whole number,-2,5,3,True
+H07,whole number,+10%,5,6,True
+H07,whole number,-10%,5,4,True
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,6,7,False
+H07,whole number,-1,6,5,False
+H07,whole number,+2,6,8,False
+H07,whole number,-2,6,4,False
+H07,whole number,+10%,6,7,False
+H07,whole number,-10%,6,5,False
+H07,whole number,+1,3,4,True
+H07,whole number,-1,3,2,True
+H07,whole number,+2,3,5,True
+H07,whole number,-2,3,1,True
+H07,whole number,+10%,3,4,True
+H07,whole number,-10%,3,2,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,3,4,True
+H07,whole number,-1,3,2,True
+H07,whole number,+2,3,5,True
+H07,whole number,-2,3,1,True
+H07,whole number,+10%,3,4,True
+H07,whole number,-10%,3,2,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,3,4,True
+H07,whole number,-1,3,2,True
+H07,whole number,+2,3,5,True
+H07,whole number,-2,3,1,True
+H07,whole number,+10%,3,4,True
+H07,whole number,-10%,3,2,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,11,12,False
+H07,whole number,-1,11,10,False
+H07,whole number,+2,11,13,True
+H07,whole number,-2,11,9,True
+H07,whole number,+10%,11,12,False
+H07,whole number,-10%,11,10,False
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,1,2,False
+H07,whole number,-1,1,0,False
+H07,whole number,+2,1,3,False
+H07,whole number,+10%,1,2,False
+H07,whole number,-10%,1,0,False
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,whole number,+1,7,8,True
+H07,whole number,-1,7,6,True
+H07,whole number,+2,7,9,True
+H07,whole number,-2,7,5,True
+H07,whole number,+10%,7,8,True
+H07,whole number,-10%,7,6,True
+H07,whole number,+1,3,4,False
+H07,whole number,-1,3,2,False
+H07,whole number,+2,3,5,False
+H07,whole number,-2,3,1,False
+H07,whole number,+10%,3,4,False
+H07,whole number,-10%,3,2,False
+H07,whole number,+1,3,4,False
+H07,whole number,-1,3,2,True
+H07,whole number,+2,3,5,True
+H07,whole number,-2,3,1,True
+H07,whole number,+10%,3,4,False
+H07,whole number,-10%,3,2,True
+H07,whole number,+1,6,7,True
+H07,whole number,-1,6,5,True
+H07,whole number,+2,6,8,True
+H07,whole number,-2,6,4,True
+H07,whole number,+10%,6,7,True
+H07,whole number,-10%,6,5,True
+H07,record_or_score,+1 on one side,10–4,11–4,True
+H07,record_or_score,+1 on one side,8–3,9–3,True
+H07,record_or_score,+1 on one side,2–1,3–1,True
+H07,record_or_score,+1 on one side,7-6(5) 6-4,8-6(5) 6-4,True
+H07,record_or_score,+1 on one side,6-3 7-6(3) 7-5,7-3 7-6(3) 7-5,True
+H07,record_or_score,+1 on one side,7-6(6) 3-6 6-3,8-6(6) 3-6 6-3,True
+H07,record_or_score,+1 on one side,6-3 6-7(11) 7-6(1),7-3 6-7(11) 7-6(1),True
+H07,record_or_score,+1 on one side,6-7(3) 3-6,7-7(3) 3-6,True
+H08,whole number,+1,10,11,True
+H08,whole number,-1,10,9,True
+H08,whole number,+2,10,12,True
+H08,whole number,-2,10,8,True
+H08,whole number,+10%,10,11,True
+H08,whole number,-10%,10,9,True
+H08,whole number,+1,3,4,True
+H08,whole number,-1,3,2,True
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,True
+H08,whole number,+10%,3,4,True
+H08,whole number,-10%,3,2,True
+H08,whole number,+1,13,14,False
+H08,whole number,-1,13,12,False
+H08,whole number,+2,13,15,True
+H08,whole number,-2,13,11,False
+H08,whole number,+10%,13,14,False
+H08,whole number,-10%,13,12,False
+H08,whole number,+1,13,14,False
+H08,whole number,-1,13,12,False
+H08,whole number,+2,13,15,True
+H08,whole number,-2,13,11,False
+H08,whole number,+10%,13,14,False
+H08,whole number,-10%,13,12,False
+H08,whole number,+1,7,8,True
+H08,whole number,-1,7,6,False
+H08,whole number,+2,7,9,True
+H08,whole number,-2,7,5,True
+H08,whole number,+10%,7,8,True
+H08,whole number,-10%,7,6,False
+H08,whole number,+1,2,3,True
+H08,whole number,-1,2,1,True
+H08,whole number,+2,2,4,True
+H08,whole number,-2,2,0,True
+H08,whole number,+10%,2,3,True
+H08,whole number,-10%,2,1,True
+H08,whole number,+1,9,10,False
+H08,whole number,-1,9,8,False
+H08,whole number,+2,9,11,False
+H08,whole number,-2,9,7,False
+H08,whole number,+10%,9,10,False
+H08,whole number,-10%,9,8,False
+H08,whole number,+1,3,4,True
+H08,whole number,-1,3,2,True
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,True
+H08,whole number,+10%,3,4,True
+H08,whole number,-10%,3,2,True
+H08,whole number,+1,1,2,True
+H08,whole number,-1,1,0,True
+H08,whole number,+2,1,3,True
+H08,whole number,+10%,1,2,True
+H08,whole number,-10%,1,0,True
+H08,whole number,+1,4,5,False
+H08,whole number,-1,4,3,False
+H08,whole number,+2,4,6,False
+H08,whole number,-2,4,2,False
+H08,whole number,+10%,4,5,False
+H08,whole number,-10%,4,3,False
+H08,whole number,+1,4,5,True
+H08,whole number,-1,4,3,True
+H08,whole number,+2,4,6,True
+H08,whole number,-2,4,2,True
+H08,whole number,+10%,4,5,True
+H08,whole number,-10%,4,3,True
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,4,5,True
+H08,whole number,-1,4,3,True
+H08,whole number,+2,4,6,True
+H08,whole number,-2,4,2,True
+H08,whole number,+10%,4,5,True
+H08,whole number,-10%,4,3,True
+H08,whole number,+1,3,4,True
+H08,whole number,-1,3,2,True
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,True
+H08,whole number,+10%,3,4,True
+H08,whole number,-10%,3,2,True
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,3,4,True
+H08,whole number,-1,3,2,False
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,False
+H08,whole number,+10%,3,4,True
+H08,whole number,-10%,3,2,False
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,3,4,False
+H08,whole number,-1,3,2,True
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,True
+H08,whole number,+10%,3,4,False
+H08,whole number,-10%,3,2,True
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,3,4,True
+H08,whole number,-1,3,2,False
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,True
+H08,whole number,+10%,3,4,True
+H08,whole number,-10%,3,2,False
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,4,5,True
+H08,whole number,-1,4,3,False
+H08,whole number,+2,4,6,True
+H08,whole number,-2,4,2,True
+H08,whole number,+10%,4,5,True
+H08,whole number,-10%,4,3,False
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,3,4,True
+H08,whole number,-1,3,2,True
+H08,whole number,+2,3,5,True
+H08,whole number,-2,3,1,True
+H08,whole number,+10%,3,4,True
+H08,whole number,-10%,3,2,True
+H08,whole number,+1,5,6,True
+H08,whole number,-1,5,4,True
+H08,whole number,+2,5,7,True
+H08,whole number,-2,5,3,True
+H08,whole number,+10%,5,6,True
+H08,whole number,-10%,5,4,True
+H08,whole number,+1,7,8,True
+H08,whole number,-1,7,6,True
+H08,whole number,+2,7,9,True
+H08,whole number,-2,7,5,True
+H08,whole number,+10%,7,8,True
+H08,whole number,-10%,7,6,True
+H08,whole number,+1,6,7,True
+H08,whole number,-1,6,5,True
+H08,whole number,+2,6,8,True
+H08,whole number,-2,6,4,True
+H08,whole number,+10%,6,7,True
+H08,whole number,-10%,6,5,True
+H08,whole number,+1,4,5,True
+H08,whole number,-1,4,3,True
+H08,whole number,+2,4,6,True
+H08,whole number,-2,4,2,True
+H08,whole number,+10%,4,5,True
+H08,whole number,-10%,4,3,True
+H08,record_or_score,+1 on one side,10–3,11–3,True
+H08,record_or_score,+1 on one side,7–2,8–2,True
+H08,record_or_score,+1 on one side,3–1,4–1,True
+H08,record_or_score,+1 on one side,4-6 6-4 3-6,5-6 6-4 3-6,True
+H08,record_or_score,+1 on one side,3-6 3-6,4-6 3-6,True
+H08,record_or_score,+1 on one side,3-6 4-6,4-6 4-6,True
+H08,record_or_score,+1 on one side,6-3 5-7 6-4,7-3 5-7 6-4,True
+H09,whole number,+1,3,4,False
+H09,whole number,-1,3,2,True
+H09,whole number,+2,3,5,True
+H09,whole number,-2,3,1,False
+H09,whole number,+10%,3,4,False
+H09,whole number,-10%,3,2,True
+H09,whole number,+1,4,5,True
+H09,whole number,-1,4,3,True
+H09,whole number,+2,4,6,True
+H09,whole number,-2,4,2,True
+H09,whole number,+10%,4,5,True
+H09,whole number,-10%,4,3,True
+H09,whole number,+1,1,2,False
+H09,whole number,-1,1,0,False
+H09,whole number,+2,1,3,False
+H09,whole number,+10%,1,2,False
+H09,whole number,-10%,1,0,False
+H09,record_or_score,+1 on one side,12-31,13-31,False
+H09,a_of_b,+1 on one side,3 of their 4,4 of their 4,False
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,False
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,2,3,True
+H10,whole number,-1,2,1,True
+H10,whole number,+2,2,4,True
+H10,whole number,-2,2,0,True
+H10,whole number,+10%,2,3,True
+H10,whole number,-10%,2,1,True
+H10,whole number,+1,2,3,False
+H10,whole number,-1,2,1,False
+H10,whole number,+2,2,4,False
+H10,whole number,-2,2,0,False
+H10,whole number,+10%,2,3,False
+H10,whole number,-10%,2,1,False
+H10,whole number,+1,4,5,False
+H10,whole number,-1,4,3,False
+H10,whole number,+2,4,6,False
+H10,whole number,-2,4,2,False
+H10,whole number,+10%,4,5,False
+H10,whole number,-10%,4,3,False
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,7,8,True
+H10,whole number,-1,7,6,True
+H10,whole number,+2,7,9,True
+H10,whole number,-2,7,5,True
+H10,whole number,+10%,7,8,True
+H10,whole number,-10%,7,6,True
+H10,whole number,+1,5,6,False
+H10,whole number,-1,5,4,False
+H10,whole number,+2,5,7,False
+H10,whole number,-2,5,3,False
+H10,whole number,+10%,5,6,False
+H10,whole number,-10%,5,4,False
+H10,whole number,+1,1,2,True
+H10,whole number,-1,1,0,True
+H10,whole number,+2,1,3,True
+H10,whole number,+10%,1,2,True
+H10,whole number,-10%,1,0,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,7,8,True
+H10,whole number,-1,7,6,True
+H10,whole number,+2,7,9,True
+H10,whole number,-2,7,5,True
+H10,whole number,+10%,7,8,True
+H10,whole number,-10%,7,6,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,False
+H10,whole number,-1,4,3,False
+H10,whole number,+2,4,6,False
+H10,whole number,-2,4,2,False
+H10,whole number,+10%,4,5,False
+H10,whole number,-10%,4,3,False
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,7,8,True
+H10,whole number,-1,7,6,True
+H10,whole number,+2,7,9,True
+H10,whole number,-2,7,5,True
+H10,whole number,+10%,7,8,True
+H10,whole number,-10%,7,6,True
+H10,whole number,+1,3,4,False
+H10,whole number,-1,3,2,False
+H10,whole number,+2,3,5,False
+H10,whole number,-2,3,1,False
+H10,whole number,+10%,3,4,False
+H10,whole number,-10%,3,2,False
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,7,8,True
+H10,whole number,-1,7,6,True
+H10,whole number,+2,7,9,True
+H10,whole number,-2,7,5,True
+H10,whole number,+10%,7,8,True
+H10,whole number,-10%,7,6,True
+H10,whole number,+1,2,3,False
+H10,whole number,-1,2,1,False
+H10,whole number,+2,2,4,False
+H10,whole number,-2,2,0,False
+H10,whole number,+10%,2,3,False
+H10,whole number,-10%,2,1,False
+H10,whole number,+1,329,330,True
+H10,whole number,-1,329,328,True
+H10,whole number,+2,329,331,True
+H10,whole number,-2,329,327,True
+H10,whole number,+10%,329,362,True
+H10,whole number,-10%,329,296,True
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,0,1,True
+H10,whole number,+2,0,2,True
+H10,whole number,+10%,0,1,True
+H10,whole number,+1,5,6,True
+H10,whole number,-1,5,4,True
+H10,whole number,+2,5,7,True
+H10,whole number,-2,5,3,True
+H10,whole number,+10%,5,6,True
+H10,whole number,-10%,5,4,True
+H10,whole number,+1,23,24,True
+H10,whole number,-1,23,22,True
+H10,whole number,+2,23,25,False
+H10,whole number,-2,23,21,True
+H10,whole number,+10%,23,25,False
+H10,whole number,-10%,23,21,True
+H10,whole number,+1,2,3,True
+H10,whole number,-1,2,1,True
+H10,whole number,+2,2,4,True
+H10,whole number,-2,2,0,True
+H10,whole number,+10%,2,3,True
+H10,whole number,-10%,2,1,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,3,4,True
+H10,whole number,-1,3,2,True
+H10,whole number,+2,3,5,True
+H10,whole number,-2,3,1,True
+H10,whole number,+10%,3,4,True
+H10,whole number,-10%,3,2,True
+H10,whole number,+1,1,2,True
+H10,whole number,-1,1,0,True
+H10,whole number,+2,1,3,True
+H10,whole number,+10%,1,2,True
+H10,whole number,-10%,1,0,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,True
+H10,whole number,-1,4,3,True
+H10,whole number,+2,4,6,True
+H10,whole number,-2,4,2,True
+H10,whole number,+10%,4,5,True
+H10,whole number,-10%,4,3,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,7,8,True
+H10,whole number,-1,7,6,True
+H10,whole number,+2,7,9,True
+H10,whole number,-2,7,5,True
+H10,whole number,+10%,7,8,True
+H10,whole number,-10%,7,6,True
+H10,whole number,+1,6,7,True
+H10,whole number,-1,6,5,True
+H10,whole number,+2,6,8,True
+H10,whole number,-2,6,4,True
+H10,whole number,+10%,6,7,True
+H10,whole number,-10%,6,5,True
+H10,whole number,+1,4,5,False
+H10,whole number,-1,4,3,False
+H10,whole number,+2,4,6,False
+H10,whole number,-2,4,2,False
+H10,whole number,+10%,4,5,False
+H10,whole number,-10%,4,3,False
+H10,whole number,+1,7,8,True
+H10,whole number,-1,7,6,True
+H10,whole number,+2,7,9,True
+H10,whole number,-2,7,5,True
+H10,whole number,+10%,7,8,True
+H10,whole number,-10%,7,6,True
+H10,whole number,+1,5,6,False
+H10,whole number,-1,5,4,True
+H10,whole number,+2,5,7,True
+H10,whole number,-2,5,3,True
+H10,whole number,+10%,5,6,False
+H10,whole number,-10%,5,4,True
+H10,whole number,+1,0,1,False
+H10,whole number,+2,0,2,True
+H10,whole number,+10%,0,1,False
+H10,whole number,+1,2,3,True
+H10,whole number,-1,2,1,False
+H10,whole number,+2,2,4,True
+H10,whole number,-2,2,0,True
+H10,whole number,+10%,2,3,True
+H10,whole number,-10%,2,1,False
+H10,whole number,+1,1,2,True
+H10,whole number,-1,1,0,False
+H10,whole number,+2,1,3,True
+H10,whole number,+10%,1,2,True
+H10,whole number,-10%,1,0,False
+H10,whole number,+1,2,3,True
+H10,whole number,-1,2,1,True
+H10,whole number,+2,2,4,True
+H10,whole number,-2,2,0,False
+H10,whole number,+10%,2,3,True
+H10,whole number,-10%,2,1,True
+H10,whole number,+1,1,2,False
+H10,whole number,-1,1,0,True
+H10,whole number,+2,1,3,True
+H10,whole number,+10%,1,2,False
+H10,whole number,-10%,1,0,True
+H10,whole number,+1,0,1,True
+H10,whole number,+2,0,2,False
+H10,whole number,+10%,0,1,True
+H10,record_or_score,+1 on one side,4–2,5–2,True
+H10,record_or_score,+1 on one side,6-7(5) 1-6,7-7(5) 1-6,True
+H10,record_or_score,+1 on one side,6-4 7-6(4) 4-6 6-7(3) 6-7(2),7-4 7-6(4) 4-6 6-7(3) 6-7(2),True
+H10,record_or_score,+1 on one side,4-6 6-4 6-4 6-4,5-6 6-4 6-4 6-4,True
+H10,record_or_score,+1 on one side,0-5,1-5,True
+H10,record_or_score,+1 on one side,2-6 6-3 1-6 4-6,3-6 6-3 1-6 4-6,True
+H10,record_or_score,+1 on one side,7-6(4) 7-5,8-6(4) 7-5,True
+H10,record_or_score,+1 on one side,0–2,1–2,False
+H10,record_or_score,+1 on one side,1–2,2–2,True
+H10,record_or_score,+1 on one side,1–0,2–0,False
+H11,whole number,+1,10,11,True
+H11,whole number,-1,10,9,True
+H11,whole number,+2,10,12,True
+H11,whole number,-2,10,8,True
+H11,whole number,+10%,10,11,True
+H11,whole number,-10%,10,9,True
+H11,whole number,+1,3,4,True
+H11,whole number,-1,3,2,True
+H11,whole number,+2,3,5,True
+H11,whole number,-2,3,1,True
+H11,whole number,+10%,3,4,True
+H11,whole number,-10%,3,2,True
+H11,whole number,+1,13,14,False
+H11,whole number,-1,13,12,False
+H11,whole number,+2,13,15,False
+H11,whole number,-2,13,11,False
+H11,whole number,+10%,13,14,False
+H11,whole number,-10%,13,12,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,4,5,True
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,True
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,True
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,7,8,True
+H11,whole number,-1,7,6,True
+H11,whole number,+2,7,9,True
+H11,whole number,-2,7,5,True
+H11,whole number,+10%,7,8,True
+H11,whole number,-10%,7,6,True
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,False
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,False
+H11,whole number,+1,4,5,False
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,False
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,False
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,4,5,True
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,True
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,True
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,4,5,True
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,True
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,True
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,16,17,False
+H11,whole number,-1,16,15,False
+H11,whole number,+2,16,18,True
+H11,whole number,-2,16,14,False
+H11,whole number,+10%,16,18,True
+H11,whole number,-10%,16,14,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,4,5,True
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,True
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,True
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,5,6,False
+H11,whole number,-1,5,4,True
+H11,whole number,+2,5,7,True
+H11,whole number,-2,5,3,True
+H11,whole number,+10%,5,6,False
+H11,whole number,-10%,5,4,True
+H11,whole number,+1,7,8,True
+H11,whole number,-1,7,6,True
+H11,whole number,+2,7,9,True
+H11,whole number,-2,7,5,True
+H11,whole number,+10%,7,8,True
+H11,whole number,-10%,7,6,True
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,4,5,True
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,True
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,True
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,5,6,False
+H11,whole number,-1,5,4,True
+H11,whole number,+2,5,7,True
+H11,whole number,-2,5,3,True
+H11,whole number,+10%,5,6,False
+H11,whole number,-10%,5,4,True
+H11,whole number,+1,7,8,True
+H11,whole number,-1,7,6,True
+H11,whole number,+2,7,9,True
+H11,whole number,-2,7,5,True
+H11,whole number,+10%,7,8,True
+H11,whole number,-10%,7,6,True
+H11,whole number,+1,3,4,False
+H11,whole number,-1,3,2,False
+H11,whole number,+2,3,5,True
+H11,whole number,-2,3,1,False
+H11,whole number,+10%,3,4,False
+H11,whole number,-10%,3,2,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,7,8,True
+H11,whole number,-1,7,6,True
+H11,whole number,+2,7,9,True
+H11,whole number,-2,7,5,True
+H11,whole number,+10%,7,8,True
+H11,whole number,-10%,7,6,True
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,False
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,False
+H11,whole number,+1,4,5,False
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,False
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,False
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,7,8,True
+H11,whole number,-1,7,6,True
+H11,whole number,+2,7,9,True
+H11,whole number,-2,7,5,True
+H11,whole number,+10%,7,8,True
+H11,whole number,-10%,7,6,True
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,False
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,False
+H11,whole number,+1,5,6,False
+H11,whole number,-1,5,4,False
+H11,whole number,+2,5,7,False
+H11,whole number,-2,5,3,False
+H11,whole number,+10%,5,6,False
+H11,whole number,-10%,5,4,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,3,4,False
+H11,whole number,-1,3,2,False
+H11,whole number,+2,3,5,True
+H11,whole number,-2,3,1,False
+H11,whole number,+10%,3,4,False
+H11,whole number,-10%,3,2,False
+H11,whole number,+1,13,14,False
+H11,whole number,-1,13,12,False
+H11,whole number,+2,13,15,False
+H11,whole number,-2,13,11,False
+H11,whole number,+10%,13,14,False
+H11,whole number,-10%,13,12,False
+H11,whole number,+1,8,9,False
+H11,whole number,-1,8,7,False
+H11,whole number,+2,8,10,False
+H11,whole number,-2,8,6,False
+H11,whole number,+10%,8,9,False
+H11,whole number,-10%,8,7,False
+H11,whole number,+1,5,6,False
+H11,whole number,-1,5,4,True
+H11,whole number,+2,5,7,True
+H11,whole number,-2,5,3,True
+H11,whole number,+10%,5,6,False
+H11,whole number,-10%,5,4,True
+H11,whole number,+1,7,8,True
+H11,whole number,-1,7,6,True
+H11,whole number,+2,7,9,True
+H11,whole number,-2,7,5,True
+H11,whole number,+10%,7,8,True
+H11,whole number,-10%,7,6,True
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,4,5,True
+H11,whole number,-1,4,3,False
+H11,whole number,+2,4,6,True
+H11,whole number,-2,4,2,False
+H11,whole number,+10%,4,5,True
+H11,whole number,-10%,4,3,False
+H11,whole number,+1,6,7,True
+H11,whole number,-1,6,5,True
+H11,whole number,+2,6,8,True
+H11,whole number,-2,6,4,True
+H11,whole number,+10%,6,7,True
+H11,whole number,-10%,6,5,True
+H11,whole number,+1,1,2,False
+H11,whole number,-1,1,0,True
+H11,whole number,+2,1,3,False
+H11,whole number,+10%,1,2,False
+H11,whole number,-10%,1,0,True
+H11,record_or_score,+1 on one side,10–3,11–3,True
+H11,record_or_score,+1 on one side,6-4,7-4,True
+H11,record_or_score,+1 on one side,7-6(4),8-6(4),True
+H11,record_or_score,+1 on one side,6-4,7-4,True
+H11,record_or_score,+1 on one side,6-4,7-4,True
+H11,record_or_score,+1 on one side,6-4,7-4,True
+H11,record_or_score,+1 on one side,5-7,6-7,False
+H11,record_or_score,+1 on one side,6-4,7-4,True
+H11,record_or_score,+1 on one side,5-7,6-7,False
+H11,record_or_score,+1 on one side,3-6,4-6,False
+H11,record_or_score,+1 on one side,7-6(4),8-6(4),True
+H11,record_or_score,+1 on one side,7-6(5),8-6(5),True
+H11,record_or_score,+1 on one side,6-3,7-3,True
+H11,record_or_score,+1 on one side,5-7,6-7,False
+H11,record_or_score,+1 on one side,6-4,7-4,True
+H11,record_or_score,+1 on one side,6-1,7-1,True
+C01,percentage,+0.3pp,51.0%,51.3%,True
+C01,percentage,-0.3pp,51.0%,50.7%,True
+C01,percentage,+1.0pp,51.0%,52.0%,True
+C01,percentage,-1.0pp,51.0%,50.0%,True
+C01,percentage,+5.0pp,51.0%,56.0%,True
+C01,percentage,-5.0pp,51.0%,46.0%,True
+C01,whole number,+1,905,906,True
+C01,whole number,-1,905,904,True
+C01,whole number,+2,905,907,True
+C01,whole number,-2,905,903,True
+C01,whole number,+10%,905,995,True
+C01,whole number,-10%,905,815,True
+C01,whole number,+1,"1,774","1,775",True
+C01,whole number,-1,"1,774","1,773",True
+C01,whole number,+2,"1,774","1,776",True
+C01,whole number,-2,"1,774","1,772",True
+C01,whole number,+10%,"1,774","1,951",True
+C01,whole number,-10%,"1,774","1,597",True
+C01,whole number,+1,64,65,False
+C01,whole number,-1,64,63,True
+C01,whole number,+2,64,66,False
+C01,whole number,-2,64,62,True
+C01,whole number,+10%,64,70,True
+C01,whole number,-10%,64,58,True
+C01,percentage,+0.3pp,48.4%,48.7%,True
+C01,percentage,-0.3pp,48.4%,48.1%,True
+C01,percentage,+1.0pp,48.4%,49.4%,True
+C01,percentage,-1.0pp,48.4%,47.4%,True
+C01,percentage,+5.0pp,48.4%,53.4%,True
+C01,percentage,-5.0pp,48.4%,43.4%,True
+C01,whole number,+1,400,401,True
+C01,whole number,-1,400,399,True
+C01,whole number,+2,400,402,True
+C01,whole number,-2,400,398,True
+C01,whole number,+10%,400,440,True
+C01,whole number,-10%,400,360,True
+C01,whole number,+1,827,828,True
+C01,whole number,-1,827,826,True
+C01,whole number,+2,827,829,True
+C01,whole number,-2,827,825,True
+C01,whole number,+10%,827,910,True
+C01,whole number,-10%,827,744,True
+C01,whole number,+1,39,40,False
+C01,whole number,-1,39,38,True
+C01,whole number,+2,39,41,True
+C01,whole number,-2,39,37,True
+C01,whole number,+10%,39,43,True
+C01,whole number,-10%,39,35,True
+C01,a_of_b,+1 on one side,"905 of 1,774","906 of 1,774",True
+C01,a_of_b,+1 on one side,400 of 827,401 of 827,True
+C02,percentage,+0.3pp,65.7%,66.0%,True
+C02,percentage,-0.3pp,65.7%,65.4%,True
+C02,percentage,+1.0pp,65.7%,66.7%,False
+C02,percentage,-1.0pp,65.7%,64.7%,True
+C02,percentage,+5.0pp,65.7%,70.7%,True
+C02,percentage,-5.0pp,65.7%,60.7%,True
+C02,percentage,+0.3pp,59.8%,60.1%,True
+C02,percentage,-0.3pp,59.8%,59.5%,True
+C02,percentage,+1.0pp,59.8%,60.8%,True
+C02,percentage,-1.0pp,59.8%,58.8%,True
+C02,percentage,+5.0pp,59.8%,64.8%,True
+C02,percentage,-5.0pp,59.8%,54.8%,True
+C02,percentage,+0.3pp,65.7%,66.0%,True
+C02,percentage,-0.3pp,65.7%,65.4%,True
+C02,percentage,+1.0pp,65.7%,66.7%,False
+C02,percentage,-1.0pp,65.7%,64.7%,True
+C02,percentage,+5.0pp,65.7%,70.7%,True
+C02,percentage,-5.0pp,65.7%,60.7%,True
+C02,whole number,+1,"3,825","3,826",True
+C02,whole number,-1,"3,825","3,824",True
+C02,whole number,+2,"3,825","3,827",True
+C02,whole number,-2,"3,825","3,823",True
+C02,whole number,+10%,"3,825","4,207",True
+C02,whole number,-10%,"3,825","3,443",True
+C02,whole number,+1,"5,820","5,821",True
+C02,whole number,-1,"5,820","5,819",True
+C02,whole number,+2,"5,820","5,822",True
+C02,whole number,-2,"5,820","5,818",True
+C02,whole number,+10%,"5,820","6,402",True
+C02,whole number,-10%,"5,820","5,238",True
+C02,whole number,+1,77,78,True
+C02,whole number,-1,77,76,False
+C02,whole number,+2,77,79,False
+C02,whole number,-2,77,75,True
+C02,whole number,+10%,77,85,True
+C02,whole number,-10%,77,69,False
+C02,percentage,+0.3pp,59.8%,60.1%,True
+C02,percentage,-0.3pp,59.8%,59.5%,True
+C02,percentage,+1.0pp,59.8%,60.8%,True
+C02,percentage,-1.0pp,59.8%,58.8%,True
+C02,percentage,+5.0pp,59.8%,64.8%,True
+C02,percentage,-5.0pp,59.8%,54.8%,True
+C02,whole number,+1,"3,610","3,611",True
+C02,whole number,-1,"3,610","3,609",True
+C02,whole number,+2,"3,610","3,612",True
+C02,whole number,-2,"3,610","3,608",True
+C02,whole number,+10%,"3,610","3,971",True
+C02,whole number,-10%,"3,610","3,249",True
+C02,whole number,+1,"6,034","6,035",True
+C02,whole number,-1,"6,034","6,033",True
+C02,whole number,+2,"6,034","6,036",True
+C02,whole number,-2,"6,034","6,032",True
+C02,whole number,+10%,"6,034","6,637",True
+C02,whole number,-10%,"6,034","5,431",True
+C02,whole number,+1,79,80,True
+C02,whole number,-1,79,78,True
+C02,whole number,+2,79,81,True
+C02,whole number,-2,79,77,False
+C02,whole number,+10%,79,87,True
+C02,whole number,-10%,79,71,True
+C02,whole number,+1,5,6,False
+C02,whole number,-1,5,4,False
+C02,whole number,+2,5,7,False
+C02,whole number,-2,5,3,True
+C02,whole number,+10%,5,6,False
+C02,whole number,-10%,5,4,False
+C02,a_of_b,+1 on one side,"3,825 of 5,820","3,826 of 5,820",True
+C02,a_of_b,+1 on one side,"3,610 of 6,034","3,611 of 6,034",True
+C03,percentage,+0.3pp,65.5%,65.8%,True
+C03,percentage,-0.3pp,65.5%,65.2%,True
+C03,percentage,+1.0pp,65.5%,66.5%,True
+C03,percentage,-1.0pp,65.5%,64.5%,True
+C03,percentage,+5.0pp,65.5%,70.5%,True
+C03,percentage,-5.0pp,65.5%,60.5%,True
+C03,whole number,+1,114,115,True
+C03,whole number,-1,114,113,True
+C03,whole number,+2,114,116,True
+C03,whole number,-2,114,112,True
+C03,whole number,+10%,114,125,True
+C03,whole number,-10%,114,103,True
+C03,whole number,+1,174,175,True
+C03,whole number,-1,174,173,True
+C03,whole number,+2,174,176,True
+C03,whole number,-2,174,172,True
+C03,whole number,+10%,174,191,True
+C03,whole number,-10%,174,157,True
+C03,whole number,+1,32,33,True
+C03,whole number,-1,32,31,True
+C03,whole number,+2,32,34,False
+C03,whole number,-2,32,30,True
+C03,whole number,+10%,32,35,False
+C03,whole number,-10%,32,29,True
+C03,percentage,+0.3pp,51.4%,51.7%,True
+C03,percentage,-0.3pp,51.4%,51.1%,True
+C03,percentage,+1.0pp,51.4%,52.4%,True
+C03,percentage,-1.0pp,51.4%,50.4%,True
+C03,percentage,+5.0pp,51.4%,56.4%,True
+C03,percentage,-5.0pp,51.4%,46.4%,True
+C03,whole number,+1,36,37,True
+C03,whole number,-1,36,35,True
+C03,whole number,+2,36,38,True
+C03,whole number,-2,36,34,True
+C03,whole number,+10%,36,40,True
+C03,whole number,-10%,36,32,True
+C03,whole number,+1,70,71,True
+C03,whole number,-1,70,69,True
+C03,whole number,+2,70,72,True
+C03,whole number,-2,70,68,True
+C03,whole number,+10%,70,77,True
+C03,whole number,-10%,70,63,True
+C03,whole number,+1,12,13,True
+C03,whole number,-1,12,11,False
+C03,whole number,+2,12,14,True
+C03,whole number,-2,12,10,False
+C03,whole number,+10%,12,13,True
+C03,whole number,-10%,12,11,False
+C03,a_of_b,+1 on one side,114 of 174,115 of 174,True
+C03,a_of_b,+1 on one side,36 of 70,37 of 70,True
+C04,decimal,+0.3,21.8,22.1,False
+C04,decimal,-0.3,21.8,21.5,True
+C04,decimal,+1.0,21.8,22.8,True
+C04,decimal,-1.0,21.8,20.8,True
+C04,whole number,+1,"1,003","1,004",True
+C04,whole number,-1,"1,003","1,002",True
+C04,whole number,+2,"1,003","1,005",True
+C04,whole number,-2,"1,003","1,001",True
+C04,whole number,+10%,"1,003","1,103",True
+C04,whole number,-10%,"1,003",903,True
+C04,whole number,+1,46,47,True
+C04,whole number,-1,46,45,True
+C04,whole number,+2,46,48,True
+C04,whole number,-2,46,44,True
+C04,whole number,+10%,46,51,False
+C04,whole number,-10%,46,41,True
+C04,decimal,+0.3,16.8,17.1,True
+C04,decimal,-0.3,16.8,16.5,True
+C04,decimal,+1.0,16.8,17.8,True
+C04,decimal,-1.0,16.8,15.8,True
+C04,whole number,+1,621,622,True
+C04,whole number,-1,621,620,True
+C04,whole number,+2,621,623,True
+C04,whole number,-2,621,619,True
+C04,whole number,+10%,621,683,True
+C04,whole number,-10%,621,559,True
+C04,whole number,+1,37,38,True
+C04,whole number,-1,37,36,True
+C04,whole number,+2,37,39,True
+C04,whole number,-2,37,35,True
+C04,whole number,+10%,37,41,True
+C04,whole number,-10%,37,33,True
+C04,whole number,+1,2,3,True
+C04,whole number,-1,2,1,False
+C04,whole number,+2,2,4,False
+C04,whole number,-2,2,0,False
+C04,whole number,+10%,2,3,True
+C04,whole number,-10%,2,1,False
+C04,whole number,+1,1,2,False
+C04,whole number,-1,1,0,False
+C04,whole number,+2,1,3,True
+C04,whole number,+10%,1,2,False
+C04,whole number,-10%,1,0,False
+C05,percentage,+0.3pp,41.9%,42.2%,True
+C05,percentage,-0.3pp,41.9%,41.6%,True
+C05,percentage,+1.0pp,41.9%,42.9%,True
+C05,percentage,-1.0pp,41.9%,40.9%,False
+C05,percentage,+5.0pp,41.9%,46.9%,True
+C05,percentage,-5.0pp,41.9%,36.9%,True
+C05,percentage,+0.3pp,40.9%,41.2%,True
+C05,percentage,-0.3pp,40.9%,40.6%,True
+C05,percentage,+1.0pp,40.9%,41.9%,False
+C05,percentage,-1.0pp,40.9%,39.9%,True
+C05,percentage,+5.0pp,40.9%,45.9%,True
+C05,percentage,-5.0pp,40.9%,35.9%,True
+C05,whole number,+1,"1,715","1,716",True
+C05,whole number,-1,"1,715","1,714",True
+C05,whole number,+2,"1,715","1,717",True
+C05,whole number,-2,"1,715","1,713",True
+C05,whole number,+10%,"1,715","1,887",True
+C05,whole number,-10%,"1,715","1,543",True
+C05,whole number,+1,"4,098","4,099",True
+C05,whole number,-1,"4,098","4,097",True
+C05,whole number,+2,"4,098","4,100",True
+C05,whole number,-2,"4,098","4,096",True
+C05,whole number,+10%,"4,098","4,508",True
+C05,whole number,-10%,"4,098","3,688",True
+C05,whole number,+1,54,55,True
+C05,whole number,-1,54,53,False
+C05,whole number,+2,54,56,True
+C05,whole number,-2,54,52,False
+C05,whole number,+10%,54,59,True
+C05,whole number,-10%,54,49,True
+C05,whole number,+1,"1,060","1,061",True
+C05,whole number,-1,"1,060","1,059",True
+C05,whole number,+2,"1,060","1,062",True
+C05,whole number,-2,"1,060","1,058",True
+C05,whole number,+10%,"1,060","1,166",True
+C05,whole number,-10%,"1,060",954,True
+C05,whole number,+1,"2,590","2,591",True
+C05,whole number,-1,"2,590","2,589",True
+C05,whole number,+2,"2,590","2,592",True
+C05,whole number,-2,"2,590","2,588",True
+C05,whole number,+10%,"2,590","2,849",True
+C05,whole number,-10%,"2,590","2,331",True
+C05,whole number,+1,28,29,True
+C05,whole number,-1,28,27,True
+C05,whole number,+2,28,30,True
+C05,whole number,-2,28,26,False
+C05,whole number,+10%,28,31,True
+C05,whole number,-10%,28,25,True
+C05,a_of_b,+1 on one side,"1,715 of 4,098","1,716 of 4,098",True
+C05,a_of_b,+1 on one side,"1,060 of 2,590","1,061 of 2,590",True
+C06,percentage,+0.3pp,92.1%,92.4%,True
+C06,percentage,-0.3pp,92.1%,91.8%,True
+C06,percentage,+1.0pp,92.1%,93.1%,True
+C06,percentage,-1.0pp,92.1%,91.1%,True
+C06,percentage,+5.0pp,92.1%,97.1%,True
+C06,percentage,-5.0pp,92.1%,87.1%,True
+C06,whole number,+1,35,36,True
+C06,whole number,-1,35,34,True
+C06,whole number,+2,35,37,True
+C06,whole number,-2,35,33,True
+C06,whole number,+10%,35,39,True
+C06,whole number,-10%,35,31,False
+C06,whole number,+1,3,4,False
+C06,whole number,-1,3,2,True
+C06,whole number,+2,3,5,True
+C06,whole number,-2,3,1,False
+C06,whole number,+10%,3,4,False
+C06,whole number,-10%,3,2,True
+C06,whole number,+1,38,39,True
+C06,whole number,-1,38,37,True
+C06,whole number,+2,38,40,True
+C06,whole number,-2,38,36,True
+C06,whole number,+10%,38,42,True
+C06,whole number,-10%,38,34,True
+C06,percentage,+0.3pp,87.5%,87.8%,True
+C06,percentage,-0.3pp,87.5%,87.2%,True
+C06,percentage,+1.0pp,87.5%,88.5%,True
+C06,percentage,-1.0pp,87.5%,86.5%,True
+C06,percentage,+5.0pp,87.5%,92.5%,True
+C06,percentage,-5.0pp,87.5%,82.5%,True
+C06,whole number,+1,56,57,True
+C06,whole number,-1,56,55,True
+C06,whole number,+2,56,58,True
+C06,whole number,-2,56,54,True
+C06,whole number,+10%,56,62,True
+C06,whole number,-10%,56,50,True
+C06,whole number,+1,8,9,True
+C06,whole number,-1,8,7,False
+C06,whole number,+2,8,10,False
+C06,whole number,-2,8,6,False
+C06,whole number,+10%,8,9,True
+C06,whole number,-10%,8,7,False
+C06,whole number,+1,64,65,True
+C06,whole number,-1,64,63,True
+C06,whole number,+2,64,66,True
+C06,whole number,-2,64,62,True
+C06,whole number,+10%,64,70,True
+C06,whole number,-10%,64,58,True
+C06,whole number,+1,10,11,False
+C06,whole number,-1,10,9,True
+C06,whole number,+2,10,12,False
+C06,whole number,-2,10,8,False
+C06,whole number,+10%,10,11,False
+C06,whole number,-10%,10,9,True
+R02,record_or_score,+1 on one side,06-28,7-28,True
+R03,record_or_score,+1 on one side,01-04,2-04,True
+R06,whole number,+1,17,18,True
+R06,whole number,-1,17,16,False
+R06,whole number,+2,17,19,True
+R06,whole number,-2,17,15,True
+R06,whole number,+10%,17,19,True
+R06,whole number,-10%,17,15,True
+R06,whole number,+1,10,11,False
+R06,whole number,-1,10,9,False
+R06,whole number,+2,10,12,False
+R06,whole number,-2,10,8,False
+R06,whole number,+10%,10,11,False
+R06,whole number,-10%,10,9,False
+R06,whole number,+1,7,8,False
+R06,whole number,-1,7,6,False
+R06,whole number,+2,7,9,False
+R06,whole number,-2,7,5,False
+R06,whole number,+10%,7,8,False
+R06,whole number,-10%,7,6,False
+R06,whole number,+1,3,4,False
+R06,whole number,-1,3,2,False
+R06,whole number,+2,3,5,False
+R06,whole number,-2,3,1,False
+R06,whole number,+10%,3,4,False
+R06,whole number,-10%,3,2,False
+R06,whole number,+1,7,8,False
+R06,whole number,-1,7,6,False
+R06,whole number,+2,7,9,False
+R06,whole number,-2,7,5,False
+R06,whole number,+10%,7,8,False
+R06,whole number,-10%,7,6,False
+R06,whole number,+1,10,11,False
+R06,whole number,-1,10,9,False
+R06,whole number,+2,10,12,False
+R06,whole number,-2,10,8,False
+R06,whole number,+10%,10,11,False
+R06,whole number,-10%,10,9,False
+R06,whole number,+1,2,3,False
+R06,whole number,-1,2,1,False
+R06,whole number,+2,2,4,False
+R06,whole number,-2,2,0,False
+R06,whole number,+10%,2,3,False
+R06,whole number,-10%,2,1,False
+R06,whole number,+1,3,4,False
+R06,whole number,-1,3,2,False
+R06,whole number,+2,3,5,False
+R06,whole number,-2,3,1,False
+R06,whole number,+10%,3,4,False
+R06,whole number,-10%,3,2,False
+R06,whole number,+1,5,6,False
+R06,whole number,-1,5,4,False
+R06,whole number,+2,5,7,False
+R06,whole number,-2,5,3,False
+R06,whole number,+10%,5,6,False
+R06,whole number,-10%,5,4,False
+R06,whole number,+1,2,3,False
+R06,whole number,-1,2,1,False
+R06,whole number,+2,2,4,False
+R06,whole number,-2,2,0,False
+R06,whole number,+10%,2,3,False
+R06,whole number,-10%,2,1,False
+R06,whole number,+1,0,1,False
+R06,whole number,+2,0,2,False
+R06,whole number,+10%,0,1,False
+R06,whole number,+1,2,3,False
+R06,whole number,-1,2,1,False
+R06,whole number,+2,2,4,False
+R06,whole number,-2,2,0,False
+R06,whole number,+10%,2,3,False
+R06,whole number,-10%,2,1,False
+R06,whole number,+1,7,8,True
+R06,whole number,-1,7,6,True
+R06,whole number,+2,7,9,True
+R06,whole number,-2,7,5,True
+R06,whole number,+10%,7,8,True
+R06,whole number,-10%,7,6,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,False
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,False
+R06,whole number,+1,5,6,False
+R06,whole number,-1,5,4,False
+R06,whole number,+2,5,7,False
+R06,whole number,-2,5,3,False
+R06,whole number,+10%,5,6,False
+R06,whole number,-10%,5,4,False
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,3,4,True
+R06,whole number,-1,3,2,True
+R06,whole number,+2,3,5,True
+R06,whole number,-2,3,1,False
+R06,whole number,+10%,3,4,True
+R06,whole number,-10%,3,2,True
+R06,whole number,+1,7,8,True
+R06,whole number,-1,7,6,True
+R06,whole number,+2,7,9,True
+R06,whole number,-2,7,5,True
+R06,whole number,+10%,7,8,True
+R06,whole number,-10%,7,6,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,4,5,False
+R06,whole number,-1,4,3,False
+R06,whole number,+2,4,6,False
+R06,whole number,-2,4,2,False
+R06,whole number,+10%,4,5,False
+R06,whole number,-10%,4,3,False
+R06,whole number,+1,7,8,True
+R06,whole number,-1,7,6,True
+R06,whole number,+2,7,9,True
+R06,whole number,-2,7,5,True
+R06,whole number,+10%,7,8,True
+R06,whole number,-10%,7,6,True
+R06,whole number,+1,5,6,False
+R06,whole number,-1,5,4,True
+R06,whole number,+2,5,7,True
+R06,whole number,-2,5,3,True
+R06,whole number,+10%,5,6,False
+R06,whole number,-10%,5,4,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,2,3,True
+R06,whole number,-1,2,1,True
+R06,whole number,+2,2,4,True
+R06,whole number,-2,2,0,True
+R06,whole number,+10%,2,3,True
+R06,whole number,-10%,2,1,True
+R06,whole number,+1,3,4,True
+R06,whole number,-1,3,2,True
+R06,whole number,+2,3,5,True
+R06,whole number,-2,3,1,True
+R06,whole number,+10%,3,4,True
+R06,whole number,-10%,3,2,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,1,2,True
+R06,whole number,-1,1,0,True
+R06,whole number,+2,1,3,True
+R06,whole number,+10%,1,2,True
+R06,whole number,-10%,1,0,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,4,5,True
+R06,whole number,-1,4,3,True
+R06,whole number,+2,4,6,True
+R06,whole number,-2,4,2,True
+R06,whole number,+10%,4,5,True
+R06,whole number,-10%,4,3,True
+R06,whole number,+1,4,5,True
+R06,whole number,-1,4,3,True
+R06,whole number,+2,4,6,True
+R06,whole number,-2,4,2,True
+R06,whole number,+10%,4,5,True
+R06,whole number,-10%,4,3,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,4,5,True
+R06,whole number,-1,4,3,True
+R06,whole number,+2,4,6,True
+R06,whole number,-2,4,2,True
+R06,whole number,+10%,4,5,True
+R06,whole number,-10%,4,3,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,4,5,True
+R06,whole number,-1,4,3,True
+R06,whole number,+2,4,6,True
+R06,whole number,-2,4,2,True
+R06,whole number,+10%,4,5,True
+R06,whole number,-10%,4,3,True
+R06,whole number,+1,6,7,True
+R06,whole number,-1,6,5,True
+R06,whole number,+2,6,8,True
+R06,whole number,-2,6,4,True
+R06,whole number,+10%,6,7,True
+R06,whole number,-10%,6,5,True
+R06,whole number,+1,4,5,True
+R06,whole number,-1,4,3,True
+R06,whole number,+2,4,6,True
+R06,whole number,-2,4,2,True
+R06,whole number,+10%,4,5,True
+R06,whole number,-10%,4,3,True
+R06,whole number,+1,2,3,False
+R06,whole number,-1,2,1,False
+R06,whole number,+2,2,4,False
+R06,whole number,-2,2,0,False
+R06,whole number,+10%,2,3,False
+R06,whole number,-10%,2,1,False
+R06,whole number,+1,10,11,False
+R06,whole number,-1,10,9,False
+R06,whole number,+2,10,12,False
+R06,whole number,-2,10,8,False
+R06,whole number,+10%,10,11,False
+R06,whole number,-10%,10,9,False
+R06,record_or_score,+1 on one side,7-6(5) 6-3,8-6(5) 6-3,True
+R06,record_or_score,+1 on one side,7-6(4) 7-5,8-6(4) 7-5,True
+R06,record_or_score,+1 on one side,6-2 3-6 6-1 6-4,7-2 3-6 6-1 6-4,True
+R06,record_or_score,+1 on one side,4-6 6-4 6-4 6-4,5-6 6-4 6-4 6-4,True
+R07,whole number,+1,68,69,True
+R07,whole number,-1,68,67,True
+R07,whole number,+2,68,70,True
+R07,whole number,-2,68,66,True
+R07,whole number,+10%,68,75,False
+R07,whole number,-10%,68,61,True
+R07,percentage,+0.3pp,48.0%,48.3%,True
+R07,percentage,-0.3pp,48.0%,47.7%,True
+R07,percentage,+1.0pp,48.0%,49.0%,True
+R07,percentage,-1.0pp,48.0%,47.0%,True
+R07,percentage,+5.0pp,48.0%,53.0%,True
+R07,percentage,-5.0pp,48.0%,43.0%,True
+R07,percentage,+0.3pp,38.1%,38.4%,True
+R07,percentage,-0.3pp,38.1%,37.8%,True
+R07,percentage,+1.0pp,38.1%,39.1%,True
+R07,percentage,-1.0pp,38.1%,37.1%,True
+R07,percentage,+5.0pp,38.1%,43.1%,True
+R07,percentage,-5.0pp,38.1%,33.1%,True
+R07,percentage,+0.3pp,14.0%,14.3%,True
+R07,percentage,-0.3pp,14.0%,13.7%,True
+R07,percentage,+1.0pp,14.0%,15.0%,False
+R07,percentage,-1.0pp,14.0%,13.0%,True
+R07,percentage,+5.0pp,14.0%,19.0%,True
+R07,percentage,-5.0pp,14.0%,9.0%,True
+R07,percentage,+0.3pp,55.7%,56.0%,True
+R07,percentage,-0.3pp,55.7%,55.4%,True
+R07,percentage,+1.0pp,55.7%,56.7%,True
+R07,percentage,-1.0pp,55.7%,54.7%,False
+R07,percentage,+5.0pp,55.7%,60.7%,True
+R07,percentage,-5.0pp,55.7%,50.7%,True
+R07,percentage,+0.3pp,36.7%,37.0%,True
+R07,percentage,-0.3pp,36.7%,36.4%,True
+R07,percentage,+1.0pp,36.7%,37.7%,True
+R07,percentage,-1.0pp,36.7%,35.7%,True
+R07,percentage,+5.0pp,36.7%,41.7%,True
+R07,percentage,-5.0pp,36.7%,31.7%,True
+R07,percentage,+0.3pp,7.6%,7.9%,False
+R07,percentage,-0.3pp,7.6%,7.3%,True
+R07,percentage,+1.0pp,7.6%,8.6%,True
+R07,percentage,-1.0pp,7.6%,6.6%,True
+R07,percentage,+5.0pp,7.6%,12.6%,True
+R07,percentage,-5.0pp,7.6%,2.6%,True
+R07,percentage,+0.3pp,44.6%,44.9%,True
+R07,percentage,-0.3pp,44.6%,44.3%,True
+R07,percentage,+1.0pp,44.6%,45.6%,True
+R07,percentage,-1.0pp,44.6%,43.6%,True
+R07,percentage,+5.0pp,44.6%,49.6%,True
+R07,percentage,-5.0pp,44.6%,39.6%,True
+R07,percentage,+0.3pp,34.2%,34.5%,True
+R07,percentage,-0.3pp,34.2%,33.9%,True
+R07,percentage,+1.0pp,34.2%,35.2%,True
+R07,percentage,-1.0pp,34.2%,33.2%,True
+R07,percentage,+5.0pp,34.2%,39.2%,True
+R07,percentage,-5.0pp,34.2%,29.2%,True
+R07,percentage,+0.3pp,21.2%,21.5%,True
+R07,percentage,-0.3pp,21.2%,20.9%,True
+R07,percentage,+1.0pp,21.2%,22.2%,True
+R07,percentage,-1.0pp,21.2%,20.2%,True
+R07,percentage,+5.0pp,21.2%,26.2%,True
+R07,percentage,-5.0pp,21.2%,16.2%,True
+R07,percentage,+0.3pp,43.3%,43.6%,True
+R07,percentage,-0.3pp,43.3%,43.0%,True
+R07,percentage,+1.0pp,43.3%,44.3%,True
+R07,percentage,-1.0pp,43.3%,42.3%,True
+R07,percentage,+5.0pp,43.3%,48.3%,True
+R07,percentage,-5.0pp,43.3%,38.3%,True
+R07,percentage,+0.3pp,39.4%,39.7%,True
+R07,percentage,-0.3pp,39.4%,39.1%,True
+R07,percentage,+1.0pp,39.4%,40.4%,True
+R07,percentage,-1.0pp,39.4%,38.4%,True
+R07,percentage,+5.0pp,39.4%,44.4%,True
+R07,percentage,-5.0pp,39.4%,34.4%,True
+R07,percentage,+0.3pp,17.3%,17.6%,True
+R07,percentage,-0.3pp,17.3%,17.0%,True
+R07,percentage,+1.0pp,17.3%,18.3%,True
+R07,percentage,-1.0pp,17.3%,16.3%,True
+R07,percentage,+5.0pp,17.3%,22.3%,True
+R07,percentage,-5.0pp,17.3%,12.3%,True
+P01,whole number,+1,24,25,True
+P01,whole number,-1,24,23,True
+P01,whole number,+2,24,26,True
+P01,whole number,-2,24,22,True
+P01,whole number,+10%,24,26,True
+P01,whole number,-10%,24,22,True
+P01,whole number,+1,32,33,True
+P01,whole number,-1,32,31,True
+P01,whole number,+2,32,34,True
+P01,whole number,-2,32,30,True
+P01,whole number,+10%,32,35,True
+P01,whole number,-10%,32,29,True
+P01,percentage,+0.3pp,75.0%,75.3%,True
+P01,percentage,-0.3pp,75.0%,74.7%,True
+P01,percentage,+1.0pp,75.0%,76.0%,True
+P01,percentage,-1.0pp,75.0%,74.0%,True
+P01,percentage,+5.0pp,75.0%,80.0%,True
+P01,percentage,-5.0pp,75.0%,70.0%,True
+P01,whole number,+1,78,79,False
+P01,whole number,-1,78,77,True
+P01,whole number,+2,78,80,True
+P01,whole number,-2,78,76,False
+P01,whole number,+10%,78,86,True
+P01,whole number,-10%,78,70,True
+P01,whole number,+1,2,3,True
+P01,whole number,-1,2,1,False
+P01,whole number,+2,2,4,False
+P01,whole number,-2,2,0,False
+P01,whole number,+10%,2,3,True
+P01,whole number,-10%,2,1,False
+P01,a_of_b,+1 on one side,24 of 32,25 of 32,True
+P02,whole number,+1,11,12,True
+P02,whole number,-1,11,10,True
+P02,whole number,+2,11,13,True
+P02,whole number,-2,11,9,True
+P02,whole number,+10%,11,12,True
+P02,whole number,-10%,11,10,True
+P02,whole number,+1,16,17,True
+P02,whole number,-1,16,15,True
+P02,whole number,+2,16,18,True
+P02,whole number,-2,16,14,True
+P02,whole number,+10%,16,18,True
+P02,whole number,-10%,16,14,True
+P02,percentage,+0.3pp,68.8%,69.1%,True
+P02,percentage,-0.3pp,68.8%,68.5%,True
+P02,percentage,+1.0pp,68.8%,69.8%,True
+P02,percentage,-1.0pp,68.8%,67.8%,True
+P02,percentage,+5.0pp,68.8%,73.8%,True
+P02,percentage,-5.0pp,68.8%,63.8%,True
+P02,whole number,+1,62,63,False
+P02,whole number,-1,62,61,False
+P02,whole number,+2,62,64,True
+P02,whole number,-2,62,60,True
+P02,whole number,+10%,62,68,False
+P02,whole number,-10%,62,56,True
+P02,whole number,+1,8,9,True
+P02,whole number,-1,8,7,True
+P02,whole number,+2,8,10,True
+P02,whole number,-2,8,6,True
+P02,whole number,+10%,8,9,True
+P02,whole number,-10%,8,7,True
+P02,whole number,+1,13,14,True
+P02,whole number,-1,13,12,True
+P02,whole number,+2,13,15,True
+P02,whole number,-2,13,11,True
+P02,whole number,+10%,13,14,True
+P02,whole number,-10%,13,12,True
+P02,percentage,+0.3pp,61.5%,61.8%,True
+P02,percentage,-0.3pp,61.5%,61.2%,True
+P02,percentage,+1.0pp,61.5%,62.5%,True
+P02,percentage,-1.0pp,61.5%,60.5%,True
+P02,percentage,+5.0pp,61.5%,66.5%,True
+P02,percentage,-5.0pp,61.5%,56.5%,True
+P02,whole number,+1,47,48,True
+P02,whole number,-1,47,46,True
+P02,whole number,+2,47,49,True
+P02,whole number,-2,47,45,True
+P02,whole number,+10%,47,52,True
+P02,whole number,-10%,47,42,True
+P02,whole number,+1,49,50,True
+P02,whole number,-1,49,48,True
+P02,whole number,+2,49,51,True
+P02,whole number,-2,49,47,True
+P02,whole number,+10%,49,54,True
+P02,whole number,-10%,49,44,True
+P02,percentage,+0.3pp,95.9%,96.2%,True
+P02,percentage,-0.3pp,95.9%,95.6%,True
+P02,percentage,+1.0pp,95.9%,96.9%,True
+P02,percentage,-1.0pp,95.9%,94.9%,True
+P02,percentage,-5.0pp,95.9%,90.9%,True
+P02,a_of_b,+1 on one side,11 of 16,12 of 16,True
+P02,a_of_b,+1 on one side,8 of 13,9 of 13,True
+P02,a_of_b,+1 on one side,47 of 49,48 of 49,True
+P03,whole number,+1,5,6,True
+P03,whole number,-1,5,4,True
+P03,whole number,+2,5,7,True
+P03,whole number,-2,5,3,True
+P03,whole number,+10%,5,6,True
+P03,whole number,-10%,5,4,True
+P03,whole number,+1,11,12,True
+P03,whole number,-1,11,10,True
+P03,whole number,+2,11,13,True
+P03,whole number,-2,11,9,True
+P03,whole number,+10%,11,12,True
+P03,whole number,-10%,11,10,True
+P03,percentage,+0.3pp,45.5%,45.8%,True
+P03,percentage,-0.3pp,45.5%,45.2%,True
+P03,percentage,+1.0pp,45.5%,46.5%,True
+P03,percentage,-1.0pp,45.5%,44.5%,True
+P03,percentage,+5.0pp,45.5%,50.5%,True
+P03,percentage,-5.0pp,45.5%,40.5%,True
+P03,whole number,+1,11,12,False
+P03,whole number,-1,11,10,False
+P03,whole number,+2,11,13,True
+P03,whole number,-2,11,9,True
+P03,whole number,+10%,11,12,False
+P03,whole number,-10%,11,10,False
+P03,whole number,+1,46,47,False
+P03,whole number,-1,46,45,False
+P03,whole number,+2,46,48,True
+P03,whole number,-2,46,44,True
+P03,whole number,+10%,46,51,True
+P03,whole number,-10%,46,41,True
+P03,whole number,+1,33,34,True
+P03,whole number,-1,33,32,True
+P03,whole number,+2,33,35,True
+P03,whole number,-2,33,31,True
+P03,whole number,+10%,33,36,True
+P03,whole number,-10%,33,30,True
+P03,whole number,+1,35,36,True
+P03,whole number,-1,35,34,True
+P03,whole number,+2,35,37,True
+P03,whole number,-2,35,33,True
+P03,whole number,+10%,35,39,True
+P03,whole number,-10%,35,31,True
+P03,percentage,+0.3pp,94.3%,94.6%,True
+P03,percentage,-0.3pp,94.3%,94.0%,True
+P03,percentage,+1.0pp,94.3%,95.3%,True
+P03,percentage,-1.0pp,94.3%,93.3%,True
+P03,percentage,+5.0pp,94.3%,99.3%,True
+P03,percentage,-5.0pp,94.3%,89.3%,True
+P03,a_of_b,+1 on one side,5 of the 11,6 of the 11,True
+P03,a_of_b,+1 on one side,33 of 35,34 of 35,True
+P04,whole number,+1,11,12,True
+P04,whole number,-1,11,10,True
+P04,whole number,+2,11,13,True
+P04,whole number,-2,11,9,True
+P04,whole number,+10%,11,12,True
+P04,whole number,-10%,11,10,True
+P04,whole number,+1,6,7,True
+P04,whole number,-1,6,5,True
+P04,whole number,+2,6,8,True
+P04,whole number,-2,6,4,True
+P04,whole number,+10%,6,7,True
+P04,whole number,-10%,6,5,True
+P04,percentage,+0.3pp,64.7%,65.0%,True
+P04,percentage,-0.3pp,64.7%,64.4%,True
+P04,percentage,+1.0pp,64.7%,65.7%,True
+P04,percentage,-1.0pp,64.7%,63.7%,True
+P04,percentage,+5.0pp,64.7%,69.7%,True
+P04,percentage,-5.0pp,64.7%,59.7%,True
+P04,whole number,+1,17,18,True
+P04,whole number,-1,17,16,True
+P04,whole number,+2,17,19,True
+P04,whole number,-2,17,15,True
+P04,whole number,+10%,17,19,True
+P04,whole number,-10%,17,15,True
+P04,whole number,+1,6,7,True
+P04,whole number,-1,6,5,True
+P04,whole number,+2,6,8,True
+P04,whole number,-2,6,4,True
+P04,whole number,+10%,6,7,True
+P04,whole number,-10%,6,5,True
+P04,whole number,+1,5,6,True
+P04,whole number,-1,5,4,True
+P04,whole number,+2,5,7,True
+P04,whole number,-2,5,3,True
+P04,whole number,+10%,5,6,True
+P04,whole number,-10%,5,4,True
+P04,whole number,+1,11,12,True
+P04,whole number,-1,11,10,False
+P04,whole number,+2,11,13,False
+P04,whole number,-2,11,9,True
+P04,whole number,+10%,11,12,True
+P04,whole number,-10%,11,10,False
+P04,whole number,+1,2,3,True
+P04,whole number,-1,2,1,True
+P04,whole number,+2,2,4,True
+P04,whole number,-2,2,0,True
+P04,whole number,+10%,2,3,True
+P04,whole number,-10%,2,1,True
+P04,whole number,+1,1,2,True
+P04,whole number,-1,1,0,True
+P04,whole number,+2,1,3,True
+P04,whole number,+10%,1,2,True
+P04,whole number,-10%,1,0,True
+P04,whole number,+1,3,4,False
+P04,whole number,-1,3,2,False
+P04,whole number,+2,3,5,False
+P04,whole number,-2,3,1,False
+P04,whole number,+10%,3,4,False
+P04,whole number,-10%,3,2,False
+P04,whole number,+1,3,4,True
+P04,whole number,-1,3,2,True
+P04,whole number,+2,3,5,True
+P04,whole number,-2,3,1,True
+P04,whole number,+10%,3,4,True
+P04,whole number,-10%,3,2,True
+P04,whole number,+1,0,1,True
+P04,whole number,+2,0,2,True
+P04,whole number,+10%,0,1,True
+P04,whole number,+1,3,4,False
+P04,whole number,-1,3,2,False
+P04,whole number,+2,3,5,False
+P04,whole number,-2,3,1,False
+P04,whole number,+10%,3,4,False
+P04,whole number,-10%,3,2,False
+P04,record_or_score,+1 on one side,11–6,12–6,True
+P04,record_or_score,+1 on one side,6–5,7–5,True
+P04,record_or_score,+1 on one side,2–1,3–1,True
+P04,record_or_score,+1 on one side,3–0,4–0,True
+P05,percentage,+0.3pp,68.7%,69.0%,True
+P05,percentage,-0.3pp,68.7%,68.4%,True
+P05,percentage,+1.0pp,68.7%,69.7%,True
+P05,percentage,-1.0pp,68.7%,67.7%,True
+P05,percentage,+5.0pp,68.7%,73.7%,True
+P05,percentage,-5.0pp,68.7%,63.7%,True
+P05,whole number,+1,767,768,True
+P05,whole number,-1,767,766,True
+P05,whole number,+2,767,769,True
+P05,whole number,-2,767,765,True
+P05,whole number,+10%,767,844,True
+P05,whole number,-10%,767,690,True
+P05,whole number,+1,"1,117","1,118",True
+P05,whole number,-1,"1,117","1,116",True
+P05,whole number,+2,"1,117","1,119",True
+P05,whole number,-2,"1,117","1,115",True
+P05,whole number,+10%,"1,117","1,229",True
+P05,whole number,-10%,"1,117","1,005",True
+P05,percentage,+0.3pp,68.1%,68.4%,True
+P05,percentage,-0.3pp,68.1%,67.8%,True
+P05,percentage,+1.0pp,68.1%,69.1%,True
+P05,percentage,-1.0pp,68.1%,67.1%,True
+P05,percentage,+5.0pp,68.1%,73.1%,False
+P05,percentage,-5.0pp,68.1%,63.1%,True
+P05,whole number,+1,12,13,True
+P05,whole number,-1,12,11,False
+P05,whole number,+2,12,14,True
+P05,whole number,-2,12,10,False
+P05,whole number,+10%,12,13,True
+P05,whole number,-10%,12,11,False
+P05,a_of_b,+1 on one side,"767 of 1,117","768 of 1,117",True
+P06,percentage,+0.3pp,44.9%,45.2%,True
+P06,percentage,-0.3pp,44.9%,44.6%,False
+P06,percentage,+1.0pp,44.9%,45.9%,False
+P06,percentage,-1.0pp,44.9%,43.9%,True
+P06,percentage,+5.0pp,44.9%,49.9%,True
+P06,percentage,-5.0pp,44.9%,39.9%,True
+P06,whole number,+1,80,81,True
+P06,whole number,-1,80,79,True
+P06,whole number,+2,80,82,True
+P06,whole number,-2,80,78,True
+P06,whole number,+10%,80,88,True
+P06,whole number,-10%,80,72,True
+P06,whole number,+1,178,179,True
+P06,whole number,-1,178,177,True
+P06,whole number,+2,178,180,True
+P06,whole number,-2,178,176,True
+P06,whole number,+10%,178,196,True
+P06,whole number,-10%,178,160,True
+P06,whole number,+1,6,7,True
+P06,whole number,-1,6,5,False
+P06,whole number,+2,6,8,False
+P06,whole number,-2,6,4,False
+P06,whole number,+10%,6,7,True
+P06,whole number,-10%,6,5,False
+P06,percentage,+0.3pp,38.8%,39.1%,False
+P06,percentage,-0.3pp,38.8%,38.5%,True
+P06,percentage,+1.0pp,38.8%,39.8%,True
+P06,percentage,-1.0pp,38.8%,37.8%,True
+P06,percentage,+5.0pp,38.8%,43.8%,True
+P06,percentage,-5.0pp,38.8%,33.8%,True
+P06,percentage,+0.3pp,16.3%,16.6%,True
+P06,percentage,-0.3pp,16.3%,16.0%,True
+P06,percentage,+1.0pp,16.3%,17.3%,True
+P06,percentage,-1.0pp,16.3%,15.3%,True
+P06,percentage,+5.0pp,16.3%,21.3%,True
+P06,percentage,-5.0pp,16.3%,11.3%,False
+P06,record_or_score,+1 on one side,05-27,6-27,True
+P06,a_of_b,+1 on one side,80 of 178,81 of 178,True
+P07,percentage,+0.3pp,54.1%,54.4%,True
+P07,percentage,-0.3pp,54.1%,53.8%,True
+P07,percentage,+1.0pp,54.1%,55.1%,True
+P07,percentage,-1.0pp,54.1%,53.1%,False
+P07,percentage,+5.0pp,54.1%,59.1%,True
+P07,percentage,-5.0pp,54.1%,49.1%,True
+P07,whole number,+1,93,94,True
+P07,whole number,-1,93,92,True
+P07,whole number,+2,93,95,True
+P07,whole number,-2,93,91,True
+P07,whole number,+10%,93,102,True
+P07,whole number,-10%,93,84,True
+P07,whole number,+1,172,173,True
+P07,whole number,-1,172,171,True
+P07,whole number,+2,172,174,True
+P07,whole number,-2,172,170,True
+P07,whole number,+10%,172,189,True
+P07,whole number,-10%,172,155,True
+P07,whole number,+1,14,15,True
+P07,whole number,-1,14,13,False
+P07,whole number,+2,14,16,True
+P07,whole number,-2,14,12,False
+P07,whole number,+10%,14,15,True
+P07,whole number,-10%,14,13,False
+P07,whole number,+1,14,15,True
+P07,whole number,-1,14,13,False
+P07,whole number,+2,14,16,True
+P07,whole number,-2,14,12,False
+P07,whole number,+10%,14,15,True
+P07,whole number,-10%,14,13,False
+P07,whole number,+1,28,29,False
+P07,whole number,-1,28,27,True
+P07,whole number,+2,28,30,False
+P07,whole number,-2,28,26,False
+P07,whole number,+10%,28,31,False
+P07,whole number,-10%,28,25,False
+P07,a_of_b,+1 on one side,93 of 172,94 of 172,True

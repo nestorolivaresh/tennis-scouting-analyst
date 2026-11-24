@@ -6,6 +6,7 @@ import { type Locale, type SurfaceWords, enFormat, lowerFirst } from "./format.t
 
 const { int } = enFormat;
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const andList = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
 const matchCount = (n: number) => `${int(n)} ${n === 1 ? "match" : "matches"}`;
 const ordinal = (n: number) => {
   const tens = n % 100;
@@ -255,6 +256,24 @@ export const en = {
     `Win rate, serve and pressure figures cover tournaments starting ${from} to ${to}.${headToHead ? " Head-to-head covers every meeting in the data." : ""} Open a number to see its source.`,
   aboutData: "About the data",
   textNotChecked: "The written text around them isn't checked the same way.",
+  // The check on numbers in model text (D-031). `items` are the numbers as the text writes them.
+  notFoundMark: " (not found in the data)",
+  sourceOf: " (source)", // after a cited number, for screen readers (D-032)
+  answerNumbersFound: (n: number) =>
+    n === 1
+      ? "The number in this answer was found in the data it looked up or in your questions."
+      : `All ${int(n)} numbers in this answer were found in the data it looked up or in your questions.`,
+  answerNotChecked: "The numbers in this answer couldn't be checked.",
+  answerNumbersNotFound: (items: string[]) =>
+    items.length === 1
+      ? `Not found in the data this answer looked up: ${items[0]}. It's underlined.`
+      : `Not found in the data this answer looked up: ${andList(items)}. They're underlined.`,
+  textNumbersFound: (n: number) =>
+    n === 1 ? "The number in the written text was found in the stats data." : `All ${int(n)} numbers in the written text were found in the stats data.`,
+  textNumbersNotFound: (items: string[]) =>
+    items.length === 1
+      ? `One number in the written text wasn't found in the stats data: ${items[0]}. It's underlined.`
+      : `${int(items.length)} numbers in the written text weren't found in the stats data: ${andList(items)}. They're underlined.`,
   keyNumbersFailed: (failing: number, total: number) =>
     `${failing} of ${total} key numbers didn't match the stats data. They're marked below, and the report's text may repeat them, so treat it with care.`,
   reportNotFinished: "The report couldn't be finished.",
@@ -323,8 +342,8 @@ export const en = {
   questionPlaceholder: "How did Alcaraz serve on clay in 2025?",
   stop: "Stop",
   ask: "Ask",
-  chatIntro: "Ask about any ATP player from 2015 on, for example “How did Alcaraz serve on clay in 2025?” Answers use the stats tools, but their numbers aren't checked the way a report's key numbers are.",
-  chatSheetIntro: "Answers use the stats tools, but their numbers aren't checked the way a report's key numbers are.",
+  chatIntro: "Ask about any ATP player from 2015 on, for example “How did Alcaraz serve on clay in 2025?” Answers use the stats tools, and each number in them is looked for in the data the answer used.",
+  chatSheetIntro: "Answers use the stats tools, and each number in them is looked for in the data the answer used.",
   close: "Close",
   callFor: (tool: string, q: string) => `${tool} for “${q}”`,
   chipServe: (w: SurfaceWords) => `How does each player serve ${w.on}?`,

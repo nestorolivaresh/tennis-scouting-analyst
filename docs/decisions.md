@@ -532,7 +532,7 @@ that cites only what appears in a result. Each fix was checked by undoing it and
 fail. The next live report passed on the first attempt with 8 key stats, all grounded.
 
 **Not checked here:** numbers in the narrative text. That's the "invented numbers" score in
-the Milestone 4 evals (spec).
+the Milestone 4 evals (spec), which the app also runs on the text since Milestone 10 (D-031).
 
 ## D-019 API contract
 
@@ -1211,3 +1211,192 @@ SQL, as for the match data (D-012, D-023).
 - **Numbers.** Sinner's six charted Roland Garros 2024 matches match an `awk` sum over the stats
   files (hand check 26), and P06 and P07 passed against the evals' own truth.
 - **Size.** The database is 81 MB with the charting tables.
+
+## D-031 Milestone 10: checking the numbers in the written text
+
+*2026-11-23. Approved by Nestor ("Number checking first").*
+
+**Context.** D-018 checks a report's key numbers exactly, but not its written text, and chat
+answers aren't checked at all; the case study lists this as a limit. The evals already find
+invented numbers in answers (D-023), with rules that only run offline.
+
+**Chosen.**
+- **What is checked.** Every number a reader sees in model text: a chat answer (all the text
+  streamed for it) and a report's summary, strengths, weaknesses, game plan and data caveats.
+- **Against what.** The tool results of the same request. For chat, that's the tool calls of
+  the answer's own turn, which the chat prompt already requires ("recompute every number you
+  use with a tool in this turn"), plus the numbers in the user's own messages, as the evals
+  allow numbers from the question. Earlier answers are not a source.
+- **How.** The evals' rules, moved to `api/numbers.py`; `evals/score.py` imports them, so the
+  evals measure the code that runs in the app. A number is found if a value in the results
+  matches it at the precision it's written with (a fraction may be written as a percentage); a
+  whole number written for a whole number must be equal.
+  Records ("11-8"), counts ("905 of 1,774") and runs of set scores must appear as pairs. Years,
+  ISO dates and ordinals that name a serve, set or round are skipped. Spanish and French are
+  read with a decimal comma, a space before "%", and "de" or "sur" for counts (D-027); a number
+  that reads differently under the English convention ("1,774") is found if either reading is.
+- **What the reader sees.** Numbers not found are marked where they appear, with words for
+  screen readers, and a line says what was checked: all numbers found, or which weren't. The
+  report's status keeps its meaning (its key numbers, D-018), and a number not found doesn't
+  trigger a retry.
+- **In the API.** A report's result gets `numbers` (how many numbers its text has, and each one
+  not found with its field, such as `game_plan.2`, and its position in that text), null for an
+  unfinished report. Chat's `done` event gets the same for the answer, with positions in the
+  text as the browser puts it together from the `text` events. Both are additions (D-019). If
+  the check itself fails, the field is null and the failure is logged: a paid answer is never
+  lost to it.
+- **Logs.** Each request logs how many numbers were checked and how many weren't found.
+
+**Alternatives.** Retrying the model when a number isn't found (costs a call and adds seconds,
+and the check can be wrong in both directions, see below); checking in the browser (a second
+copy of the rules, in TypeScript, that the evals wouldn't measure); hiding answers with a
+number not found (the number may be right and the check wrong).
+
+**Known limits of the check.** It's lenient: a whole number passes if the same number appears
+anywhere in the results, so a wrong small count can pass. It can't tell whether a number is
+attached to the right claim (the first-serve figure called the second-serve one), and it
+doesn't read numbers written in words ("five"). D-032 addresses the last two.
+
+**Found while building it.** The evals' rule let a whole number pass when any value within 1
+of it was in the results, a tolerance meant for rounding ("62%" for 61.6%). It also let an
+off-by-one count through: "1,263" passed against 1,262 and "20" against 19. A whole number
+written for a whole number must now be equal. Rescoring `m8-m9` with it (free) changed
+nothing: still 51/51, with no invented numbers, and a byte-identical results file. (A later
+rescore added the empty `unresolved_citations` column, D-032; no value changed.)
+
+**Checked, 2026-11-23.**
+- **Rules.** `api/tests/test_numbers.py` covers positions, pairs, Spanish and French, the
+  user's own numbers and the report's fields. Each of 11 rules, and the four places the API
+  wires the check in, was broken on purpose, and a test failed every time.
+- **On the 51 `m8-m9` answers** (`evals/number_check.py`, free, results in
+  `evals/results/number-check-m8-m9*.csv`, run again with the final check of D-032, which also
+  reads number words and larger records). No false flags: none of their 725 numbers was
+  marked. These answers had passed the evals' looser version of the check, so this can't show
+  a false flag both versions make. Then each number was changed on purpose, one at a time:
+  - percentages: 339 of 355 changes caught (95.5%);
+  - "a of b" counts: 31 of 32; records and set scores: 94 of 102 (92%); decimals: 18 of 20;
+  - whole numbers: 2,950 of 3,650 (81%): 91% of those above 20, but 79% of those at 20 or
+    less, because a small number usually appears somewhere in the results (a day of the
+    month, a set score).
+- **Live, in Spanish and French** (2026-11-23, local, $0.056 for both). The first real chat
+  answers in either language: "¿Cómo sacó Alcaraz en tierra batida en 2025?" had 13 numbers,
+  written as "66,3 %" and "93 de 142"; "Quel est le bilan entre Sinner et Alcaraz sur terre
+  battue ?" had 45, mostly set scores. All were found.
+- **On screen.** With the API serving a scripted model, marks fell on the named characters in
+  a chat answer (inside bold, in a bullet list) and in a report's game plan, notes and data
+  caveats, and the status line listed them. Web tests check the same through the layout code.
+
+## D-032 Citations in the written text, and numbers written as words
+
+*2026-11-24. Approved by Nestor, after D-031 showed what the check can't see.*
+
+**Context.** D-031's check asks whether a number appears anywhere in the request's tool
+results. It can't tell whose number it is or which stat: the first-serve and second-serve
+figures can be swapped, or one player's figure given to the other, and the check passes,
+because both values are in the results. It also reads only digits, so "won five of his last
+six" isn't checked.
+
+**Chosen.**
+- **The model cites, the app writes the number.** In chat answers and a report's text, the
+  model writes a citation where a number from a tool result goes: `[[c2:stats.first_serve_in.value]]`,
+  the call's short ID and the dotted path that key stats already use (D-018). The API replaces
+  it with the value, formatted for the page's language: a fraction as a percentage with one
+  decimal, a per-match average with one decimal, a count as a whole number, text (a score, a
+  name) as written. A cited number can't be mistyped or invented, because the model never
+  types it.
+- **A citation that doesn't resolve** (no such call, a failed call, no such field, or a field
+  that isn't a number or text) is shown as "[?]" and counted as not found.
+- **Each cited number opens its source** on the page, with the same card as a key number: the
+  tool call, its filters, the sample, what was left out and the field. A number attached to
+  the wrong claim isn't caught by code, but it becomes visible: "68.8%" beside "second serve"
+  opens as first-serve points won.
+- **Pairs are still checked.** A record or count made of two citations ("11-3" from two
+  different records) is checked as a pair, as before (D-031).
+- **Typed numbers keep D-031's check.** Years, dates, and any number the model types instead
+  of citing.
+- **Streaming.** Chat streams text as it comes; a citation split across pieces is held back
+  until it closes, so the browser only ever sees numbers. The positions of cited numbers come
+  with the `done` event, with the evidence of the calls they cite.
+- **Number words.** The prompt asks for digits. The check also reads number words that count
+  something, in English, Spanish and French ("five matches", "won five of", "cinco de sus
+  seis"), and not words such as "one of the best", "no one" or "second serve".
+
+**Alternatives.** Matching the words around a number with the field's name (brittle, and its
+false flags would land on good answers); a second model call to check each claim (costs money,
+isn't deterministic, and can be wrong itself); citations only in reports (chat is where
+numbers are least checked today).
+
+**Found while building it.**
+- **Records with three or four digits** weren't checked as pairs: set scores are read with at
+  most two digits a side, so "309-69" was two separate numbers, and "7-128" was read as "7-12".
+  They're now checked as records, and a two-digit set never stops partway through a longer
+  number. "24" in a year range written "2019-24" is no longer read as a number.
+- **Citing a rate** (the first live and eval runs). In tour_comparison a stat's line holds its
+  figure as a rate, so `stats.service_points_won.value` names an object, and the model's
+  `stats.service_points_won.numerator` names nothing; serve direction's `...ad.wide` is a rate
+  too. A citation of a rate means its value, and a rate's counts can be cited through the line
+  it sits on; the field is written out in full, so the page's source card finds it.
+- **Whose wins.** The first live report wrote "Alcaraz leads the career head-to-head 7 wins to
+  10 (Sinner has the first number as his record: 7 wins is 7)": it cited Sinner's
+  `record.wins` as Alcaraz's, then wrote about the citation. The prompt now says whose wins
+  `record.wins` and `record.losses` are, and not to write about a citation. The next report
+  read "Alcaraz leads the career head-to-head with 10 wins to Sinner's 7".
+- **False flags in the evals:** rally lengths ("1–3 shots", "7–9 shot rallies") read as
+  records, and "68 of his 2024 matches" as a count of 2024. Both are skipped now, with tests.
+  R07's refusal pattern missed "no break-point breakdown"; it accepts the hyphen, and that
+  answer is a scorer test, as R02's was (D-029).
+
+**Checked, 2026-11-24.**
+- **Rules.** `api/tests/test_citations.py` (formats in three languages, rounding as the page
+  does, unresolved citations, text that isn't a citation, a citation split at every pair of
+  positions in a stream) and the number-word and record tests in `api/tests/test_numbers.py`.
+  Each of 17 rules was broken on purpose, and a test failed every time; so were the 7 fixes
+  from the review below, after one test was added (nothing exercised the two-digit year rule).
+- **Evals** (results in `evals/results/m10*.csv`). `m10`, the first run with citations: 45/51
+  ($1.35, mean 4.5 s). Its failures were 3 questions with unresolved citations (P05's were of a
+  rate's counts, fixed above; R07's was a serve-direction figure, which is also a rate, likely
+  the same cause; H10's wasn't recorded, so the results now keep unresolved citations), 2
+  counts in words from a list, and 1 made-up threshold ("outside the top 40"). Run again,
+  H10 and R07 passed (`m10-rerun`); P05 failed again there, citing a rate's counts through
+  its line, and passed after that was fixed too (`m10-rerun2`), $0.03 in all. `m10-final`, after the
+  head-to-head prompt fix: 45/51 ($1.37), 47/51 rescored with the false flags above fixed.
+  Every expected number, tool choice and leader claim passed in both runs; apart from R07's
+  refusal, which the scorer missed, the failures are all numbers the check didn't find.
+- **The check on the 51 `m10-final` answers** (`evals/number_check.py`): 731 numbers, 4
+  flagged, each read: 3 the model's own (two counts in words, one made-up "20"), 1 the check's
+  ("14 of his 28", two tools' counts that no tool states as a pair). With numbers changed on
+  purpose, it caught 94.4% of changed percentages, 89% of records and scores, and 77% of
+  whole numbers (92% above 20, 74% at 20 or less), much as on `m8-m9`. These changes stand for
+  typed numbers: a cited number can't be mistyped.
+- **Live** (2026-11-24, local, $0.22 in all). A report on Sinner and Alcaraz, clay: verified on
+  the first attempt, 11 tool calls, 53 of its 58 numbers cited and none not found. A Spanish
+  chat answer: all 13 numbers cited and
+  written as the page writes them ("66,3 %", "1262").
+- **On screen**, with the API serving a scripted model: cited numbers in a report's summary,
+  notes and game plan and in a chat answer (inside bold, in a list, split across two pieces of
+  the stream) opened the same source card as a key number, below their paragraph; "[?]" and
+  typed numbers not found were underlined.
+
+**Found in review** (an agent read the changes, 2026-11-24, as Nestor asked). Fixed, each with
+a test:
+- A cited score or name opened a source card saying "Not found", because the card describes
+  numbers. Text written in from a citation is still the data's, but opens no card.
+- Per-match averages rounded halves to even (4.25 as "4.2"); the page rounds them up ("4.3").
+- A cited tour median read "62.3%" in the text and 0.6234 on its card; the card now uses the
+  unit of the rate beside it, as the text does.
+- A record made of two citations and not found showed no wavy underline on its numbers.
+- When the check itself failed, the page said nothing; it now says the text wasn't checked.
+- A failed rendering of a report's citations would have lost the paid report, and a model
+  error mid-citation lost the held-back text. Both are kept now.
+- A mistyped citation ("[[c1:record.wins] and ...") swallowed the text up to the next "]]".
+- The year-range rule skipped "15" in "In 2024 — 15 wins"; it now needs "2019-24".
+- The measurement counted a change landing on a number already flagged as caught, and split
+  whole numbers by the changed value; it now leaves those out and splits by the written value.
+- Docs that didn't match the results, corrected above.
+
+**Known limits.** Besides D-031's: a statement made of two tools' counts ("14 of his 28
+matches were charted") or of set counts ("won two of the three sets") is flagged, because no
+result states the pair; a score in the middle of a set ("at 5-5") is too. On an English page,
+an answer the model writes in Spanish (to a question in Spanish) gets English-style cited
+numbers, since the page's language sets the format.
+

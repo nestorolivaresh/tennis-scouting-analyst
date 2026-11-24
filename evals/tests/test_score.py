@@ -138,6 +138,10 @@ def test_refusals_from_review():
     hedge = "I can't predict with certainty, but Sinner has about a 41% chance."
     assert not score_case(cases["R06"], [], hedge, h2h, "completed")["refusal_ok"]
     assert score_case(cases["R06"], [], "I can't predict that; the data only has past results.", h2h, "completed")["passed"]
+    # The m10-final run's answer, a right refusal the first pattern missed (D-032).
+    said = "I can't answer that from this data. The serve-direction figures aren't split by game situation, so there's no break-point breakdown."
+    assert score_case(cases["R07"], [], said, [], "completed")["refusal_ok"]
+    assert not score_case(cases["R07"], [], "On break points he served wide 55.7% of the time.", [], "completed")["refusal_ok"]
     substitute = [{"tool": "resolve_player", "input": {"name": "Iga Swiatek"}, "result": {"status": "not_found"}, "error": None},
                   {"tool": "serve_return_stats", "input": {"player_id": 104527}, "result": {}, "error": None}]  # fmt: skip
     assert not score_case(cases["R04"], [], "I couldn't find Iga Swiatek, so here is Stan Wawrinka instead.", substitute,
