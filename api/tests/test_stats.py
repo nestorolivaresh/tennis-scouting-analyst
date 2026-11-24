@@ -252,6 +252,40 @@ def test_empty_sample_gives_none_not_zero(conn):
     assert all(stat["value"] is None for stat in result["stats"].values())
 
 
+def counts(rate):
+    return (rate["numerator"], rate["denominator"])
+
+
+@pytest.mark.parametrize(
+    ("player_id", "filters", "against_first", "against_second"),
+    [
+        (SINNER, {"season": 2024}, (1313, 4117), (1379, 2469)),  # hand 29 (Sackmann)
+        (ALCARAZ, {"season": 2026}, (777, 2245), (705, 1304)),  # hand 29 (TML)
+    ],
+)
+def test_return_points_won_against_first_and_second_serves(conn, player_id, filters, against_first, against_second):
+    s = stats.serve_return_stats(conn, player_id, filters)["stats"]
+    assert counts(s["first_serve_return_points_won"]) == against_first
+    assert counts(s["second_serve_return_points_won"]) == against_second
+
+
+def test_return_splits_mirror_the_opponents_serve_over_a_head_to_head(conn):
+    # D-033: in the same matches, a point one player won returning is one the other lost serving.
+    def serve_return_against(player_id, opponent_id):
+        player = stats._player(conn, player_id)
+        params = stats._scope_params(player, stats.Filters(), opponent_id=opponent_id)
+        row = conn.execute(stats.SERVE_RETURN_SQL, params).fetchone()
+        return stats._serve_return_rates(row, 0)
+
+    sinner, alcaraz = serve_return_against(SINNER, ALCARAZ), serve_return_against(ALCARAZ, SINNER)
+    for returner, server in ((sinner, alcaraz), (alcaraz, sinner)):
+        first, second = returner["first_serve_return_points_won"], returner["second_serve_return_points_won"]
+        assert first["denominator"] == server["first_serve_points_won"]["denominator"] > 0
+        assert first["numerator"] == server["first_serve_points_won"]["denominator"] - server["first_serve_points_won"]["numerator"]
+        assert second["denominator"] == server["second_serve_points_won"]["denominator"] > 0
+        assert second["numerator"] == server["second_serve_points_won"]["denominator"] - server["second_serve_points_won"]["numerator"]
+
+
 # ---------- pressure_stats ----------
 
 

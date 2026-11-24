@@ -303,6 +303,7 @@ def test_the_two_route_lists_hold_the_route_and_nothing_else():
         "/api/health",
         "/api/players/search",
         "/api/players/:id/stats",
+        "/api/matchup",
         "/api/report/stream",
         "/api/chat",
     }
@@ -310,4 +311,4 @@ def test_the_two_route_lists_hold_the_route_and_nothing_else():
     config = (ROOT / "web" / "next.config.ts").read_text()
     routes = re.fullmatch(r".*const ROUTES = \[(.*?)\];.*", config, re.DOTALL)
     assert routes is not None
-    assert set(re.findall(r'"([^"]+)"', routes[1])) == {"players/search", "players/:id/stats", "report/stream", "chat"}
+    assert set(re.findall(r'"([^"]+)"', routes[1])) == {"players/search", "players/:id/stats", "matchup", "report/stream", "chat"}

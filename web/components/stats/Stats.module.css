@@ -640,6 +640,10 @@
   width: 100%;
 }
 
+.secondButton {
+  margin-top: 10px;
+}
+
 .fullButton:disabled {
   opacity: 0.7;
   cursor: progress;

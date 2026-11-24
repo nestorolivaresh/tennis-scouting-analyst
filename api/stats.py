@@ -207,7 +207,7 @@ WITH scope AS (
          m.round, m.round_order, m.match_num, m.score, m.result_type, m.has_stats, m.season,
          m.best_of, m.minutes, pm.player_id, pm.won, pm.rank, pm.opponent_id, o.full_name AS opponent_name, opp.rank AS opponent_rank,
          pm.aces, pm.serve_points, pm.first_in, pm.first_won, pm.second_won, pm.bp_saved, pm.bp_faced,
-         opp.serve_points AS opp_serve_points, opp.first_won AS opp_first_won,
+         opp.serve_points AS opp_serve_points, opp.first_in AS opp_first_in, opp.first_won AS opp_first_won,
          opp.second_won AS opp_second_won, opp.bp_saved AS opp_bp_saved, opp.bp_faced AS opp_bp_faced,
          CASE
            WHEN m.is_exhibition AND NOT %(include_exhibitions)s THEN 'exhibitions'
@@ -264,8 +264,8 @@ FROM scope
 SERVE_RETURN_SQL = SCOPE_SQL + """
 SELECT sum(aces) AS aces, sum(serve_points) AS serve_points, sum(first_in) AS first_in,
        sum(first_won) AS first_won, sum(second_won) AS second_won,
-       sum(opp_serve_points) AS opp_serve_points,
-       sum(opp_first_won + opp_second_won) AS opp_serve_points_won
+       sum(opp_serve_points) AS opp_serve_points, sum(opp_first_in) AS opp_first_in,
+       sum(opp_first_won) AS opp_first_won, sum(opp_second_won) AS opp_second_won
 FROM scope
 WHERE excluded_as IS NULL AND has_stats
 """
@@ -319,7 +319,9 @@ SELECT player_id,
        sum(first_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS first_won,
        sum(second_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS second_won,
        sum(opp_serve_points) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_serve_points,
-       sum(opp_first_won + opp_second_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_serve_points_won,
+       sum(opp_first_in) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_first_in,
+       sum(opp_first_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_first_won,
+       sum(opp_second_won) FILTER (WHERE excluded_as IS NULL AND has_stats) AS opp_second_won,
        sum(bp_saved) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_saved,
        sum(bp_faced) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_faced,
        sum(opp_bp_faced - opp_bp_saved) FILTER (WHERE excluded_as IS NULL AND has_stats) AS bp_converted,
@@ -366,7 +368,8 @@ GROUP BY link
 """
 
 TOUR_SQL_SUMS = ("aces", "serve_points", "first_in", "first_won", "second_won", "opp_serve_points",
-                 "opp_serve_points_won", "bp_saved", "bp_faced", "bp_converted", "bp_chances")  # fmt: skip
+                 "opp_first_in", "opp_first_won", "opp_second_won", "bp_saved", "bp_faced", "bp_converted",
+                 "bp_chances")  # fmt: skip
 
 PLAYER_SQL = """
 SELECT p.player_id, p.full_name, p.hand, p.country, p.height_cm,
@@ -503,15 +506,21 @@ def _match_entry(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _serve_return_rates(s: Mapping[str, Any], matches_with_stats: int) -> dict[str, Any]:
-    """The spec's serve and return stats from summed counts (never averaged per match)."""
+    """The spec's serve and return stats from summed counts (never averaged per match). The
+    return splits (D-033) mirror the opponent's serve: a point the server didn't win is one the
+    returner won, so a double fault counts for the returner, as it counts against the server in
+    second-serve points won."""
     serve_points, first_in = int(s["serve_points"] or 0), int(s["first_in"] or 0)
-    opp_points = int(s["opp_serve_points"] or 0)
+    opp_points, opp_first_in = int(s["opp_serve_points"] or 0), int(s["opp_first_in"] or 0)
+    opp_first_won, opp_second_won = int(s["opp_first_won"] or 0), int(s["opp_second_won"] or 0)
     return {
         "first_serve_in": rate(first_in, serve_points),
         "first_serve_points_won": rate(s["first_won"], first_in),
         "second_serve_points_won": rate(s["second_won"], serve_points - first_in),
         "service_points_won": rate(int(s["first_won"] or 0) + int(s["second_won"] or 0), serve_points),
-        "return_points_won": rate(opp_points - int(s["opp_serve_points_won"] or 0), opp_points),
+        "return_points_won": rate(opp_points - opp_first_won - opp_second_won, opp_points),
+        "first_serve_return_points_won": rate(opp_first_in - opp_first_won, opp_first_in),
+        "second_serve_return_points_won": rate(opp_points - opp_first_in - opp_second_won, opp_points - opp_first_in),
         "aces_per_match": rate(s["aces"], matches_with_stats, unit="per_match"),
     }
 

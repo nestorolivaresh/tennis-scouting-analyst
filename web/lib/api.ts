@@ -3,6 +3,7 @@
 
 import type { Locale } from "./i18n.ts";
 import type { PlayerStats } from "./player-stats.ts";
+import type { Matchup } from "./prep.ts";
 import { SseParser } from "./sse.ts";
 import type { ApiError, ChatEvent, ChatMessage, ReportEvent, ReportResponse, SearchResult, Surface } from "./types.ts";
 
@@ -41,6 +42,13 @@ export async function searchPlayers(q: string, signal?: AbortSignal): Promise<Se
 
 /** The Player stats page's data, from an address built by statsUrl. */
 export async function fetchPlayerStats(url: string, signal?: AbortSignal): Promise<PlayerStats> {
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw await failure(response);
+  return response.json();
+}
+
+/** The match prep page's data (D-033), from an address built by matchupUrl. */
+export async function fetchMatchup(url: string, signal?: AbortSignal): Promise<Matchup> {
   const response = await fetch(url, { signal });
   if (!response.ok) throw await failure(response);
   return response.json();

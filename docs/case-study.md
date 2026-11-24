@@ -37,6 +37,9 @@ So the goal was narrower than "an AI analyst":
   court, how they do in short and long rallies, and at the net (D-029, D-030).
 - **Player stats.** Any player's record by surface and season, serve and return figures,
   scouting patterns, recent matches and head-to-head, with no model involved.
+- **Match prep.** Two players side by side over the report's window: each serve figure against
+  the other player's return of the same serve, sets and tiebreaks, charted patterns and every
+  meeting, with no model involved (D-033).
 - **Three languages.** English, Spanish and French, defaulting to the browser's language
   (D-027).
 
@@ -204,8 +207,9 @@ an answer varies.
   number in the results by chance (D-023).
 - **The 2026 data can't be redistributed.** TennisMyLife updates its files, so a fresh
   download is a newer snapshot than the one the tests were written against (see the README).
-- **Limits on use.** The daily spend cap covers reports and chat. The Player stats routes use
-  no model and aren't metered, so varied queries reach the database uncached (D-025, D-026).
+- **Limits on use.** The daily spend cap covers reports and chat. The Player stats and match
+  prep routes use no model and aren't metered, so varied queries reach the database uncached
+  (D-025, D-026, D-033).
 - **Not checked.** The French hasn't been read by a native speaker, only two real chat answers
   have been run in Spanish and one in French (D-027, D-031, D-032), and browsers other than
   Chromium haven't been tested (D-026).

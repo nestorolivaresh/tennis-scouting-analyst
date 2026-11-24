@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Board } from "@/components/ui/Board.tsx";
@@ -9,6 +10,7 @@ import { searchPlayers } from "@/lib/api.ts";
 import { saveHandoff } from "@/lib/handoff.ts";
 import { type HeadToHead, type PlayerStats, againstView, findCandidate, matchupHandoff } from "@/lib/player-stats.ts";
 import { lastName } from "@/lib/people.ts";
+import { prepLink } from "@/lib/prep.ts";
 import type { Candidate } from "@/lib/types.ts";
 import styles from "./Stats.module.css";
 
@@ -126,6 +128,13 @@ export function AgainstBox({ data, against, onChoose, onClear }: Props) {
             >
               {t.scoutMatchup}
             </button>
+            {/* The same orientation as the report: the player compared with is preparing to face this one. */}
+            <Link
+              className={`btn-chalk ${styles.fullButton} ${styles.secondButton}`}
+              href={prepLink(h2h.opponent.player_id, data.profile.player.player_id, data.filters.surface)}
+            >
+              {t.compareSideBySide}
+            </Link>
             {failed && (
               <p className={styles.againstFailure} role="alert">
                 {t.detailsFailed(lastName(h2h.opponent.name))}

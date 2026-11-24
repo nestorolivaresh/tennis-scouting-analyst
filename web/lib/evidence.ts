@@ -654,7 +654,7 @@ function inWords(items: string[], t: T): string {
   return `${items.slice(0, -1).join(", ")} ${t.and} ${items[items.length - 1]}`;
 }
 
-const withLongDates = (text: string, t: T) => text.replace(/\d{4}-\d{2}-\d{2}/g, (iso) => longDate(iso, t));
+export const withLongDates = (text: string, t: T) => text.replace(/\d{4}-\d{2}-\d{2}/g, (iso) => longDate(iso, t));
 
 /** The matches a charted or set-pattern figure rests on, read from the result: the charted
  * matches of its block (shot_patterns, D-030) or the completed matches its rate was read from

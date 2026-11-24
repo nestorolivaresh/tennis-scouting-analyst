@@ -211,3 +211,16 @@ awk -F, -v P="Henri Laaksonen" -v E="$EXHIBITION" '
       if (t[k] ~ /\(/ || (a == 7 && b == 6) || (a == 6 && b == 7)) { played++; if ((me ? a : b) > (me ? b : a)) won++
         if (t[k] !~ /\(/) print "bare:", $c["tourney_name"], $c["score"] } } }
   END { printf "tiebreaks %d/%d\n", won, played }' "$S/atp_matches_2015.csv"
+
+echo "== 29. Return points won against first and second serves (D-033): Sinner 2024 (Sackmann), Alcaraz 2026 (TML)"
+# The opponent's serve, read from the other side: points they didn't win are the returner's.
+# Second-serve points are serve points minus first serves in, so double faults are included.
+for args in "Jannik Sinner|$S/atp_matches_2024.csv" "Carlos Alcaraz|$T"; do
+  awk -F, -v P="${args%%|*}" -v X="$EXCLUDE" -v E="$EXHIBITION" '
+    NR == 1 { for (i = 1; i <= NF; i++) c[$i] = i; next }
+    ($c["winner_name"] == P || $c["loser_name"] == P) && index($c["score"], X) == 0 && $c["tourney_name"] !~ E &&
+    $c["w_svpt"] != "" && $c["l_svpt"] != "" {
+      o = ($c["winner_name"] == P) ? "l_" : "w_"
+      fin += $c[o "1stIn"]; fwon += $c[o "1stWon"]; sp += $c[o "svpt"]; swon += $c[o "2ndWon"] }
+    END { printf "%s: against first serves %d/%d, against second serves %d/%d\n", P, fin - fwon, fin, sp - fin - swon, sp - fin }' "${args#*|}"
+done

@@ -23,7 +23,7 @@ outputs, evals with their own ground truth, Next.js 16, Vercel Services and Neon
 | `ingest/` | Download (hash-pinned), validation and loading into Postgres, plus the reviewed player ID files |
 | `api/` | The stats tools, the agent loop, the grounding check and the FastAPI app, with tests |
 | `evals/` | 43 questions, independent ground truth in SQL, the scorer, the runner and committed results |
-| `web/` | The Next.js app: match setup, report, evidence, chat, Player stats |
+| `web/` | The Next.js app: match setup, report, evidence, chat, Player stats, match prep |
 | `infra/` | The production database role and its setup script |
 | `docs/` | Decisions, case study, demo script, data audit, quality report, stat sources, deploy guide |
 
@@ -131,6 +131,7 @@ Every request logs its tool calls, tokens and estimated cost as JSON lines
 curl -s 'localhost:8000/health'                          # app and database, no model call
 curl -s 'localhost:8000/players/search?q=sinner'
 curl -s 'localhost:8000/players/207989/stats?surface=Clay&season=2025'
+curl -s 'localhost:8000/matchup?player_id=206173&opponent_id=207989&surface=Clay'
 curl -s localhost:8000/report -H 'content-type: application/json' \
   -d '{"player_id": 206173, "opponent_id": 207989, "surface": "Clay"}'
 curl -sN localhost:8000/report/stream -H 'content-type: application/json' \
@@ -170,7 +171,8 @@ uv run --env-file .env python -m evals.run --rescore m8-m9           # rescore s
 a surface, watch each lookup as the report is written, then read the report. Any key number opens
 to show the tool call, filters and sample behind it, and a streaming chat takes follow-up
 questions. A second page, Player stats, shows any player's record, serve, return and recent form,
-with no model involved. Numbers on screen are drawn from the tool results, never from the model's
+with no model involved. A third, match prep, puts two players side by side over the report's
+window, each serve against the other's return, also with no model (D-033). Numbers on screen are drawn from the tool results, never from the model's
 text. The app talks to the API through its own server, so the Anthropic key never reaches the
 browser. It's in English, Spanish and French, chosen from the browser's language and switchable
 in the nav ([D-024, D-026, D-027](docs/decisions.md)).

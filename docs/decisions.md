@@ -1411,3 +1411,96 @@ numbers, since the page's language sets the format.
   deciding set". By the scores listed above it in the same answer, all five did: the
   model miscounted, and no result states the count.
 
+
+## D-033 Milestone 11: the match prep page
+
+*2026-11-24. Approved by Nestor, section by section, after a mockup with real figures from the
+local database, then built the same day.*
+
+**Context.** A coach preparing a match wants both players' numbers side by side, and the report
+gives them only through the model's text. The report's game plan also compared one player's
+second serve with the other's own second serve, because the stats layer has no return figure
+against first or second serves. This changes the spec's screens (a fifth one) and stat
+definitions (two more); the rule that every number comes from a tested tool is unchanged.
+
+**Chosen.**
+- **Two return stats** in `serve_return_stats`: return points won against first serves (the
+  opponent's first serves in minus the first-serve points they won, over their first serves in)
+  and against second serves (their second-serve points minus those they won, over their
+  second-serve points; a double fault is a point the returner won, mirroring second-serve
+  points won). The match scope adds the opponent's `first_in`, and the opponent's first- and
+  second-serve points won are summed apart. Being in the shared rates, they reach the report,
+  chat, `tour_comparison` (ranks and medians) and the Player stats page's return rows; the tour
+  table keeps its rows. Tennis Abstract's player page lists only RPW (read 2026-11-24), so the
+  test values come from new hand checks.
+- **`GET /matchup`** (`api/matchup.py`): `player_id`, `opponent_id`, `surface`, and `scope`
+  (`surface`, the default, or `all`). It runs the report's checks (two different players, a
+  surface, both found) and uses the report's window, the two years up to the newest tournament,
+  from the same function. It composes the existing tools from one snapshot: both profiles, the
+  head-to-head over all dates, and for each player the record, serve and return, break points,
+  set patterns and charted patterns under the window and scope. Each block is the tool's own
+  result. Cached like `/players/{id}/stats`; no model, so no spend cap; the sixth public route.
+- **The page** at `/prep`, its state in the URL (`player`, `opponent`, `surface`, `scope`):
+  head-to-head and every meeting; when each player serves, each serve figure against the other's
+  matching return figure (first serve in, then first-serve, second-serve and service points
+  won, and break points saved against converted); sets and tiebreaks; charted serve direction,
+  rally length and net points; each record in the window. One switch moves everything below the
+  head-to-head between the chosen surface and all surfaces, since two years on one surface is
+  thin for set and charted figures. Source cards open inline, with the charted or completed
+  count (D-032's fix); since the page shows two players, each card names whose figure it is,
+  and its filters read like a report's card ("Clay courts; Tournaments starting 26 October
+  2024 to 26 October 2026"). Colours follow the report: the player bottle green, the opponent
+  brass. On phones, pairs stack and the meetings become a list.
+- **Ways in.** A second button on match setup ("Compare the numbers"), a link on a finished
+  report, and a link in the Player stats head-to-head box, which asks for a surface when the
+  page has none. No new menu entry.
+
+**Left out.** Tour medians on the page, the last 10 matches, and charted files beyond the three
+loaded (D-030).
+
+**Cases to verify.**
+
+| Case | Expected |
+| --- | --- |
+| Same player twice, no or unknown surface, bad scope, bad id | 422, the app's error body |
+| Unknown player or opponent | 404 |
+| Window | equals the report's for the same request |
+| A rate with nothing to count, a player with no charted matches | missing, never 0 |
+| One player's return against first serves over a head-to-head | 1 minus the other's first-serve points won |
+| Each new rule broken on purpose | its test fails |
+| A Player stats response cached before the deploy, without the new fields | the two rows show as missing |
+| A load committing during a request | one snapshot, so no mixed blocks |
+| 375 px, keyboard, screen reader names | no sideways scroll; cards reachable and labelled |
+
+**Rollout.** No database change and nothing to reload. One deploy covers the API and the site;
+rollback is a Vercel rollback. Like `/players/{id}/stats`, the route has no per-IP limit, so
+varying the query reaches the database uncached at about the same cost per request. One live
+report after the build, with Nestor's OK, shows the model using the new stats.
+
+**Built as designed, with these details.** The charted section shows each player's first- and
+second-serve directions, as Player stats does, and both net rows. On Player stats, a response
+the CDN cached before the deploy has no return splits; those rows read "No data" with "Not
+available" beside them, not "no matches with stats", so a missing field isn't mistaken for an
+empty filter. `api/matchup.py` calls the report's `prepare_report`, so the checks and the window
+are the report's own code, not a copy. The scope is read before the database is touched.
+
+**How it was checked.**
+- Python, against the local database: hand check 29 (Sinner 2024 from Sackmann, Alcaraz 2026
+  from TennisMyLife) matches the tool exactly, and the mirror check holds over the Sinner and
+  Alcaraz meetings. Three broken versions of the rule (the server's own first serves in, the
+  wrong second-serve count, the player's first serves in the SQL) each fail those tests. The
+  route's tests compare every block with direct tool calls for both scopes and cover the cases
+  above; parsing the scope inside the transaction, and dropping the outer transaction, each fail
+  their test. 413 tests pass.
+- Web: `lib/prep.ts` is tested from a saved `/matchup` response (`fixtures/matchup-clay.json`);
+  the old Player stats fixture, which predates the new fields, stands in for a cached response.
+  228 tests, the typecheck and the build pass.
+- In a browser against the local API: the page for Sinner against Alcaraz on clay, the switch
+  and Back, source cards by mouse and keyboard, a link with the same player twice, an unknown
+  player, no surface, no players, the links from match setup and the Player stats head-to-head
+  box, and 375 px with no sideways scroll. With every surface, Alcaraz's counts (122 completed
+  matches, 75 charted) match the live report checked earlier the same day.
+
+**Not checked.** The link on a finished report in a browser (that needs a model call; it is the
+same link function the tests cover), the new route on Vercel and its CDN, a real model run using
+the new stats, and browsers other than Chromium.

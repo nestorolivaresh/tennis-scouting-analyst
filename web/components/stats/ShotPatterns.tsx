@@ -10,7 +10,7 @@ import type { PlayerStats } from "@/lib/player-stats.ts";
 import { NumberRow, SourceCard } from "./NumberRow.tsx";
 import styles from "./Stats.module.css";
 
-function Directions({ id, title, rows }: { id: string; title: string; rows: DirectionRow[] }) {
+export function Directions({ id, title, rows }: { id: string; title: string; rows: DirectionRow[] }) {
   const t = useT();
   const sides = rows[0]?.cells.map((cell) => cell.side) ?? [];
   return (

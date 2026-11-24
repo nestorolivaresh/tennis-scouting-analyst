@@ -8,6 +8,7 @@
     { "source": "/api/health", "destination": { "service": "backend" } },
     { "source": "/api/players/search", "destination": { "service": "backend" } },
     { "source": "/api/players/:id/stats", "destination": { "service": "backend" } },
+    { "source": "/api/matchup", "destination": { "service": "backend" } },
     { "source": "/api/report/stream", "destination": { "service": "backend" } },
     { "source": "/api/chat", "destination": { "service": "backend" } },
     { "source": "/(.*)", "destination": { "service": "web" } }

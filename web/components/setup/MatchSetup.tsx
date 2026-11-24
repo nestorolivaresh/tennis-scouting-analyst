@@ -3,9 +3,11 @@
 // Match setup: your player and the opponent feed a draw bracket into the surface. The choices
 // live in the page, so they survive a failed report.
 
+import Link from "next/link";
 import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { PlayerSearch } from "@/components/ui/PlayerSearch.tsx";
 import { type T, surfaceWords } from "@/lib/i18n.ts";
+import { prepLink } from "@/lib/prep.ts";
 import type { Candidate, Surface } from "@/lib/types.ts";
 import styles from "./MatchSetup.module.css";
 
@@ -116,6 +118,14 @@ export function MatchSetup({ player, opponent, surface, onPlayer, onOpponent, on
             <button type="button" className="btn btn-wide" disabled={!ready} onClick={onStart}>
               {t.writeReport}
             </button>
+            {ready ? (
+              <Link className={`btn-chalk ${styles.compare}`} href={prepLink(player.player_id, opponent.player_id, surface)}>
+                {t.compareNumbers}
+              </Link>
+            ) : (
+              <button type="button" className={`btn-chalk ${styles.compare}`} disabled>{t.compareNumbers}</button>
+            )}
+            <p className={styles.compareNote}>{t.compareNumbersNote}</p>
           </div>
         </div>
       </form>

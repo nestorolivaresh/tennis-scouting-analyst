@@ -401,6 +401,8 @@ const SERVE_GROUPS: [group: "serve" | "return", rows: RowDefinition[]][] = [
   ]],
   ["return", [
     ["return_points_won", "serve_return"],
+    ["first_serve_return_points_won", "serve_return"],
+    ["second_serve_return_points_won", "serve_return"],
     ["break_points_converted", "pressure"],
   ]],
 ];
@@ -416,7 +418,8 @@ export function serveGroups(data: Pick<PlayerStats, "filters" | "serve_return" |
     const value = rateText(rate, t);
     const unit = key === "aces_per_match" ? null : t.serveUnits[key];
     const hasBar = unit !== null;
-    let counts = filtered ? t.noStatsFilter : t.noStats;
+    // A field the response lacks (one cached before the stat existed, D-033) isn't "no matches".
+    let counts = !rate ? t.notAvailable : filtered ? t.noStatsFilter : t.noStats;
     if (rate && value !== null) {
       counts = unit !== null ? `${t.countOf(rate.numerator, rate.denominator)} ${unit}` : t.acesIn(rate.numerator, rate.denominator);
     }

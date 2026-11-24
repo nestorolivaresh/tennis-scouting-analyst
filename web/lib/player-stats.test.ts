@@ -307,10 +307,30 @@ test("a rate shows its value and the counts behind it", () => {
 });
 
 test("rows read from their own tool's block, in the design's groups", () => {
-  assert.deepEqual(serveGroups(data).map((g) => [g.name, g.rows.length]), [["On serve", 6], ["On return", 2]]);
+  assert.deepEqual(serveGroups(data).map((g) => [g.name, g.rows.length]), [["On serve", 6], ["On return", 4]]);
   assert.equal(row(data, "break_points_saved").counts, "93 of 142 break points faced");
   assert.equal(row(data, "break_points_saved").source.tool, "Break points");
   assert.equal(row(data, "return_points_won").source.tool, "Serve and return stats");
+});
+
+test("the return rows include points won against first and against second serves (D-033)", () => {
+  const stats = clone();
+  stats.serve_return.stats.first_serve_return_points_won = { value: 0.3, numerator: 3, denominator: 10, unit: "fraction" };
+  stats.serve_return.stats.second_serve_return_points_won = { value: 0.5, numerator: 5, denominator: 10, unit: "fraction" };
+  const groups = serveGroups(stats);
+  assert.deepEqual(groups[1].rows.map((r) => r.key), ["return_points_won", "first_serve_return_points_won", "second_serve_return_points_won", "break_points_converted"]);
+  assert.deepEqual([row(stats, "first_serve_return_points_won").title, row(stats, "first_serve_return_points_won").counts],
+    ["Return points won against first serves", "3 of 10 first-serve return points"]);
+  assert.equal(row(stats, "second_serve_return_points_won").counts, "5 of 10 second-serve return points");
+});
+
+test("a response cached before those stats existed shows them as not available, never 0", () => {
+  // The saved response predates D-033, as one cached by the CDN before the deploy would.
+  assert.ok(!("first_serve_return_points_won" in saved.serve_return.stats));
+  for (const key of ["first_serve_return_points_won", "second_serve_return_points_won"]) {
+    const r = row(data, key);
+    assert.deepEqual([r.value, r.counts, r.hasBar ? r.width : 0, r.tick, r.small], ["No data", "Not available", 0, null, false]);
+  }
 });
 
 test("aces per match is an average with no bar", () => {

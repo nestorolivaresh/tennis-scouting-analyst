@@ -329,7 +329,7 @@ The decision log feeds the case study. Keep the code simple enough that I can ex
 
 ### After the MVP
 
-These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data. Milestone 10 (approved 2026-11-23 and 2026-11-24, D-031 and D-032) checks the numbers in the written text, and has the model cite them.
+These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data. Milestone 10 (approved 2026-11-23 and 2026-11-24, D-031 and D-032) checks the numbers in the written text, and has the model cite them. Milestone 11 (approved 2026-11-24, D-033) adds a match prep page with both players side by side, and return points won against first and second serves.
 
 ## Sources
 

@@ -248,6 +248,8 @@
 
 .closing {
   display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
   margin-top: clamp(40px, 5vw, 56px);
 }
 

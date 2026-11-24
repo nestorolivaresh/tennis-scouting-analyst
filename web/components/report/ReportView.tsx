@@ -4,6 +4,7 @@
 // model's prose is shown as prose. The status line says whether every key number passed the
 // grounding check (D-018), and says so plainly when one didn't.
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { useT } from "@/components/ui/LanguageProvider.tsx";
 import { checkStat, checkedPercents, hasCareerHeadToHead } from "@/lib/evidence.ts";
@@ -11,6 +12,7 @@ import { contextLabel, reportContext } from "@/lib/chat.ts";
 import { serverText } from "@/lib/i18n.ts";
 import { fieldCitations, fieldSpans, textCheckLine } from "@/lib/numbers.ts";
 import { longDate } from "@/lib/people.ts";
+import { prepLink } from "@/lib/prep.ts";
 import type { ReportResponse } from "@/lib/types.ts";
 import { GamePlan } from "./GamePlan.tsx";
 import { HonoursBoard } from "./HonoursBoard.tsx";
@@ -99,6 +101,7 @@ export function ReportView({ data, countries, onNewReport }: ReportViewProps) {
 
             <div className={styles.closing}>
               <button type="button" className="btn" onClick={onNewReport}>{t.writeAnother}</button>
+              <Link className="btn-chalk" href={prepLink(player.player_id, opponent.player_id, surface)}>{t.prepFromReport}</Link>
             </div>
           </>
         )}

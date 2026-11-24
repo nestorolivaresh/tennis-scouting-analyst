@@ -37,6 +37,8 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | `serve_return_stats` | Sinner 2024 aces per serve point | 9.9% | TA | 9.91% (594 / 5,996) |
 | `serve_return_stats` | Alcaraz 2023 clay: first serves in, aces per match | 1,346 / 1,999; 95 aces in 28 matches | Hand 4 | match |
 | `serve_return_stats` | Alcaraz 2022: matches, matches with stats, aces per match | 70, 68; 259 aces over the 68 with stats | Hand 13 | match |
+| `serve_return_stats` | Sinner 2024 return points won against first serves, against second serves (D-033) | 1,313 / 4,117; 1,379 / 2,469 | Hand 29 | match |
+| `serve_return_stats` | Alcaraz 2026 (TML) return points won against first serves, against second serves (D-033) | 777 / 2,245; 705 / 1,304 | Hand 29 | match |
 | `pressure_stats` | Sinner 2024 clay: break points saved, converted | 47 / 68; 57 / 120 | Hand 3 | match |
 | `head_to_head` | Sinner v Alcaraz record and by surface | 7-10; Hard 3-7, Clay 2-3, Grass 2-0 | Hand 5 | match |
 | `head_to_head` | Newest meeting | 2026 Monte Carlo final, Sinner won | Hand 5 | match |

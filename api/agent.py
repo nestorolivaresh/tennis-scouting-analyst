@@ -151,7 +151,8 @@ TOOLS = [
     _tool(
         "serve_return_stats",
         "Serve and return point stats (first serve in and won, second serve won, service and return "
-        "points won, aces per match), summed over matches with stats.",
+        "points won, return points won against first serves and against second serves, aces per match), "
+        "summed over matches with stats.",
         {"player_id": PLAYER_ID, "filters": FILTERS_SCHEMA},
         ["player_id"],
     ),
