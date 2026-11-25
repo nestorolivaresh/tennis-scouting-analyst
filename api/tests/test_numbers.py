@@ -106,6 +106,16 @@ def test_pairs_come_from_every_result():
     assert (11, 8) in pairs.records and (11, 19) in pairs.counts and (1262, 2049) in pairs.counts
 
 
+def test_charted_matches_are_part_of_the_matches_counted():
+    """shot_patterns (D-030): its charted matches are among the matches counted, as the live
+    answer to eval P10 wrote them (D-039)."""
+    shots = {"sample": {"matches_counted": 21, "matches_with_stats": 21}, "excluded": {"walkovers": 0},
+             "charting": {"charted_matches": 13}}  # fmt: skip
+    assert spans(check_answer("13 of his 21 Grand Slam matches were charted.", [shots])) == []
+    assert spans(check_answer("13 of his 22 Grand Slam matches were charted.", [shots])) == [("13 of his 22", 0, 12)]
+    assert spans(check_answer("14 of his 21 Grand Slam matches were charted.", [shots])) == [("14 of his 21", 0, 12)]
+
+
 def test_a_record_with_three_or_four_digits_is_checked_as_a_pair():
     career = {"record": {"wins": 309, "losses": 69, "matches": 378}}
     assert spans(check_answer("He is 309-69 overall, 69-309 seen from the other side.", [career])) == []

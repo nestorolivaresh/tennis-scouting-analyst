@@ -22,6 +22,7 @@ from evals.truth import Filters as F, totals
 
 needs_db = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="DATABASE_URL not set")
 SINNER, DJOKOVIC, ALCARAZ, GASQUET, ZVEREV, HASSAN = 206173, 104925, 207989, 104755, 100644, 133975  # hand 9
+FILS, MUSETTI, FRITZ = 209950, 207518, 126203  # hand 9
 
 
 @pytest.fixture(scope="module")
@@ -133,11 +134,31 @@ def pattern_tool_value(stats, conn, expect, filters):
     if stat.startswith("rally_"):
         band = stat.removeprefix("rally_").removesuffix("_won")
         return stats.shot_patterns(conn, expect.player, filters)["rally_length"]["points_won"][band]["value"]
+    if stat in ("path_events", "path_titles"):
+        return stats.season_path(conn, expect.player, filters)["summary"][stat.removeprefix("path_")]
+    if stat == "shot_dir_matches":
+        return stats.shot_patterns(conn, expect.player, filters)["shot_direction"]["matches"]
+    if stat.startswith("shot:"):
+        _, side, direction, measure = stat.split(":")
+        cell = stats.shot_patterns(conn, expect.player, filters)["shot_direction"]["sides"][side]["directions"][direction]
+        return cell[measure]["value"]
     return NOT_A_PATTERN
+
+
+def event_tool_value(stats, conn, expect):
+    """A final's winner, runner-up or score, from the calendar tool (D-036)."""
+    calendar = stats.tournament_calendar(conn, expect.filters.season)["tournaments"]
+    (event,) = [t for t in calendar if t["tournament"] == expect.event]
+    final = event["final"]
+    if expect.stat == "final_score":
+        return final["score"]
+    return truth.last_name(final["winner" if expect.stat == "final_winner" else "runner_up"]["name"])
 
 
 def stats_tool_value(stats, conn, expect):
     """The same number from the stats layer, through the tool a correct answer would call."""
+    if expect.event:
+        return event_tool_value(stats, conn, expect)
     f = expect.filters
     filters = {key: value for key, value in {
         "season": f.season, "date_from": f.date_from, "date_to": f.date_to, "surface": f.surface,
@@ -166,14 +187,19 @@ def test_every_case_matches_the_stats_layer(conn):
     differences = []
     for case in CASES:
         for expect in case.expects:
-            t = totals(conn, expect.player, expect.filters, expect.opponent)
-            if expect.stat in COUNTS or expect.stat in truth.TOTALS_STATS:
+            if expect.event:
+                ours = truth.event_value(conn, expect.stat, expect.filters, expect.event)[0]
+            elif expect.stat in COUNTS or expect.stat in truth.TOTALS_STATS:
+                t = totals(conn, expect.player, expect.filters, expect.opponent)
                 ours = getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)
             else:
                 ours = truth.pattern_value(conn, expect.stat, expect.player, expect.filters)[0]
             theirs = stats_tool_value(stats, api_conn, expect)
             assert ours is not None, (case.id, expect)
-            if theirs is None or abs(ours - theirs) > 5e-5:  # the stats layer rounds rates to 4 places
+            if isinstance(ours, str):
+                if ours != theirs:
+                    differences.append((case.id, expect.stat, ours, theirs))
+            elif theirs is None or abs(ours - theirs) > 5e-5:  # the stats layer rounds rates to 4 places
                 differences.append((case.id, expect.stat, ours, theirs))
     api_conn.close()
     assert differences == []
@@ -181,13 +207,17 @@ def test_every_case_matches_the_stats_layer(conn):
 
 def test_cases_are_well_formed():
     ids = [case.id for case in CASES]
-    assert len(ids) == len(set(ids)) == 51  # the spec's 40, 3 from bugs found by hand, 8 for D-029 and D-030
+    # The spec's 40, 3 from bugs found by hand, 8 for D-029 and D-030, 8 for D-033 to D-038.
+    assert len(ids) == len(set(ids)) == 59
     counts = {}
     for case in CASES:
         counts[case.category] = counts.get(case.category, 0) + 1
         assert case.expects or case.refusal, case.id
-    assert counts == {"single_stat": 10, "filtered_stat": 10, "head_to_head": 11, "comparison": 6, "refuse_or_caveat": 7,
-                      "scouting_pattern": 7}  # fmt: skip
+        for expect in case.expects:
+            assert (expect.event is None) == (expect.player is not None), (case.id, expect)
+            assert expect.event is None or expect.filters.season, (case.id, expect)  # a final is one season's
+    assert counts == {"single_stat": 10, "filtered_stat": 10, "head_to_head": 11, "comparison": 6, "refuse_or_caveat": 8,
+                      "scouting_pattern": 10, "tournaments": 4}  # fmt: skip
 
 
 @needs_db
@@ -218,8 +248,9 @@ def test_truth_is_independent_of_the_stats_layer_and_loader():
             imported.add((node.module or "").split(".")[0])
     assert not imported & {"api", "ingest"}
     ctes = {"src", "tokens", "sets", "typed", "sides", "side_ok", "match_stats", "pm", "scoped", "set_tokens", "per_match",
-            "charts", "chart_keys", "tour", "fits", "g", "chosen", "d", "linked", "mine"}  # fmt: skip
-    sql = truth.PLAYER_MATCHES_SQL + truth.TOTALS_SQL + truth.SET_PATTERNS_SQL + truth.TOUR_TOTALS_SQL + truth.CHARTS_SQL
+            "charts", "chart_keys", "tour", "fits", "g", "chosen", "d", "linked", "mine", "shown", "per_event", "pe"}  # fmt: skip
+    sql = (truth.PLAYER_MATCHES_SQL + truth.TOTALS_SQL + truth.SET_PATTERNS_SQL + truth.TOUR_TOTALS_SQL + truth.CHARTS_SQL
+           + truth.SEASON_EVENTS_SQL + truth.EVENT_FINAL_SQL + truth.SHOT_DIRECTION_SQL)  # fmt: skip
     tables = set(re.findall(r"\b(?:FROM|JOIN)\s+([\w.\"]+)", sql, re.IGNORECASE))
     assert {t for t in tables if t not in ctes and not t.startswith("raw.")} == set()
     # Comma joins too ("FROM src s, public.matches m"): any schema-qualified name is raw.
@@ -260,3 +291,140 @@ def test_set_patterns_match_named_sources(conn):
     assert (sinner["after_win_won"], sinner["after_win_played"], sinner["after_loss_won"], sinner["after_loss_played"]) == (62, 66, 10, 12)
     laaksonen = truth.set_totals(conn, 105967, F(season=2015))
     assert (laaksonen["tiebreaks_won_count"], laaksonen["tiebreaks_played"]) == (2, 3)
+
+
+# ---------- 6. Milestones 11 to 14 (D-033 to D-038) ----------
+
+
+@needs_db
+def test_return_splits_match_named_sources(conn):
+    """Hand 29: Sinner 2024 won 1,313 of 4,117 return points against first serves and 1,379 of
+    2,469 against second serves."""
+    sinner = totals(conn, SINNER, F(season=2024))
+    assert sinner.stat("first_serve_return_points_won") == 1313 / 4117
+    assert sinner.stat("second_serve_return_points_won") == 1379 / 2469
+
+
+@needs_db
+def test_season_paths_match_named_sources(conn):
+    """Hand 30: Sinner's 2025 tournament by tournament, a walkover shown but not counted, an
+    Olympic bronze medal match, and a team event whose last match was a win (D-035)."""
+    path = [(e["tourney_name"], e["wins"], e["matches"] - e["wins"], e["title"])
+            for e in truth.season_events(conn, SINNER, F(season=2025))]  # fmt: skip
+    assert path == [
+        ("Australian Open", 7, 0, True), ("Rome Masters", 5, 1, False), ("Roland Garros", 6, 1, False),
+        ("Halle", 1, 1, False), ("Wimbledon", 7, 0, True), ("Cincinnati Masters", 5, 1, False),
+        ("Us Open", 6, 1, False), ("Beijing", 5, 0, True), ("Shanghai Masters", 1, 1, False),
+        ("Vienna", 5, 0, True), ("Paris Masters", 5, 0, True), ("Tour Finals", 5, 0, True),
+    ]  # fmt: skip
+    fils = {e["tourney_name"]: e for e in truth.season_events(conn, FILS, F(season=2025))}["Roland Garros"]
+    assert (fils["wins"], fils["matches"], fils["walkovers"], fils["title"]) == (2, 2, 1, False)
+    musetti = {e["tourney_name"]: e for e in truth.season_events(conn, MUSETTI, F(season=2024))}["Paris Olympics"]
+    assert (musetti["wins"], musetti["matches"], musetti["title"]) == (5, 6, False)  # won the bronze medal match
+    fritz = {e["tourney_name"]: e for e in truth.season_events(conn, FRITZ, F(season=2025))}["United Cup"]
+    assert (fritz["wins"], fritz["matches"], fritz["title"]) == (4, 5, False)  # won his final match: still no title
+
+
+@needs_db
+def test_finals_match_named_sources(conn):
+    """Hand 31: Indian Wells finals 2015-2025 (none in 2020), and the 2025 United Cup, a team event
+    with no single winner (D-036)."""
+    finals = {year: truth.event_final(conn, year, "Indian Wells Masters") for year in (2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025)}
+    assert {year: (f["winner"], f["runner_up"], f["score"]) for year, f in finals.items()} == {
+        2015: ("Novak Djokovic", "Roger Federer", "6-3 6-7(5) 6-2"),
+        2016: ("Novak Djokovic", "Milos Raonic", "6-2 6-0"),
+        2017: ("Roger Federer", "Stan Wawrinka", "6-4 7-5"),
+        2018: ("Juan Martin del Potro", "Roger Federer", "6-4 6-7(8) 7-6(2)"),
+        2019: ("Dominic Thiem", "Roger Federer", "3-6 6-3 7-5"),
+        2021: ("Cameron Norrie", "Nikoloz Basilashvili", "3-6 6-4 6-1"),
+        2022: ("Taylor Fritz", "Rafael Nadal", "6-3 7-6(5)"),
+        2023: ("Carlos Alcaraz", "Daniil Medvedev", "6-3 6-2"),
+        2024: ("Carlos Alcaraz", "Daniil Medvedev", "7-6(5) 6-1"),
+        2025: ("Jack Draper", "Holger Rune", "6-2 6-2"),
+    }
+    with pytest.raises(ValueError):
+        truth.event_final(conn, 2020, "Indian Wells Masters")  # not played
+    assert truth.event_final(conn, 2025, "United Cup") is None
+    assert truth.event_final(conn, 2025, "Brisbane") == {"winner": "Jiri Lehecka", "runner_up": "Reilly Opelka", "score": "4-1 RET"}
+
+
+@needs_db
+def test_shot_direction_matches_named_sources(conn):
+    """Hand 32: Sinner's six charted Roland Garros 2024 matches (the matches of hand 26), each side
+    and direction hit: shots, winners, unforced errors, points won (D-038)."""
+    result = truth.shot_direction_totals(conn, SINNER, F(season=2024, levels=("G",), surface="Clay"))
+    cells = {f"{side}-{direction}": (v[0], v[1], v[3], v[4]) for (side, direction), v in result["sums"].items()}
+    assert result["matches"] == 6
+    assert cells == {
+        "B-DTL": (104, 16, 16, 63), "B-DTM": (201, 1, 10, 93), "B-IO": (26, 4, 3, 18), "B-XC": (392, 8, 23, 223),
+        "F-DTL": (87, 12, 16, 49), "F-DTM": (187, 1, 7, 94), "F-II": (40, 3, 3, 28), "F-IO": (184, 19, 14, 127),
+        "F-XC": (266, 35, 21, 175), "S-DTL": (13, 0, 1, 7), "S-DTM": (7, 0, 1, 2), "S-IO": (2, 0, 0, 1), "S-XC": (17, 1, 1, 5),
+    }  # fmt: skip
+
+
+@needs_db
+def test_shot_direction_agrees_with_the_loader(conn):
+    """Two implementations of D-038's rules, the loader's and this module's, must keep the same
+    rows for every player of every chart both link to a tour match. The rules that leave a chart
+    out (a repeated row with other counts, shots that aren't points won plus lost) are exercised
+    by the real file: 13 charts repeat rows."""
+    linked = [r["chart_id"] for r in conn.execute(truth.CHARTS_SQL + "SELECT chart_id FROM linked",
+                                                  {"player": None, "opponent": None, **F().params()}).fetchall()]  # fmt: skip
+    names: dict[str, set[str]] = {}
+    for row in conn.execute("SELECT DISTINCT match_id, player1, player2 FROM raw.charting_matches WHERE match_id = ANY(%(ids)s)",
+                            {"ids": linked}).fetchall():  # fmt: skip
+        names.setdefault(row["match_id"], set()).update((row["player1"], row["player2"]))
+    ours = {
+        (chart_id, name, side, direction, *values)
+        for (chart_id, name), cells in truth.shot_direction_cells(conn, names).items()
+        for (side, direction), values in cells.items()
+    }
+    loaded = {
+        (r["chart_id"], r["name"], r["side"], r["direction"], r["shots"], r["winners"], r["induced_forced"],
+         r["unforced"], r["points_won"], r["points_lost"])
+        for r in conn.execute(
+            "SELECT d.*, CASE WHEN d.player_id = c.player1_id THEN m.player1 ELSE m.player2 END AS name "
+            "FROM charting_shot_direction d JOIN charting_matches c USING (chart_id) "
+            "JOIN (SELECT DISTINCT match_id, player1, player2 FROM raw.charting_matches) m ON m.match_id = d.chart_id "
+            "WHERE d.chart_id = ANY(%(ids)s)", {"ids": linked}).fetchall()
+    }  # fmt: skip
+    assert len(loaded) > 90_000  # a floor, so an empty join cannot pass; 2015-2025 charts only
+    assert ours == loaded
+
+
+class _Rows:
+    """A stand-in connection that returns the given rows, for rules no real row breaks."""
+
+    def __init__(self, rows):
+        self.rows = rows
+
+    def execute(self, sql, params):
+        return self
+
+    def fetchall(self):
+        return self.rows
+
+
+def test_shot_direction_rules_on_made_up_rows():
+    """D-038's rules for leaving a player's chart out. Every real row has shots equal to points won
+    plus lost, and winners and errors no more than shots, so those two need made-up rows."""
+
+    def row(chart, label, shots="10", winners="2", forced="1", unforced="3", won="6", lost="4", player="A"):
+        return {"match_id": chart, "player": player, "row": label, "shots": shots, "winners": winners,
+                "induced_forced": forced, "unforced": unforced, "shots_in_pts_won": won, "shots_in_pts_lost": lost}  # fmt: skip
+
+    rows = [
+        row("ok", "F-XC"), row("ok", "B-DTL"), row("ok", "F-XC", player="B"),
+        row("exact_repeat", "F-IO"), row("exact_repeat", "F-IO"),
+        row("other_counts", "F-IO"), row("other_counts", "F-IO", winners="3"),
+        row("sum", "F-XC", won="5"),
+        row("errors", "F-XC", winners="5", forced="3", unforced="3"),
+        row("not_whole", "F-XC", shots="10.0"), row("negative", "F-XC", unforced="-1"),
+        row("unknown_side", "X-XC"), row("unknown_direction", "F-ZZ"),
+    ]  # fmt: skip
+    names = {r["match_id"]: {"A"} for r in rows}
+    cells = truth.shot_direction_cells(_Rows(rows), names)
+    assert cells == {
+        ("ok", "A"): {("F", "XC"): (10, 2, 1, 3, 6, 4), ("B", "DTL"): (10, 2, 1, 3, 6, 4)},  # B's row isn't A's
+        ("exact_repeat", "A"): {("F", "IO"): (10, 2, 1, 3, 6, 4)},  # counted once
+    }

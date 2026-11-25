@@ -46,6 +46,25 @@ def test_tool_calls():
     season = {"tool": "serve_return_stats", "input": {"player_id": 206173, "filters": {"season": "2024"}}, "error": None}
     assert score.call_matches(season, "serve_return_stats", 206173, None, {"season": 2024})
     assert score.call_matches({"tool": "resolve_player", "input": {"name": "Zverev"}}, "resolve_player", None, None, {})
+    history = {"tool": "tournament_history", "input": {"event_code": "404"}, "error": None}  # Indian Wells (hand 31)
+    assert score.call_matches(history, "tournament_history", None, None, {}, {"event_code": 404})
+    assert not score.call_matches(history, "tournament_history", None, None, {}, {"event_code": 403})
+    calendar = {"tool": "tournament_calendar", "input": {"season": 2024, "tourney_level": ["M"]}, "error": None}
+    assert score.call_matches(calendar, "tournament_calendar", None, None, {}, {"season": 2024})
+    assert not score.call_matches(calendar, "tournament_calendar", None, None, {}, {"season": 2025})
+
+
+def test_names_and_scores():
+    """The 2024 Indian Wells final (hand 31): Carlos Alcaraz d. Daniil Medvedev 7-6(5) 6-1."""
+    assert contains_expected("Alcaraz beat Medvedev.", "Medvedev", "name")
+    assert contains_expected("**ALCARAZ** won", "Alcaraz", "name")
+    assert not contains_expected("Alcarazes", "Alcaraz", "name")  # a whole word
+    assert contains_expected("He won 7-6(5) 6-1.", "7-6(5) 6-1", "score")
+    assert contains_expected("He won 7–6 (7–5), 6–1.", "7-6(5) 6-1", "score")  # tiebreak points optional
+    assert not contains_expected("He won 6-1 7-6(5).", "7-6(5) 6-1", "score")  # the sets in order
+    assert not contains_expected("He won 6-7(5) 1-6.", "7-6(5) 6-1", "score")  # winner's games first
+    assert not contains_expected("He won 7-6.", "7-6(5) 6-1", "score")  # every set
+    assert contains_expected("Lehecka led 4-1 when Opelka retired.", "4-1 RET", "score")  # Brisbane 2025 (hand 31)
 
 
 def test_pairs_must_appear_as_pairs():

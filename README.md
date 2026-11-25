@@ -149,8 +149,9 @@ A report costs about $0.07 and a chat answer a few cents.
 
 ### Evals
 
-`evals/` asks the agent 51 questions: the spec's 40 in five categories, one for each bug found
-by hand, and eight for the scouting patterns. Answers are scored against ground truth computed by separate SQL over the raw
+`evals/` asks the agent 59 questions: the spec's 40 in five categories, one for each bug found
+by hand, eight for the scouting patterns, and eight for match prep, season paths, the calendar
+and shot direction. Answers are scored against ground truth computed by separate SQL over the raw
 source files, never by the stats layer. Scoring needs no model:
 - each expected number must appear in the answer (counts exactly, rates within 0.5 percentage
   points);
@@ -158,7 +159,8 @@ source files, never by the stats layer. Scoring needs no model:
 - numbers, records ("11-8") and counts ("905 of 1,774") must match the run's tool results;
 - head-to-head and comparison answers must not name the wrong leader.
 
-The latest run, `m8-m9`, passed 51 of 51 after one scorer fix ([D-029](docs/decisions.md),
+The last full run, `m10-final`, passed 47 of 51 rescored; the eight newer questions passed 8 of 8
+after a fix to the number check ([D-039](docs/decisions.md),
 [case study](docs/case-study.md#eval-results)). Every answer is in `evals/results/`.
 
 ```bash

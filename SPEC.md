@@ -281,6 +281,10 @@ Each milestone ends with something that runs.
 | 8 | Scouting patterns from the match data: an opponent-ranking filter, scores from the asked player's side, time on court, `set_patterns`, `tour_comparison` (D-029) | Every new number matches a hand check or Tennis Abstract, each rule's test fails when the rule is broken, and new eval questions pass |
 | 9 | Shot patterns from the Match Charting Project: serve direction, rally length, net points (`shot_patterns`, D-030) | Charted matches link to tour matches with reasons for the rest, the numbers match hand checks over the stats files, and new eval questions pass |
 | 10 | Checking the numbers in chat answers and a report's written text against that request's tool results, with numbers not found marked on screen (D-031); the model cites numbers in its text and the app writes them, each opening its source (D-032) | The evals use the same check as the app, its false flags and its catch rate on injected errors are measured and committed, and marks work in English, Spanish and French |
+| 11 | A match prep page: both players side by side, and return points won against first and second serves (D-033) | The page uses only the tested stats tools, with no model call, and the return splits match a hand check |
+| 12 | A season path: each tournament a player played in one season and how it ended, with walkovers shown but never counted (D-035) | Every tournament's record and ending matches a hand check, including walkovers, round robins, team events and Davis Cup ties |
+| 13 | A Calendar page: every tournament of a season with its final, and each tournament's history across seasons by its ATP code (D-036) | Finals and a tournament's history match a hand check, and upcoming tournaments are linked to the ATP's own calendar, never copied |
+| 14 | Shot direction from the Match Charting Project, with what each shot produced (D-038) | Every side and direction matches a hand check over the stats file |
 
 **Quality checks for Milestone 1:**
 
@@ -322,14 +326,14 @@ The decision log feeds the case study. Keep the code simple enough that I can ex
 
 ### Decisions for me to make
 
-- [ ] **Latest data:** if the repo stops before the current season, is that acceptable? The options are to state the cutoff clearly or evaluate another source, checking its license first.
-- [ ] **API budget:** set a monthly Anthropic spend limit before Milestone 3.
-- [ ] **Hosting:** AWS App Runner is the plan, with Fly.io or Railway as the fallback if AWS blocks progress. Confirm availability and pricing before Milestone 6.
+- [x] **Latest data:** if the repo stops before the current season, is that acceptable? The options are to state the cutoff clearly or evaluate another source, checking its license first. *Settled: TennisMyLife for 2026 (D-001), pinned to a dated snapshot (D-034).*
+- [x] **API budget:** set a monthly Anthropic spend limit before Milestone 3. *Settled: a monthly limit in the Console (D-022), and a daily spend cap in the app (D-025).*
+- [x] **Hosting:** AWS App Runner is the plan, with Fly.io or Railway as the fallback if AWS blocks progress. Confirm availability and pricing before Milestone 6. *Settled: Vercel and Neon instead (D-025).*
 - [ ] **Real user:** find one coach or player to try the report. Their feedback goes into the case study.
 
 ### After the MVP
 
-These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data. Milestone 10 (approved 2026-11-23 and 2026-11-24, D-031 and D-032) checks the numbers in the written text, and has the model cite them. Milestone 11 (approved 2026-11-24, D-033) adds a match prep page with both players side by side, and return points won against first and second serves. Milestone 12 (approved 2026-11-24, D-035) adds a season path: each tournament a player played in a season and how it ended. Milestone 13 (approved 2026-11-24, D-036) adds a Calendar page: every tournament of a season with its final, and each tournament's history across seasons. Milestone 14 (approved 2026-11-25, D-038) adds shot direction from the Match Charting Project.
+These wait until the case study is published: RAG over coaching notes or match reports, Match Charting Project data, evals in CI, and WTA data. Milestones 8 and 9 (approved 2026-11-23, D-029 and D-030) add scouting patterns from the match data and the Match Charting Project's shot-level data. Milestone 10 (approved 2026-11-23 and 2026-11-24, D-031 and D-032) checks the numbers in the written text, and has the model cite them. Milestone 11 (approved 2026-11-24, D-033) adds a match prep page with both players side by side, and return points won against first and second serves. Milestone 12 (approved 2026-11-24, D-035) adds a season path: each tournament a player played in a season and how it ended. Milestone 13 (approved 2026-11-24, D-036) adds a Calendar page: every tournament of a season with its final, and each tournament's history across seasons. Milestone 14 (approved 2026-11-25, D-038) adds shot direction from the Match Charting Project. Eval questions for Milestones 11 to 14, and checks in CI on every push (the tests that need no database, and the web checks; not the paid eval runs), were added on 2026-11-25 (D-039).
 
 ## Sources
 

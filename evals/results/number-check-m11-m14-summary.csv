@@ -1,0 +1,16 @@
+kind,change,injected,caught,caught_share
+a_of_b,1,7,7,1.0
+a_of_b,all,7,7,1.0
+percentage,0.3pp,24,15,0.625
+percentage,1.0pp,24,17,0.708
+percentage,5.0pp,24,18,0.75
+percentage,all,72,50,0.694
+record_or_score,1,6,5,0.833
+record_or_score,all,6,5,0.833
+whole number,1,101,67,0.663
+whole number,10%,101,72,0.713
+whole number,2,100,75,0.75
+whole number,all,302,214,0.709
+whole number,"all, value 20 or less",200,126,0.63
+whole number,"all, value over 20",102,88,0.863
+real answers,"8 answers, 65 numbers",0,0,

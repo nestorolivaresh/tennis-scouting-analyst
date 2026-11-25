@@ -1,5 +1,5 @@
-"""The eval questions (spec, Evals), with what each answer must contain: the spec's 40, plus
-one for each bug found by hand.
+"""The eval questions (spec, Evals), with what each answer must contain: the spec's 40, one for
+each bug found by hand, and the questions of later milestones (D-029 to D-038).
 
 Every question names its years, so it covers only the pinned Sackmann seasons 2015-2025
 (D-002) and its answer can't change when the TML 2026 data is refreshed. Expected numbers are
@@ -31,24 +31,30 @@ COUNTS = {"matches", "wins", "losses"}  # checked exactly; every other stat is a
 
 @dataclass(frozen=True)
 class Expect:
-    """One number the answer must contain: `stat` for `player` (against `opponent`, if set)."""
+    """One number the answer must contain: `stat` for `player` (against `opponent`, if set). With
+    `event`, a fact about that tournament's final in `filters.season` instead, named the way the
+    raw match file names the tournament: its winner, runner-up (last names) or score (D-036)."""
 
     stat: str
-    player: int
+    player: int | None
     filters: Filters
     opponent: int | None = None
+    event: str | None = None
 
 
 @dataclass(frozen=True)
 class ToolCheck:
     """A tool call the answer must rest on. `filters` lists the values that must be passed;
     other filters may be absent. For head_to_head, the two players may come in either order.
-    `player` None means any input (resolve_player takes a name)."""
+    `player` None means any input (resolve_player takes a name). `inputs` lists top-level
+    arguments that must be passed, for the tools that take no player (tournament_calendar,
+    tournament_history)."""
 
     tool: str
     player: int | None
     filters: dict = field(default_factory=dict)
     opponent: int | None = None
+    inputs: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -282,4 +288,49 @@ CASES: tuple[Case, ...] = (
          (Expect("rally_10_plus_won", ALCARAZ, season(2023, surface="Clay")),
           Expect("charted_matches", ALCARAZ, season(2023, surface="Clay"))),
          (ToolCheck("shot_patterns", ALCARAZ, {"season": 2023, "surface": "Clay"}),)),
+    # Return points won against first and second serves (D-033).
+    Case("P08", "scouting_pattern",
+         "In 2024, what percentage of return points did Carlos Alcaraz win against first serves, and against second serves?",
+         (Expect("first_serve_return_points_won", ALCARAZ, season(2024)),
+          Expect("second_serve_return_points_won", ALCARAZ, season(2024))),
+         (ToolCheck("serve_return_stats", ALCARAZ, {"season": 2024}),)),
+    # Shot direction (D-038): a share of one side's shots, and what that shot produced.
+    Case("P09", "scouting_pattern",
+         "In Jannik Sinner's charted clay matches in 2024, what share of his forehands went inside-out, "
+         "and how often was that shot a winner?",
+         (Expect("shot:forehand:inside_out:share", SINNER, season(2024, surface="Clay")),
+          Expect("shot:forehand:inside_out:winners", SINNER, season(2024, surface="Clay")),
+          Expect("shot_dir_matches", SINNER, season(2024, surface="Clay"))),
+         (ToolCheck("shot_patterns", SINNER, {"season": 2024, "surface": "Clay"}),)),
+    Case("P10", "scouting_pattern",
+         "In Carlos Alcaraz's charted Grand Slam matches in 2024, what share of his backhands went down the line, "
+         "and how often did he win the point when he hit one?",
+         (Expect("shot:backhand:down_the_line:share", ALCARAZ, season(2024, levels=("G",))),
+          Expect("shot:backhand:down_the_line:points_won", ALCARAZ, season(2024, levels=("G",))),
+          Expect("shot_dir_matches", ALCARAZ, season(2024, levels=("G",)))),
+         (ToolCheck("shot_patterns", ALCARAZ, {"season": 2024, "tourney_level": "G"}),)),
+    # The data has only tournaments already played (D-036).
+    Case("R08", "refuse_or_caveat", "Which tournaments will Carlos Alcaraz play in 2027?",
+         refusal=Refusal(must=(r"upcoming|future|schedul|announce|not (been |yet )?played|\byet\b", NEGATION))),
+    # ---------- tournaments: season paths (D-035), the calendar and its history (D-036) ----------
+    Case("T01", "tournaments", "How many tournaments did Carlos Alcaraz play in 2023, and how many of them did he win?",
+         (Expect("path_events", ALCARAZ, season(2023)), Expect("path_titles", ALCARAZ, season(2023))),
+         (ToolCheck("season_path", ALCARAZ, {"season": 2023}),)),
+    # He withdrew from Madrid by walkover, and a Davis Cup tie is never a title (D-035).
+    Case("T02", "tournaments", "How did Jannik Sinner's 2024 Madrid Masters end, and how many titles did he win that season?",
+         (Expect("path_titles", SINNER, season(2024)),),
+         (ToolCheck("season_path", SINNER, {"season": 2024}),),
+         claims=Claims(must=(r"withdr|walk-?over|w/o|pulled out",))),
+    Case("T03", "tournaments", "Who won the Madrid Masters in 2024, who did they beat in the final, and what was the score?",
+         (Expect("final_winner", None, season(2024), event="Madrid Masters"),
+          Expect("final_runner_up", None, season(2024), event="Madrid Masters"),
+          Expect("final_score", None, season(2024), event="Madrid Masters")),
+         (ToolCheck("tournament_calendar", None, inputs={"season": 2024}),)),
+    # Indian Wells is ATP code 404 (hand 31), not played in 2020. A span this long is what
+    # tournament_history is for: asked about 2022-2025, the model answered as well from four
+    # season calendars (m11-m14, D-039).
+    Case("T04", "tournaments", "Who won the Indian Wells Masters each year from 2015 through 2025?",
+         tuple(Expect("final_winner", None, season(year), event="Indian Wells Masters")
+               for year in (*range(2015, 2020), *range(2021, 2026))),
+         (ToolCheck("tournament_history", None, inputs={"event_code": 404}),)),
 )

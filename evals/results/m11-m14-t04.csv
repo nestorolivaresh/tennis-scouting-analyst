@@ -1,0 +1,14 @@
+label,id,category,passed,outcome,numbers_ok,tools_ok,invented_ok,refusal_ok,claims_ok,missing_numbers,missing_tools,invented_numbers,failed_claims,expected,tool_calls,model,effort,model_calls,tokens,cost_usd,latency_s,data_lock,question,answer,unresolved_citations
+m11-m14-t04,T04,tournaments,True,completed,True,True,True,,,[],[],[],[],"[{""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Djokovic"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Djokovic"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Federer"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Potro"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Thiem"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Norrie"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Fritz"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Alcaraz"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Alcaraz"", ""matches"": null}, {""stat"": ""final_winner"", ""player"": null, ""opponent"": null, ""event"": ""Indian Wells Masters"", ""value"": ""Draper"", ""matches"": null}]","[{""tool"": ""tournament_calendar"", ""input"": {""season"": 2025, ""tourney_level"": [""M""], ""surface"": ""Hard""}, ""ok"": true, ""error"": null}, {""tool"": ""tournament_history"", ""input"": {""event_code"": 404}, ""ok"": true, ""error"": null}]",claude-sonnet-5-5,low,3,30172,0.036165,8.0,494386630875,Who won the Indian Wells Masters each year from 2015 through 2025?,"Indian Wells Masters champions, 2015–2025:
+
+- 2015: Novak Djokovic, who beat Roger Federer in the final.
+- 2016: Novak Djokovic, who beat Milos Raonic.
+- 2017: Roger Federer, who beat Stan Wawrinka.
+- 2018: Juan Martin del Potro, who beat Federer.
+- 2019: Dominic Thiem, who beat Federer.
+- 2020: There is no 2020 edition in the data.
+- 2021: Cameron Norrie, who beat Nikoloz Basilashvili. This edition was held in October.
+- 2022: Taylor Fritz, who beat Rafael Nadal.
+- 2023: Carlos Alcaraz, who beat Daniil Medvedev.
+- 2024: Carlos Alcaraz, who beat Medvedev.
+- 2025: Jack Draper, who beat Holger Rune.",[]

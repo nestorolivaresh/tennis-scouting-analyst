@@ -36,7 +36,7 @@ def connect() -> psycopg.Connection:
 # score parsing runs only on those (NULL: every player). Parameters are bound by psycopg.
 PLAYER_MATCHES_SQL = r"""
 WITH src AS (
-  SELECT r.season, r.row_num, trim(r.score) AS score, r.tourney_name, trim(r.round) AS round,
+  SELECT r.season, r.row_num, r.tourney_id, trim(r.score) AS score, r.tourney_name, trim(r.round) AS round,
          CASE WHEN trim(r.best_of) ~ '^\d+$' THEN trim(r.best_of)::int END AS best_of,
          trim(r.winner_name) AS winner_name, trim(r.loser_name) AS loser_name,
          CASE WHEN trim(r.winner_rank) ~ '^\d+$' THEN trim(r.winner_rank)::int END AS winner_rank,
@@ -131,7 +131,7 @@ match_stats AS (
          bool_and(valid) AND max(svpt) > 0 AS sides_valid
   FROM side_ok GROUP BY season, row_num
 )
-SELECT t.season, t.row_num, t.tourney_name, t.tourney_date, t.surface, t.level, t.exhibition,
+SELECT t.season, t.row_num, t.tourney_id, t.tourney_name, t.tourney_date, t.surface, t.level, t.exhibition,
        t.result_type, t.score, t.round, t.best_of,
        CASE WHEN me.side = 'w' THEN t.winner_name ELSE t.loser_name END AS player_name,
        CASE WHEN me.side = 'w' THEN t.loser_name ELSE t.winner_name END AS opponent_name,
@@ -140,7 +140,7 @@ SELECT t.season, t.row_num, t.tourney_name, t.tourney_date, t.surface, t.level, 
        me.player, opp.player AS opponent, me.side = 'w' AS won,
        CASE WHEN p.hand IN ('R', 'L') THEN p.hand END AS opponent_hand,
        me.ace, me.svpt, me.first_in, me.first_won, me.second_won, me.bp_saved, me.bp_faced,
-       opp.svpt AS opp_svpt, opp.first_won AS opp_first_won, opp.second_won AS opp_second_won,
+       opp.svpt AS opp_svpt, opp.first_in AS opp_first_in, opp.first_won AS opp_first_won, opp.second_won AS opp_second_won,
        opp.bp_saved AS opp_bp_saved, opp.bp_faced AS opp_bp_faced
 FROM typed t
 JOIN match_stats ms USING (season, row_num)
@@ -195,6 +195,9 @@ SELECT count(*) FILTER (WHERE left_out IS NULL) AS matches,
        sum(bp_faced) FILTER (WHERE left_out IS NULL AND has_stats) AS bp_faced,
        sum(opp_svpt) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_serve_points,
        sum(opp_first_won + opp_second_won) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_serve_won,
+       sum(opp_first_in) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_first_in,
+       sum(opp_first_won) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_first_won,
+       sum(opp_second_won) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_second_won,
        sum(opp_bp_saved) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_bp_saved,
        sum(opp_bp_faced) FILTER (WHERE left_out IS NULL AND has_stats) AS opp_bp_faced
 FROM scoped
@@ -230,7 +233,8 @@ class Filters:
 
 # The stats Totals.stat computes (the spec's definitions).
 TOTALS_STATS = ("win_rate", "aces_per_match", "first_serve_in", "first_serve_points_won", "second_serve_points_won",
-                "service_points_won", "return_points_won", "break_points_saved", "break_points_converted")  # fmt: skip
+                "service_points_won", "return_points_won", "first_serve_return_points_won",
+                "second_serve_return_points_won", "break_points_saved", "break_points_converted")  # fmt: skip
 
 
 @dataclass(frozen=True)
@@ -271,6 +275,16 @@ class Totals:
             if not s["opp_serve_points"]:
                 return None
             return 1 - s["opp_serve_won"] / s["opp_serve_points"]
+        # D-033: return points against the opponent's first serves in, and against their second
+        # serves (every serve point that wasn't a first serve in).
+        if name == "first_serve_return_points_won":
+            won = None if s["opp_first_in"] is None else s["opp_first_in"] - s["opp_first_won"]
+            return self.rate(won, s["opp_first_in"])
+        if name == "second_serve_return_points_won":
+            if s["opp_serve_points"] is None:
+                return None
+            second_serves = s["opp_serve_points"] - s["opp_first_in"]
+            return self.rate(second_serves - s["opp_second_won"], second_serves)
         if name == "break_points_saved":
             return self.rate(s["bp_saved"], s["bp_faced"])
         if name == "break_points_converted":
@@ -506,6 +520,139 @@ def _share(numerator: int, denominator: int) -> float | None:
     return numerator / denominator if denominator else None
 
 
+# ---------- Milestones 11 to 14 (D-033 to D-038), written again from the decision log ----------
+
+# Season paths (D-035): every counted match, plus walkovers, which a path shows but never counts.
+# A walkover is shown only where a counted match would be, so a filter on surface, hand or ranking
+# leaves out one whose value is unknown. A final won, by walkover too, is a title, except at a
+# Davis Cup tie or a team event (a special event whose note says "Team"), where one player's
+# matches can't say how the team did.
+SEASON_EVENTS_SQL = (
+    SCOPE_SQL
+    + r""",
+shown AS (
+  SELECT * FROM scoped
+  WHERE left_out IS NULL
+     OR (left_out = 'walkover'
+         AND (%(surface)s::text IS NULL OR surface IS NOT NULL)
+         AND (%(opponent_hand)s::text IS NULL OR opponent_hand IS NOT NULL)
+         AND (%(opponent_rank_max)s::int IS NULL OR opponent_rank IS NOT NULL))
+),
+per_event AS (
+  SELECT tourney_id, min(trim(tourney_name)) AS tourney_name, min(level) AS level, min(tourney_date) AS tourney_date,
+         count(*) FILTER (WHERE left_out IS NULL) AS matches,
+         count(*) FILTER (WHERE left_out IS NULL AND won) AS wins,
+         count(*) FILTER (WHERE left_out = 'walkover') AS walkovers,
+         bool_or(round = 'F' AND won) AS won_final
+  FROM shown
+  GROUP BY tourney_id
+)
+SELECT pe.tourney_id, pe.tourney_name, pe.level, pe.tourney_date, pe.matches, pe.wins, pe.walkovers,
+       pe.won_final AND pe.level <> 'D'
+         AND NOT EXISTS (SELECT 1 FROM raw.special_events se
+                         WHERE se.tourney_name = pe.tourney_name AND se.note ILIKE 'team%%') AS title
+FROM per_event pe
+ORDER BY pe.tourney_date, pe.tourney_id
+"""
+)
+
+
+def season_events(conn: psycopg.Connection, player: int, filters: Filters) -> list[dict[str, Any]]:
+    """One row per tournament of the player's season path, in date order."""
+    return conn.execute(SEASON_EVENTS_SQL, {"player": player, "opponent": None, **filters.params()}).fetchall()
+
+
+# A tournament's final (D-036): the round 'F' row of the raw match file, named the way that file
+# names the tournament. A team event's final is a tie between teams, so it has no single winner,
+# and neither does a final whose score contradicts the listed winner (D-007).
+EVENT_FINAL_SQL = r"""
+SELECT r.season, r.row_num, trim(r.winner_name) AS winner_name, trim(r.loser_name) AS loser_name,
+       trim(r.score) AS score, coalesce(m.canonical_id, r.winner_id)::int AS winner,
+       coalesce(se.note ILIKE 'team%%', false) AS team, coalesce(se.is_exhibition = 'true', false) AS exhibition
+FROM raw.matches r
+LEFT JOIN raw.player_merges m ON m.duplicate_id = r.winner_id
+LEFT JOIN raw.special_events se ON se.tourney_name = trim(r.tourney_name)
+WHERE r.source = 'sackmann' AND r.season = %(season)s AND trim(r.tourney_name) = %(event)s
+  AND trim(r.round) = 'F' AND r.tourney_level <> 'D'
+"""
+
+
+def event_final(conn: psycopg.Connection, season: int, event: str) -> dict[str, str] | None:
+    """The final's winner, runner-up and score (winner's games first), or None when no one player
+    won it. Raises when the case names a final the data doesn't have once."""
+    rows = conn.execute(EVENT_FINAL_SQL, {"season": season, "event": event}).fetchall()
+    if len(rows) != 1:
+        raise ValueError(f"{event} {season}: {len(rows)} final rows; fix the case")
+    final = rows[0]
+    if final["exhibition"]:
+        raise ValueError(f"{event} {season} is an exhibition, left out of the calendar unless asked; fix the case")
+    if final["team"]:
+        return None
+    played = conn.execute(
+        "WITH pm AS (" + PLAYER_MATCHES_SQL + ") SELECT result_type FROM pm WHERE season = %(season)s AND row_num = %(row)s AND won",
+        {"player": final["winner"], "season": final["season"], "row": final["row_num"]},
+    ).fetchone()  # fmt: skip
+    if played["result_type"] == "unknown":
+        return None
+    return {"winner": final["winner_name"], "runner_up": final["loser_name"], "score": final["score"]}
+
+
+def last_name(full_name: str) -> str:
+    return full_name.split()[-1]
+
+
+# Shot direction (D-038): the charting file's counts for each side (forehand, backhand, backhand
+# slice) and direction. A player's chart counts only when every one of its rows has a known side
+# and direction and whole numbers, each row's shots are its points won plus lost, its winners and
+# errors don't outnumber its shots, and no row appears twice with different counts (an exact
+# repeat counts once). The file's pt_ending column isn't used.
+SHOT_SIDES = {"F": "forehand", "B": "backhand", "S": "backhand_slice"}
+SHOT_DIRECTIONS = {"XC": "crosscourt", "DTM": "down_the_middle", "DTL": "down_the_line", "IO": "inside_out", "II": "inside_in"}
+SHOT_COLUMNS = ("shots", "winners", "induced_forced", "unforced", "shots_in_pts_won", "shots_in_pts_lost")
+SHOT_DIRECTION_SQL = """
+SELECT d.match_id, d.player, d.row, d.shots, d.winners, d.induced_forced, d.unforced, d.shots_in_pts_won, d.shots_in_pts_lost
+FROM raw.charting_shot_direction d
+WHERE d.match_id = ANY(%(ids)s)
+"""
+
+
+def shot_direction_cells(conn: psycopg.Connection, names: dict[str, set[str]]) -> dict[tuple[str, str], dict[tuple[str, str], tuple[int, ...]]]:
+    """For each chart and player name asked for, the counts per (side, direction), in
+    SHOT_COLUMNS order. A player's chart that breaks a rule is absent."""
+    found: dict[tuple[str, str], list[dict]] = {}
+    for row in conn.execute(SHOT_DIRECTION_SQL, {"ids": list(names)}).fetchall():
+        if row["player"] in names[row["match_id"]]:
+            found.setdefault((row["match_id"], row["player"]), []).append(row)
+    out = {}
+    for key, rows in found.items():
+        cells: dict[tuple[str, str], tuple[int, ...]] = {}
+        for row in rows:
+            side, _, direction = row["row"].partition("-")
+            values = tuple(_whole(row[column]) for column in SHOT_COLUMNS)
+            if side not in SHOT_SIDES or direction not in SHOT_DIRECTIONS or None in values:
+                break
+            shots, winners, forced, unforced, won, lost = values
+            if won + lost != shots or winners + forced + unforced > shots:
+                break
+            if cells.setdefault((side, direction), values) != values:
+                break
+        else:
+            out[key] = cells
+    return out
+
+
+def shot_direction_totals(conn: psycopg.Connection, player: int, filters: Filters = Filters()) -> dict[str, Any]:
+    """Sums over the player's charted matches in scope: the charts with shot direction, and
+    each (side, direction)'s counts."""
+    c = charted(conn, player, filters)
+    cells = shot_direction_cells(conn, {chart_id: {c.names[chart_id]} for chart_id in c.chart_ids})
+    sums: dict[tuple[str, str], list[int]] = {}
+    for chart_cells in cells.values():
+        for key, values in chart_cells.items():
+            sums[key] = [a + b for a, b in zip(sums.get(key, [0] * len(SHOT_COLUMNS)), values)]
+    return {"matches": len(cells), "sums": sums}
+
+
 # Each new stat a question can expect: how to compute it, and whether it's a count (exact).
 def pattern_value(conn: psycopg.Connection, stat: str, player: int, filters: Filters) -> tuple[float | int | None, str]:
     if stat in ("tiebreaks_won", "tiebreaks_won_count", "tiebreaks_played", "deciding_sets_won",
@@ -536,4 +683,37 @@ def pattern_value(conn: psycopg.Connection, stat: str, player: int, filters: Fil
         band = stat.removeprefix("rally_").removesuffix("_won").replace("_plus", "").replace("_", "-")
         s = shot_totals(conn, player, filters)
         return _share(s[f"rally_{band}_won"], s[f"rally_{band}_played"]), "rate"
+    if stat in ("path_events", "path_titles"):
+        events = season_events(conn, player, filters)
+        return (len(events) if stat == "path_events" else sum(1 for e in events if e["title"])), "count"
+    if stat == "shot_dir_matches":
+        return shot_direction_totals(conn, player, filters)["matches"], "count"
+    if stat.startswith("shot:"):  # shot:<side>:<direction>:<measure>, with names as in SHOT_SIDES
+        _, side, direction, measure = stat.split(":")
+        side_code = next(code for code, name in SHOT_SIDES.items() if name == side)
+        direction_code = next(code for code, name in SHOT_DIRECTIONS.items() if name == direction)
+        sums = shot_direction_totals(conn, player, filters)["sums"]
+        shots, winners, forced, unforced, won, _ = sums.get((side_code, direction_code), [0] * len(SHOT_COLUMNS))
+        if measure == "share":
+            return _share(shots, sum(v[0] for (code, _), v in sums.items() if code == side_code)), "rate"
+        per_shot = {"winners": winners, "forced_errors_drawn": forced, "unforced_errors": unforced, "points_won": won}
+        return _share(per_shot[measure], shots), "rate"
+    raise ValueError(f"unknown stat {stat!r}")
+
+
+# A tournament's final (D-036): who won it and who lost it (by last name, as the answer would
+# write them) and its score, winner's games first.
+EVENT_STATS = ("final_winner", "final_runner_up", "final_score")
+
+
+def event_value(conn: psycopg.Connection, stat: str, filters: Filters, event: str) -> tuple[str | None, str]:
+    final = event_final(conn, filters.season, event)
+    if final is None:
+        return None, "name"
+    if stat == "final_winner":
+        return last_name(final["winner"]), "name"
+    if stat == "final_runner_up":
+        return last_name(final["runner_up"]), "name"
+    if stat == "final_score":
+        return final["score"], "score"
     raise ValueError(f"unknown stat {stat!r}")

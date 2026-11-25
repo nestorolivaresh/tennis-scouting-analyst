@@ -1763,3 +1763,86 @@ charting file downloaded (`uv run python -m ingest.download`).
 
 **Not checked.** The model using shot direction in a live report or chat (a paid call), and
 browsers other than Chromium.
+
+## D-039 Evals for Milestones 11 to 14, and checks in CI
+
+*2026-11-25. Asked for by Nestor: eval questions for the newest features with a live run of only
+those, CI, and the spec brought up to date ("do all of this"). The choices below were made in
+building it and are reported for review.*
+
+**Context.** Milestones 11 to 14 added return splits, the season path, the calendar and
+tournament history, and shot direction, with no eval question for any of them: nothing checked
+that the model calls those tools or uses their numbers. No paid run had used them, nor the
+stricter grounding of D-037 and its rule against field names. And no check ran unless run by hand.
+
+**Chosen: eight questions, 59 in all.**
+- **Return splits** (P08), **shot direction** (P09, P10: a direction's share of one side's shots,
+  its winners or points won per shot, and the charted matches), **season paths** (T01: tournaments
+  played and won; T02: Madrid 2024, which Sinner left by walkover, and his titles, which a Davis
+  Cup tie never adds to), **a final from the calendar** (T03: winner, runner-up and score),
+  **a tournament's history** (T04: Indian Wells 2015-2025) and **a refusal** (R08: which
+  tournaments Alcaraz will play in 2027; the data has only tournaments already played).
+- **Ground truth**, in `evals/truth.py`, written again from D-033, D-035, D-036 and D-038 over the
+  raw tables only: return points against first serves in and against second serves; each
+  tournament of a path (walkovers shown but not counted, a final won by walkover a title, never at
+  a Davis Cup tie or a team event); a final as the raw file's round "F" row, with no winner for a
+  team event or a score that contradicts the winner; and shot direction with D-038's rules for
+  leaving a player's chart out. A tournament is named the way the raw file names it, not by its
+  ATP code, so the truth doesn't share the loader's code mapping.
+- **Scoring.** An expected value can now be a last name (a whole word) or a score (every set's
+  games in order, winner's first, tiebreak points optional). A tool check can name top-level
+  inputs (a season, an event code) for the two tools that take no player.
+
+**How it was checked.**
+- Named sources: hands 29 (return splits), 30 (Sinner's 2025 path, Fils's walkover, Musetti's
+  bronze match, Fritz's United Cup), 31 (Indian Wells finals 2015-2025, the 2025 United Cup and
+  Brisbane) and 32 (all 13 shot direction cells). Two implementations agree: the truth and the
+  loader keep the same shot direction rows for every player of every chart both link, and for all
+  59 cases the stats tools give the ground truth's values.
+- Each new rule was broken on purpose (13 in all, `docs/stat-checks.md`), and a test failed each
+  time. Two shot direction rules (shots equal points won plus lost; winners and errors no more
+  than shots) hold in every real row, so made-up rows test them.
+- **Live run** (`evals/results/m11-m14*.csv`, $0.385 in all): 6 of 8 passed at first, and both
+  failures were right answers.
+  - P10 wrote "13 of his 21 Grand Slam matches were charted". Both numbers are in the one
+    `shot_patterns` result, but the charted count isn't part of the result's sample, so the app's
+    number check (D-031) didn't take them as a pair: it would have marked a true sentence on
+    screen. `api/numbers.py` now takes a result's charted matches as a part of its matches counted,
+    and a test fails without that. The same rule clears `m10-final`'s one false flag ("14 of his 28
+    matches were charted", R01), which the case study blamed on two tools; it came from one.
+  - T04 asked about 2022-2025 and was answered correctly from four season calendars, failing a
+    tool check that demanded the history tool. A four-season span doesn't need it, so the
+    question now covers 2015-2025, the span the tool is for, and the check stays.
+  - After the fix, the seven other answers were rescored (free, `m11-m14-rescored`: 7/7) and T04
+    was asked again (`m11-m14-t04`: it used the calendar to find the code, then the history; 1/1).
+    No answer wrote a field's name and every citation resolved.
+- **The number check on these answers** (`evals/number_check.py`, free): no false flags among 65
+  numbers, and every changed "a of b" count caught (7 of 7). Changed percentages were caught 12 of
+  12 times in the return splits answer but 38 of 60 in the two shot direction answers: a
+  `shot_patterns` result holds hundreds of percentages, so a shifted one often matches another.
+  That is the check's known leniency (D-031), left as it is; a cited number (D-032) can't drift.
+
+**Chosen: CI** (`.github/workflows/ci.yml`), on every push and by hand, with two jobs:
+- **Python**: `pytest` with no database: 175 tests run (the loader's transform, charting, player
+  and download rules on made-up rows, filters, scores, citations, the number check, the eval
+  scorer, and the guard against committed birth dates) and 323 that need the loaded data, the API
+  and agent tests among them, are skipped and listed.
+- **Web**: Node 22, `npm ci`, the tests, the typecheck and the build.
+- No secrets, no model calls (the paid eval runs stay manual), no deploy. Actions are pinned to
+  commit hashes of releases at least two weeks old, and uv to the version used locally.
+- **Why no database** (Nestor's choice). The database tests need the pinned raw data, and
+  TennisMyLife rewrites its 2026 file in place: on 2026-11-25 it already differed from the
+  snapshot pinned the day before (the 2025 file and the player file still matched). CI could keep
+  a copy only in the Actions cache, filled by its own first download, which can no longer succeed,
+  and TML's terms forbid redistributing the files, so hosting them elsewhere is out. The
+  alternatives were a re-lock pushed at once to fill the cache (a Neon reload before the next
+  deploy, and red whenever the cache is lost) or a database job skipped until then. The database
+  tests stay a local step before each commit, as before.
+
+**How it was checked.** `pytest` with no `DATABASE_URL`: 175 passed, 323 skipped. The full
+suite against the local database and the web commands pass (below). Before the choice, the
+database job's steps were run against a fresh `postgres:16` from a copy of the tracked files: load
+26 s, 497 passed. **Not checked:** the workflow on GitHub itself, which needs a push.
+
+**Spec.** The milestone table gains 11 to 14, and three of the open decisions are marked settled:
+the 2026 data (D-001, D-034), the spend limits (D-022, D-025) and hosting (D-025).

@@ -44,9 +44,24 @@ ZERO_WORDS = (
 )
 
 
-def contains_expected(answer: str, value: float, kind: str) -> bool:
+# A set's games, "6-4" or "7–6", for scores; a tiebreak's points in parentheses are dropped first.
+GAMES_RE = re.compile(r"(?<!\d)(?<!\d\.)(\d{1,2})\s*[-–—]\s*(\d{1,2})(?!\d|\.\d)")
+
+
+def set_games(text: str) -> list[tuple[int, int]]:
+    return [(int(a), int(b)) for a, b in GAMES_RE.findall(re.sub(r"\([^)]*\)", " ", text))]
+
+
+def contains_expected(answer: str, value: float | str, kind: str) -> bool:
     """kind: "count" (exact), "rate" (a fraction; 0.5 percentage points either way, written
-    as a percentage or a fraction) or "average" (0.05 either way)."""
+    as a percentage or a fraction), "average" (0.05 either way), "name" (a last name, as a whole
+    word, case ignored) or "score" (every set's games in order, winner's first, the tiebreak
+    points optional: "4-6 7-5 7-5")."""
+    if kind == "name":
+        return re.search(rf"\b{re.escape(str(value))}\b", answer, re.IGNORECASE) is not None
+    if kind == "score":
+        sets, found = set_games(str(value)), set_games(answer)
+        return bool(sets) and any(found[i : i + len(sets)] == sets for i in range(len(found) - len(sets) + 1))
     if kind == "count" and value == 0 and re.search(ZERO_WORDS, answer, re.IGNORECASE):
         return True
     for number in numbers_in(answer):
@@ -72,7 +87,7 @@ def contains_expected(answer: str, value: float, kind: str) -> bool:
 def _norm(key: str, value: Any) -> Any:
     if value is None:
         return None
-    if key == "season":
+    if key in ("season", "event_code"):
         return int(value) if str(value).isdigit() else str(value)
     if key in ("date_from", "date_to"):
         try:
@@ -100,12 +115,17 @@ def _same(key: str, given: Any, expected: Any) -> bool:
     return _norm(key, given) == _norm(key, expected)
 
 
-def call_matches(call: dict[str, Any], tool: str, player: int | None, opponent: int | None, filters: dict) -> bool:
-    """Did this successful tool call ask for what the check expects? Dates may differ by up to
-    DATE_SLACK_DAYS."""
+def call_matches(
+    call: dict[str, Any], tool: str, player: int | None, opponent: int | None, filters: dict, inputs: dict | None = None
+) -> bool:
+    """Did this successful tool call ask for what the check expects? `inputs` are top-level
+    arguments (a season, an event code); `filters` are inside `filters`. Dates may differ by up
+    to DATE_SLACK_DAYS."""
     if call["tool"] != tool or call.get("error"):
         return False
     args = call["input"] if isinstance(call["input"], dict) else {}
+    if not all(_same(key, args.get(key), value) for key, value in (inputs or {}).items()):
+        return False
     if player is not None:
         ids = {str(args.get("player_id")), str(args.get("opponent_id"))} if opponent else {str(args.get("player_id"))}
         if ids != ({str(player), str(opponent)} if opponent else {str(player)}):

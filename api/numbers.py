@@ -329,7 +329,11 @@ def pairs_in(data: Any) -> Pairs:
                 counted = sample["matches_counted"]
                 left_out = [v for v in (excluded or {}).values() if ints(v)] if isinstance(excluded, dict) else []
                 total = counted + sum(left_out)
-                for part in [*(v for k, v in sample.items() if ints(v) and k != "matches_counted"), *left_out]:
+                # shot_patterns' charted matches are among the counted ones: "13 of his 21 were
+                # charted" (D-039).
+                charting = node.get("charting")
+                charted = [charting["charted_matches"]] if isinstance(charting, dict) and ints(charting.get("charted_matches")) else []
+                for part in [*(v for k, v in sample.items() if ints(v) and k != "matches_counted"), *left_out, *charted]:
                     counts.update({(part, counted), (part, total)})
             for k, value in node.items():
                 walk(value, k)

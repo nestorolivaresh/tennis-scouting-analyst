@@ -33,11 +33,12 @@ from api.citations import render, results_by_id
 from api.db import connect as connect_api
 from evals import score
 from evals.cases import CASES, COUNTS, NAMES, Case, Expect
-from evals.truth import TOTALS_STATS, Totals, connect as connect_truth, pattern_value, totals
+from evals.truth import TOTALS_STATS, Totals, connect as connect_truth, event_value, pattern_value, totals
 
 RESULTS_DIR = Path(__file__).parent / "results"
 DATA_LOCK = Path(__file__).parent.parent / "ingest" / "data.lock.json"
-CATEGORIES = ("single_stat", "filtered_stat", "head_to_head", "comparison", "refuse_or_caveat", "scouting_pattern")
+CATEGORIES = ("single_stat", "filtered_stat", "head_to_head", "comparison", "refuse_or_caveat", "scouting_pattern",
+              "tournaments")
 FIELDS = [
     "label", "id", "category", "passed", "outcome", "numbers_ok", "tools_ok", "invented_ok", "refusal_ok", "claims_ok",
     "missing_numbers", "missing_tools", "invented_numbers", "failed_claims", "expected", "tool_calls", "model",
@@ -57,20 +58,29 @@ def kind(expect: Expect) -> str:
 
 
 def expected_values(conn, case: Case) -> list[dict[str, Any]]:
-    """Each expected number, computed from the raw tables."""
+    """Each expected number (or name, or score), computed from the raw tables."""
     values = []
     for expect in case.expects:
-        t: Totals = totals(conn, expect.player, expect.filters, expect.opponent)
-        if expect.stat in COUNTS or expect.stat in TOTALS_STATS:
-            value, value_kind = (getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)), kind(expect)
-        else:  # the Milestone 8 and 9 numbers (D-029, D-030)
-            value, value_kind = pattern_value(conn, expect.stat, expect.player, expect.filters)
+        matches = matches_with_stats = None
+        if expect.event:  # a tournament's final (D-036)
+            value, value_kind = event_value(conn, expect.stat, expect.filters, expect.event)
+        else:
+            t: Totals = totals(conn, expect.player, expect.filters, expect.opponent)
+            matches, matches_with_stats = t.matches, t.matches_with_stats
+            if expect.stat in COUNTS or expect.stat in TOTALS_STATS:
+                value, value_kind = (getattr(t, expect.stat) if expect.stat in COUNTS else t.stat(expect.stat)), kind(expect)
+            else:  # the numbers of later milestones (D-029 to D-038)
+                value, value_kind = pattern_value(conn, expect.stat, expect.player, expect.filters)
         if value is None:
             raise ValueError(f"{case.id}: {expect.stat} has no value (no matches?); fix the case")
-        values.append({"stat": expect.stat, "player": expect.player, "opponent": expect.opponent,
-                       "value": value, "kind": value_kind, "matches": t.matches,
-                       "matches_with_stats": t.matches_with_stats})  # fmt: skip
+        values.append({"stat": expect.stat, "player": expect.player, "opponent": expect.opponent, "event": expect.event,
+                       "value": value, "kind": value_kind, "matches": matches,
+                       "matches_with_stats": matches_with_stats})  # fmt: skip
     return values
+
+
+def shown(value: float | str) -> str:
+    return value if isinstance(value, str) else f"{value:.4g}"
 
 
 def generated_claims(case: Case, expected: list[dict]) -> tuple[list[str], list[str]]:
@@ -100,7 +110,8 @@ def score_case(case: Case, expected: list[dict], answer: str, calls: list[dict],
     missing_numbers = [e for e in expected if not score.contains_expected(answer, e["value"], e["kind"])]
     missing_tools = [
         check.tool for check in case.tools
-        if not any(score.call_matches(call, check.tool, check.player, check.opponent, check.filters) for call in calls)
+        if not any(score.call_matches(call, check.tool, check.player, check.opponent, check.filters, check.inputs)
+                   for call in calls)
     ]  # fmt: skip
     # The check the app runs on chat answers (D-031): the run's tool results and the question.
     check = score.check_answer(answer, [call["result"] for call in calls], [case.question])
@@ -132,7 +143,7 @@ def score_case(case: Case, expected: list[dict], answer: str, calls: list[dict],
         "invented_ok": not invented,
         "refusal_ok": refusal_ok,
         "claims_ok": claims_ok,
-        "missing_numbers": [f"{e['stat']} {e['player']}: {e['value']:.4g}" for e in missing_numbers],
+        "missing_numbers": [f"{e['stat']} {e['event'] or e['player']}: {shown(e['value'])}" for e in missing_numbers],
         "missing_tools": missing_tools,
         "invented_numbers": invented,
         "failed_claims": failed_claims,
@@ -269,7 +280,7 @@ def rescore(label: str, cases: tuple[Case, ...], expected: dict[str, list[dict]]
 
 
 def public(expected: list[dict]) -> list[dict]:
-    return [{k: e[k] for k in ("stat", "player", "opponent", "value", "matches")} for e in expected]
+    return [{k: e[k] for k in ("stat", "player", "opponent", "event", "value", "matches")} for e in expected]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -298,8 +309,8 @@ def main(argv: list[str] | None = None) -> int:
         return rescore(args.rescore, cases, expected)
     if args.dry_run:
         for case in cases:
-            shown = ", ".join(f"{e['stat']}={e['value']:.4g} (n={e['matches']})" for e in expected[case.id]) or "no numbers"
-            print(f"{case.id} {case.category:17} {shown}")
+            line = ", ".join(f"{e['stat']}={shown(e['value'])} (n={e['matches']})" for e in expected[case.id]) or "no numbers"
+            print(f"{case.id} {case.category:17} {line}")
         return 0
 
     settings = Settings.from_env()

@@ -154,6 +154,26 @@ For Milestones 8 and 9, on 2026-11-23, each new rule was broken in `evals/truth.
 | Rally points always read from Player 1's side | `test_every_case_matches_the_stats_layer` (P07) |
 | Rally bands not required to add up to the match total | **Not caught.** No linked chart has bands that don't add up (the two that don't are a 1985 match and an ITF qualifying match), so the rule changes nothing in the pinned files. The loader's version is unit-tested. |
 
+For Milestones 11 to 14 (D-039), on 2026-11-25, each new rule was broken in `evals/truth.py`,
+`evals/score.py` or `api/numbers.py`:
+
+| Bug put back | Caught by |
+| --- | --- |
+| Return points against second serves divided by all serve points | `test_return_splits_match_named_sources` (hand 29) |
+| A team event's final counted as a title | `test_season_paths_match_named_sources` (Fritz, United Cup 2025, hand 30) |
+| Walkovers left out of a season path | `test_season_paths_match_named_sources` (Fils, Roland Garros 2025, hand 30) |
+| Walkovers counted in a tournament's record | `test_season_paths_match_named_sources` (hand 30) |
+| A bronze medal match counted as a title | `test_season_paths_match_named_sources` (Musetti, Paris Olympics, hand 30) |
+| A team event's final given a winner | `test_finals_match_named_sources` (United Cup 2025, hand 31) |
+| A shot direction row repeated with other counts kept | `test_shot_direction_agrees_with_the_loader`, `test_shot_direction_rules_on_made_up_rows` |
+| Shots not required to equal points won plus lost | `test_shot_direction_rules_on_made_up_rows`. No real row breaks it, so only made-up rows can. |
+| Winners and errors allowed to outnumber shots | `test_shot_direction_rules_on_made_up_rows`, for the same reason |
+| `pt_ending` read as winners | `test_shot_direction_matches_named_sources` (hand 32), `test_shot_direction_agrees_with_the_loader` |
+| Both players' rows summed for one | `test_shot_direction_matches_named_sources` (hand 32) |
+| A tool check's top-level inputs ignored | `test_tool_calls` |
+| A score's sets accepted in any order | `test_names_and_scores` |
+| A result's charted matches not taken as part of its matches counted | `test_charted_matches_are_part_of_the_matches_counted` |
+
 The review's examples of wrong answers that passed, and right answers that failed, are tests
 too (`test_review_*`, `test_who_leads`, `test_who_is_better`, `test_refusals_from_review`); the
 reviewer showed each one scoring wrongly before the fix.

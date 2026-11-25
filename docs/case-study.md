@@ -112,7 +112,8 @@ Four layers, each meant to catch what the others can't.
 ## Eval results
 
 Forty-three questions: the spec's 40 in five categories, plus 3 added from bugs found by hand.
-Milestones 8 and 9 added eight more for the scouting patterns, for 51.
+Milestones 8 and 9 added eight more for the scouting patterns, for 51, and Milestones 11 to 14
+eight more, for 59 (D-039).
 Each answer is scored on several checks:
 - its numbers, with rates within 0.5 percentage points and counts exact;
 - the tool it chose, and the filters it used;
@@ -134,6 +135,9 @@ Each answer is scored on several checks:
 | `m10` | 51 | the app's number check, citations in the prompt | 45/51 | $1.347 | 4.5 s |
 | `m10-final` | 51 | the same, head-to-head prompt fix | 45/51 | $1.367 | 4.6 s |
 | `m10-final-rescored` | 51 | rally ranges, years after "of" and R07's refusal fixed | 47/51 | (same answers) | |
+| `m11-m14` | 8 new | the app's number check | 6/8 | $0.349 | 5.2 s |
+| `m11-m14-rescored` | 7 | a result's charted matches taken as part of its matches counted | 7/7 | (same answers) | |
+| `m11-m14-t04` | 1 | T04 widened to 2015-2025 | 1/1 | $0.036 | 8.0 s |
 
 `final-v2` by category: single stat 10/10, filtered stat 10/10, head-to-head 10/11,
 comparison 6/6, refuse or caveat 6/6. `m8-m9`, after the scorer fix: every category passed,
@@ -142,8 +146,10 @@ the baseline passed 37 and `final-v2` passed 39. Milestone 10 (D-031, D-032) mad
 invented-number check stricter: number words that count something, and records with three or
 four digits, are now checked. Of `m10-final-rescored`'s four failures, three are the model's own
 numbers ("two of the five" counted from a list, "a bit under 20 matches") and one is the check's
-("14 of his 28 matches were charted", two tools' counts put together, which no tool states as
-a pair).
+("14 of his 28 matches were charted": both counts are in one `shot_patterns` result, but the
+check didn't take the charted count as part of the matches counted; fixed in D-039, and that
+answer now passes the check). The eight questions for Milestones 11 to 14 failed twice on right
+answers: the same charted count, and a tool check stricter than the question needed (D-039).
 
 **What failed, by cause.**
 1. A number from general knowledge: "a second-serve win rate under 50% is common".
