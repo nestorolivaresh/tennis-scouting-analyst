@@ -227,8 +227,11 @@ TOOLS = [
     _tool(
         "shot_patterns",
         "From matches charted shot by shot by the Match Charting Project's volunteers: serve direction "
-        "(wide, body, T) on the deuce and ad courts, points won by rally length, and net points. Only some "
-        "matches are charted, mostly top players and big matches: always say how many.",
+        "(wide, body, T) on the deuce and ad courts, points won by rally length, net points, and shot "
+        "direction (forehand, backhand and backhand slice: crosscourt, down the middle, down the line, "
+        "inside-out, inside-in, with winners, forced errors drawn, unforced errors and points won for each; "
+        "returns aren't included). Only some matches are charted, mostly top players and big matches: "
+        "always say how many.",
         {"player_id": PLAYER_ID, "filters": FILTERS_SCHEMA},
         ["player_id"],
     ),

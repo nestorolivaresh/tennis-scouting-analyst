@@ -7,11 +7,11 @@
 -- Trigram similarity for player-name lookup with typos (api/stats.py, resolve_player).
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-DROP TABLE IF EXISTS charting_player_stats, charting_matches, player_matches, matches, players;
+DROP TABLE IF EXISTS charting_shot_direction, charting_player_stats, charting_matches, player_matches, matches, players;
 DROP TABLE IF EXISTS raw.matches, raw.sackmann_players, raw.tml_players,
                      raw.player_merges, raw.player_crosswalk, raw.special_events, raw.event_codes,
                      raw.charting_matches, raw.charting_serve_direction, raw.charting_rally,
-                     raw.charting_net_points;
+                     raw.charting_net_points, raw.charting_shot_direction;
 
 -- ---------------------------------------------------------------------------
 -- raw: the source files exactly as published, every value as text, plus the reviewed
@@ -169,6 +169,12 @@ CREATE TABLE raw.charting_net_points (
   passed_at_net TEXT, passing_shot_induced_forced TEXT, total_shots TEXT
 );
 
+CREATE TABLE raw.charting_shot_direction (
+  match_id TEXT, player TEXT, row TEXT,
+  shots TEXT, pt_ending TEXT, winners TEXT, induced_forced TEXT, unforced TEXT,
+  shots_in_pts_won TEXT, shots_in_pts_lost TEXT
+);
+
 -- ---------------------------------------------------------------------------
 -- Core tables used by the stats layer.
 -- ---------------------------------------------------------------------------
@@ -301,5 +307,27 @@ CREATE TABLE charting_player_stats (
   CHECK (least(first_deuce_wide, first_deuce_body, first_deuce_t, first_ad_wide, first_ad_body, first_ad_t,
                second_deuce_wide, second_deuce_body, second_deuce_t, second_ad_wide, second_ad_body,
                second_ad_t, rally_1_3_won, rally_4_6_won, rally_7_9_won, rally_10_won, net_points_won) >= 0)
+);
+
+-- Shot direction for each linked chart and player (D-038): one row per side (F forehand, B
+-- backhand, S backhand slice) and direction the chart has, from the Match Charting Project's
+-- per-match totals. Returns and many third shots aren't in them: a shot counts only when its own
+-- direction and the previous shot's were both charted.
+CREATE TABLE charting_shot_direction (
+  chart_id       TEXT    NOT NULL REFERENCES charting_matches (chart_id),
+  match_id       TEXT    NOT NULL REFERENCES matches (match_id),
+  player_id      INTEGER NOT NULL REFERENCES players (player_id),
+  side           TEXT    NOT NULL CHECK (side IN ('F', 'B', 'S')),
+  direction      TEXT    NOT NULL CHECK (direction IN ('XC', 'DTM', 'DTL', 'IO', 'II')),
+  shots          INTEGER NOT NULL,
+  winners        INTEGER NOT NULL,
+  induced_forced INTEGER NOT NULL,  -- forced errors drawn from the opponent
+  unforced       INTEGER NOT NULL,
+  points_won     INTEGER NOT NULL,  -- points in which the player hit this shot, won
+  points_lost    INTEGER NOT NULL,
+  PRIMARY KEY (chart_id, player_id, side, direction),
+  CHECK (least(shots, winners, induced_forced, unforced, points_won, points_lost) >= 0),
+  CHECK (points_won + points_lost = shots),
+  CHECK (winners + induced_forced + unforced <= shots)
 );
 CREATE INDEX idx_charting_stats_player ON charting_player_stats (player_id);

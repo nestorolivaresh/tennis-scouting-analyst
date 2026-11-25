@@ -35,6 +35,14 @@ RALLY_COLUMNS = ["match_id", "server", "returner", "row", "pts", "pl1_won", "pl1
                  "pl1_unforced", "pl2_won", "pl2_winners", "pl2_forced", "pl2_unforced"]  # fmt: skip
 NET_POINTS_COLUMNS = ["match_id", "player", "row", "net_pts", "pts_won", "net_winner", "induced_forced",
                       "net_unforced", "passed_at_net", "passing_shot_induced_forced", "total_shots"]  # fmt: skip
+SHOT_DIRECTION_COLUMNS = ["match_id", "player", "row", "shots", "pt_ending", "winners", "induced_forced",
+                          "unforced", "shots_in_pts_won", "shots_in_pts_lost"]  # fmt: skip
+# Shot direction (D-038): forehand, backhand and backhand slice, each crosscourt, down the middle,
+# down the line, inside-out or inside-in, as the file's rows name them ("F-XC", "S-DTL").
+SHOT_SIDES = ("F", "B", "S")
+SHOT_DIRECTIONS = ("XC", "DTM", "DTL", "IO", "II")
+DIRECTION_COLUMNS = ["chart_id", "match_id", "player_id", "side", "direction", "shots", "winners",
+                     "induced_forced", "unforced", "points_won", "points_lost"]  # fmt: skip
 
 CHART_COLUMNS = ["chart_id", "chart_date", "round", "player1_id", "player2_id", "match_id", "link"]
 STATS_COLUMNS = [
@@ -55,6 +63,7 @@ class Charting:
     charts: list[tuple]
     stats: list[tuple]
     empty_categories: collections.Counter
+    directions: list[tuple] = dataclasses.field(default_factory=list)
 
 
 def whole(value: Any) -> int | None:
@@ -189,14 +198,43 @@ def _net(rows: dict, chart_id: str, name: str) -> list[int] | None:
     return None if None in values or values[1] > values[0] else values
 
 
-def player_stats(links: list[dict], serve_rows: list[dict], rally_rows: list[dict], net_rows: list[dict]) -> Charting:
-    """charting_matches rows for every chart, and charting_player_stats rows for both players of
-    every linked chart."""
+def _shot_directions(rows: dict, chart_id: str, name: str) -> list[tuple] | None:
+    """(side, direction, shots, winners, induced_forced, unforced, points_won, points_lost) for
+    each row the chart has for the player (D-038). None when there are none, or when a row isn't
+    whole numbers, its shots aren't its points won plus lost, its winners and errors outnumber its
+    shots, or a row is repeated with different values. The file's pt_ending isn't used: in 0.2% of
+    rows it differs by one from winners plus errors."""
+    found = rows.get((chart_id, name))
+    if not found:
+        return None
+    out: dict[tuple[str, str], tuple] = {}
+    for row in found:
+        side, _, direction = row["row"].partition("-")
+        values = tuple(whole(row[c]) for c in ("shots", "winners", "induced_forced", "unforced", "shots_in_pts_won", "shots_in_pts_lost"))
+        if side not in SHOT_SIDES or direction not in SHOT_DIRECTIONS or None in values:
+            return None
+        shots, winners, forced, unforced, won, lost = values
+        if min(values) < 0 or won + lost != shots or winners + forced + unforced > shots:
+            return None
+        if out.get((side, direction), values) != values:
+            return None  # the same row twice, with different counts
+        out[(side, direction)] = values
+    return [(side, direction, *values) for (side, direction), values in out.items()]
+
+
+def player_stats(
+    links: list[dict], serve_rows: list[dict], rally_rows: list[dict], net_rows: list[dict], direction_rows: list[dict] | None = None
+) -> Charting:
+    """charting_matches rows for every chart, and charting_player_stats and charting_shot_direction
+    rows for both players of every linked chart."""
     serve = {(r["match_id"], r["player"], r["row"]): r for r in serve_rows}
     rally = {(r["match_id"], r["server"], r["row"]): r for r in rally_rows if r["row"] in ("Total", *RALLY_BUCKETS)}
     net = {(r["match_id"], r["player"], r["row"]): r for r in net_rows if r["row"] == "NetPoints"}
+    shot_rows: dict[tuple[str, str], list[dict]] = collections.defaultdict(list)
+    for r in direction_rows or []:
+        shot_rows[(r["match_id"], r["player"])].append(r)
     empty: collections.Counter = collections.Counter()
-    charts, stats = [], []
+    charts, stats, directions_out = [], [], []
     for link in links:
         charts.append(tuple(link[c] for c in CHART_COLUMNS))
         if link["link"] != "linked":
@@ -209,11 +247,16 @@ def player_stats(links: list[dict], serve_rows: list[dict], rally_rows: list[dic
             net_values = _net(net, chart_id, name)
             if net_values and rally_values and net_values[0] > rally_values[-1]:
                 net_values = None  # more net points than points in the match
-            for category, values in (("serve_direction", directions), ("rally_length", rally_values), ("net_points", net_values)):
+            # No direction rows given at all (not the file being read) means nothing to count as empty.
+            shot_values = _shot_directions(shot_rows, chart_id, name) if direction_rows is not None else []
+            for category, values in (("serve_direction", directions), ("rally_length", rally_values),
+                                     ("net_points", net_values), ("shot_direction", shot_values)):  # fmt: skip
                 if values is None:
                     empty[category] += 1
+            for values in shot_values or []:
+                directions_out.append((chart_id, link["match_id"], player_id, *values))
             stats.append((
                 chart_id, link["match_id"], player_id,
                 *(directions or [None] * 12), *(rally_values or [None] * 9), *(net_values or [None] * 2),
             ))  # fmt: skip
-    return Charting(charts, stats, empty)
+    return Charting(charts, stats, empty, directions_out)

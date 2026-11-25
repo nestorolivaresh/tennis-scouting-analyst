@@ -34,7 +34,8 @@ So the goal was narrower than "an AI analyst":
 - **Scouting patterns.** How a player does in tiebreaks and deciding sets, after winning or
   losing the first set, and against top-ranked opponents; how their serve and return rates rank
   against the rest of the tour; and, from matches charted shot by shot, where they serve on each
-  court, how they do in short and long rallies, and at the net (D-029, D-030).
+  court, how they do in short and long rallies, and at the net; and where each forehand, backhand
+  and slice goes, with the winners, errors and points won each produces (D-029, D-030, D-038).
 - **Player stats.** Any player's record by surface and season, serve and return figures,
   scouting patterns, recent matches and head-to-head, with no model involved. A season path lists
   each tournament of a season and how it ended, with walkovers shown but not counted (D-035).

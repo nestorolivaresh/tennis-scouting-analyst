@@ -4,7 +4,7 @@
 
 import { describeExcluded, describeFilters, ratePercent, withLongDates } from "./evidence.ts";
 import { EN, type T, surfaceWords } from "./i18n.ts";
-import { type PatternRow, type SetPatterns, type ShotPatterns, type ShotView, setRows, shotView } from "./patterns.ts";
+import { type PatternRow, type SetPatterns, type ShotDirectionView, type ShotPatterns, type ShotView, setRows, shotDirectionView, shotView } from "./patterns.ts";
 import { eventName, lastName, longDate, roundName } from "./people.ts";
 import {
   type DataWindow,
@@ -307,6 +307,9 @@ export interface ChartedSide {
   /** Set when the player has no charted match here; the serve-direction table is then left out. */
   none: string | null;
   view: ShotView;
+  /** Shot direction (D-038); null for a response cached before it existed, or none charted. */
+  direction: ShotDirectionView | null;
+  directionTitle: string;
 }
 
 export interface ShotsView {
@@ -314,6 +317,11 @@ export interface ShotsView {
   sides: ChartedSide[];
   rallies: TwoRow[];
   net: TwoRow[];
+}
+
+function ownedDirection(shots: ShotPatterns, t: T): ShotDirectionView | null {
+  const view = shotDirectionView(shots, t);
+  return view && { ...view, source: owned(view.source, shots, t) };
 }
 
 export function shotsView(m: Matchup, t: T = EN): ShotsView {
@@ -333,6 +341,8 @@ export function shotsView(m: Matchup, t: T = EN): ShotsView {
       secondTitle: t.secondServesFor(who[side]),
       none: views[side].charted ? null : t.noChartedFor(who[side], where),
       view: views[side],
+      direction: ownedDirection(m.sides[side].shots, t),
+      directionTitle: t.shotDirFor(who[side]),
     })),
     rallies: pairUp(views.player.rallies, views.opponent.rallies),
     net: pairUp(views.player.net, views.opponent.net),

@@ -217,6 +217,7 @@ def main() -> int:
         "charting-m-stats-ServeDirection.csv": charting.SERVE_DIRECTION_COLUMNS,
         "charting-m-stats-Rally.csv": charting.RALLY_COLUMNS,
         "charting-m-stats-NetPoints.csv": charting.NET_POINTS_COLUMNS,
+        "charting-m-stats-ShotDirOutcomes.csv": charting.SHOT_DIRECTION_COLUMNS,
     }
     chart_data = {}
     for name, expected in chart_files.items():
@@ -230,8 +231,9 @@ def main() -> int:
     serve_rows = chart_data["charting-m-stats-ServeDirection.csv"]
     rally_rows = chart_data["charting-m-stats-Rally.csv"]
     net_rows = chart_data["charting-m-stats-NetPoints.csv"]
+    shot_direction_rows = chart_data["charting-m-stats-ShotDirOutcomes.csv"]
     links = charting.link_charts(chart_rows, [(p[0], p[1]) for p in players], matches)
-    charted = charting.player_stats(links, serve_rows, rally_rows, net_rows)
+    charted = charting.player_stats(links, serve_rows, rally_rows, net_rows, shot_direction_rows)
 
     with psycopg.connect(database_url) as conn, conn.cursor() as cur:  # one transaction
         cur.execute(SCHEMA_PATH.read_text())
@@ -260,10 +262,12 @@ def main() -> int:
             ("raw.charting_serve_direction", charting.SERVE_DIRECTION_COLUMNS, serve_rows),
             ("raw.charting_rally", charting.RALLY_COLUMNS, rally_rows),
             ("raw.charting_net_points", charting.NET_POINTS_COLUMNS, net_rows),
+            ("raw.charting_shot_direction", charting.SHOT_DIRECTION_COLUMNS, shot_direction_rows),
         ):
             copy_rows(cur, table, columns, ([r.get(c) for c in columns] for r in rows))
         copy_rows(cur, "charting_matches", charting.CHART_COLUMNS, charted.charts)
         copy_rows(cur, "charting_player_stats", charting.STATS_COLUMNS, charted.stats)
+        copy_rows(cur, "charting_shot_direction", charting.DIRECTION_COLUMNS, charted.directions)
         # Planner statistics for the new rows, in the same transaction. Without them, the first
         # queries on a new database can pick plans slow enough to hit the 60-second statement
         # timeout (found by following the README from a fresh clone, 2026-11-10).

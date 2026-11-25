@@ -408,6 +408,20 @@ JOIN charting_player_stats s ON s.match_id = scope.match_id AND s.player_id = sc
 WHERE scope.excluded_as IS NULL
 """
 
+# Shot direction over the player's counted charted matches (D-038): each side and direction's
+# sums, and how many matches had any. A side or direction with no row is a count of 0.
+SHOT_DIRECTION_SQL = SCOPE_SQL + """
+SELECT d.side, d.direction, count(DISTINCT d.chart_id) AS matches, sum(d.shots) AS shots,
+       sum(d.winners) AS winners, sum(d.induced_forced) AS induced_forced, sum(d.unforced) AS unforced,
+       sum(d.points_won) AS points_won
+FROM scope
+JOIN charting_shot_direction d ON d.match_id = scope.match_id AND d.player_id = scope.player_id
+WHERE scope.excluded_as IS NULL
+GROUP BY GROUPING SETS ((d.side, d.direction), ())
+"""
+SHOT_SIDES = {"F": "forehand", "B": "backhand", "S": "backhand_slice"}
+SHOT_DIRECTIONS = {"XC": "crosscourt", "DTM": "down_the_middle", "DTL": "down_the_line", "IO": "inside_out", "II": "inside_in"}
+
 # The player's charted matches that aren't linked to a tour match, by reason, over all dates.
 CHARTS_NOT_LINKED_SQL = """
 SELECT link, count(*) AS charts
@@ -1039,6 +1053,7 @@ def shot_patterns(conn: psycopg.Connection, player_id: Any, filters: Filters | M
         sample = _sample(conn, params)
         s = conn.execute(SHOT_PATTERNS_SQL, params).fetchone()
         not_linked = {row["link"]: row["charts"] for row in conn.execute(CHARTS_NOT_LINKED_SQL, params).fetchall()}
+        shot_rows = conn.execute(SHOT_DIRECTION_SQL, params).fetchall()
 
     def directions(serve: str) -> dict[str, Any]:
         out = {}
@@ -1074,7 +1089,38 @@ def shot_patterns(conn: psycopg.Connection, player_id: Any, filters: Filters | M
             "net_points_won": rate(s["net_points_won"], s["net_points"]),
             "share_of_points_at_net": rate(s["net_points_timed"], s["points_with_net"]),
         },
+        shot_direction=_shot_direction(shot_rows),
     )
+
+
+def _shot_direction(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Forehand, backhand and backhand slice: the share of each side's shots hit in each direction,
+    and for each, the winners, forced errors drawn, unforced errors and points won, per shot
+    hit (D-038). Returns and many third shots aren't charted for direction."""
+    total = next((r for r in rows if r["side"] is None), None)
+    cells = {(r["side"], r["direction"]): r for r in rows if r["side"] is not None}
+    sides = {}
+    for code, side in SHOT_SIDES.items():
+        side_shots = sum(int(r["shots"]) for (c, _), r in cells.items() if c == code)
+        directions = {}
+        for dcode, direction in SHOT_DIRECTIONS.items():
+            r = cells.get((code, dcode))
+            n = int(r["shots"]) if r else 0
+            directions[direction] = {
+                "shots": n,
+                "share": rate(n, side_shots),
+                "winners": rate(r["winners"] if r else 0, n),
+                "forced_errors_drawn": rate(r["induced_forced"] if r else 0, n),
+                "unforced_errors": rate(r["unforced"] if r else 0, n),
+                "points_won": rate(r["points_won"] if r else 0, n),
+            }
+        sides[side] = {"shots": side_shots, "directions": directions}
+    return {
+        "matches": int(total["matches"]) if total else 0,
+        "about": "Only shots whose own direction and the previous shot's were charted: returns aren't included, "
+        "and many third shots aren't either.",
+        "sides": sides,
+    }
 
 
 def rank_among(value: Fraction, values: Iterable[Fraction]) -> int:

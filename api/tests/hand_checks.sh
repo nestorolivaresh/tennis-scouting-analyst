@@ -269,3 +269,10 @@ for y in $(seq 2015 2025); do
   awk -F, -v Y="$y" '$2 == "Indian Wells Masters" && $26 == "F" { print Y, $11, "d.", $19, $24 }' "$S/atp_matches_$y.csv"
 done
 awk -F, '$2 == "Indian Wells Masters" && $31 == "F" { print 2026, $12, "d.", $22, $29 }' "$T"
+
+echo "== 32. Sinner's charted Roland Garros 2024 matches (as in 26): shot direction by side, with winners, unforced errors and points won (D-038)"
+awk -F, -v P="Jannik Sinner" '
+  FILENAME ~ /matches/ { if ($1 ~ /^2024[0-9]*-M-Roland_Garros-/ && ($2 == P || $3 == P)) id[$1] = 1; next }
+  ($1 in id) && $2 == P && $3 ~ /^[FBS]-/ { shots[$3] += $4; win[$3] += $6; unf[$3] += $8; won[$3] += $9 }
+  END { for (k in shots) printf "%s shots %d winners %d unforced %d won %d\n", k, shots[k], win[k], unf[k], won[k] }' \
+  "$C/charting-m-matches.csv" "$C/charting-m-stats-ShotDirOutcomes.csv" | sort

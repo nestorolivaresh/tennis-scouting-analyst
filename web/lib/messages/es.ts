@@ -589,4 +589,28 @@ export const es: Messages = {
   calLinkHelp: "El enlace no apunta a una temporada ni a un torneo de los datos. Elige una temporada.",
   calUnreachable: "No se pudo acceder al calendario. Comprueba la conexión e inténtalo de nuevo.",
   calShowSeason: "Ver la temporada más reciente",
+
+  // ---------- shot direction (D-038) ----------
+  shotDirTitle: "Dirección de los golpes",
+  shotDirNote: (n) =>
+    `De ${int(n)} ${n === 1 ? "partido registrado" : "partidos registrados"}. Un golpe cuenta solo si se registró su dirección y la del golpe anterior, así que no incluye los restos ni muchos terceros golpes.`,
+  shotDirFor: (name) => `${name}: dirección de los golpes`,
+  shotDirWhere: "Adónde va cada golpe",
+  shotDirProduced: "Qué produjo cada golpe",
+  colShot: "Golpe",
+  colHit: "Golpes",
+  colWinners: "Ganadores",
+  colForcedDrawn: "Errores forzados provocados",
+  colUnforced: "Errores no forzados",
+  colPointsWon: "Puntos ganados",
+  shotSides: { forehand: "Derecha", backhand: "Revés", backhand_slice: "Revés cortado" },
+  shotDirections: {
+    crosscourt: "Cruzado", down_the_middle: "Al centro", down_the_line: "Paralelo", inside_out: "Invertido", inside_in: "Paralelo invertido",
+  },
+  shotOf: (side, direction) => `${side} ${direction.toLowerCase()}`,
+  measureShotDirection: (side, direction, kind) =>
+    ({ share: `golpes de ${side.toLowerCase()} ${direction.toLowerCase()}`, winners: `ganadores de ${side.toLowerCase()} ${direction.toLowerCase()}`,
+       forced_errors_drawn: `errores forzados provocados con ${side.toLowerCase()} ${direction.toLowerCase()}`,
+       unforced_errors: `errores no forzados de ${side.toLowerCase()} ${direction.toLowerCase()}`,
+       points_won: `puntos ganados al jugar ${side.toLowerCase()} ${direction.toLowerCase()}` } as Record<string, string>)[kind] ?? `${side} ${direction}`,
 };

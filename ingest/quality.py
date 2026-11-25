@@ -22,7 +22,7 @@ FINGERPRINT_TABLES = [
     "raw.matches", "raw.sackmann_players", "raw.tml_players", "raw.player_merges",
     "raw.player_crosswalk", "raw.special_events", "raw.event_codes", "players", "matches", "player_matches",
     "raw.charting_matches", "raw.charting_serve_direction", "raw.charting_rally", "raw.charting_net_points",
-    "charting_matches", "charting_player_stats",
+    "raw.charting_shot_direction", "charting_matches", "charting_player_stats", "charting_shot_direction",
 ]  # fmt: skip
 # Number of sets decided by a tiebreak, counted in SQL independently of transform.py.
 TIEBREAKS_SQL = "(SELECT count(*) FROM regexp_matches(m.score, '(^| )(7-6|6-7)', 'g'))"

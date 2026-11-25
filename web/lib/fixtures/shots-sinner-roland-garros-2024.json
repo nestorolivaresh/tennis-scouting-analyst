@@ -1,0 +1,696 @@
+{
+ "tool": "shot_patterns",
+ "player": {
+  "player_id": 206173,
+  "name": "Jannik Sinner"
+ },
+ "filters": {
+  "surface": "Clay",
+  "date_from": null,
+  "date_to": null,
+  "season": 2024,
+  "tourney_level": [
+   "G"
+  ],
+  "opponent_hand": null,
+  "include_exhibitions": false,
+  "opponent_rank_max": null
+ },
+ "sample": {
+  "matches_counted": 6,
+  "matches_with_stats": 6,
+  "opponent_retired_or_defaulted": 0,
+  "player_retired_or_defaulted": 0,
+  "first_tourney_date": "2024-05-27",
+  "last_tourney_date": "2024-05-27"
+ },
+ "excluded": {
+  "walkovers": 0,
+  "exhibitions": 0,
+  "unknown_results": 0,
+  "unknown_surface": 0,
+  "unknown_opponent_hand": 0,
+  "unknown_opponent_rank": 0
+ },
+ "data_window": {
+  "first_tourney_date": "2015-01-04",
+  "last_tourney_date": "2026-11-08",
+  "last_match_date": "2026-11-14"
+ },
+ "charting": {
+  "charted_matches": 6,
+  "points_charted": 1176,
+  "player_charts_not_linked_all_dates": {
+   "no_tour_match": 8,
+   "before_data": 1
+  },
+  "about": "Charted by volunteers for the Match Charting Project: a sample weighted toward top players and big matches, not every match played."
+ },
+ "serve_direction": {
+  "matches": 6,
+  "first_serves_in": {
+   "deuce": {
+    "wide": {
+     "value": 0.4494,
+     "numerator": 80,
+     "denominator": 178,
+     "unit": "fraction"
+    },
+    "body": {
+     "value": 0.1629,
+     "numerator": 29,
+     "denominator": 178,
+     "unit": "fraction"
+    },
+    "t": {
+     "value": 0.3876,
+     "numerator": 69,
+     "denominator": 178,
+     "unit": "fraction"
+    }
+   },
+   "ad": {
+    "wide": {
+     "value": 0.5714,
+     "numerator": 96,
+     "denominator": 168,
+     "unit": "fraction"
+    },
+    "body": {
+     "value": 0.125,
+     "numerator": 21,
+     "denominator": 168,
+     "unit": "fraction"
+    },
+    "t": {
+     "value": 0.3036,
+     "numerator": 51,
+     "denominator": 168,
+     "unit": "fraction"
+    }
+   }
+  },
+  "second_serves": {
+   "deuce": {
+    "wide": {
+     "value": 0.2,
+     "numerator": 22,
+     "denominator": 110,
+     "unit": "fraction"
+    },
+    "body": {
+     "value": 0.4455,
+     "numerator": 49,
+     "denominator": 110,
+     "unit": "fraction"
+    },
+    "t": {
+     "value": 0.3545,
+     "numerator": 39,
+     "denominator": 110,
+     "unit": "fraction"
+    }
+   },
+   "ad": {
+    "wide": {
+     "value": 0.4286,
+     "numerator": 42,
+     "denominator": 98,
+     "unit": "fraction"
+    },
+    "body": {
+     "value": 0.4592,
+     "numerator": 45,
+     "denominator": 98,
+     "unit": "fraction"
+    },
+    "t": {
+     "value": 0.1122,
+     "numerator": 11,
+     "denominator": 98,
+     "unit": "fraction"
+    }
+   }
+  }
+ },
+ "rally_length": {
+  "matches": 6,
+  "points_won": {
+   "1_3": {
+    "value": 0.5418,
+    "numerator": 350,
+    "denominator": 646,
+    "unit": "fraction"
+   },
+   "4_6": {
+    "value": 0.5651,
+    "numerator": 152,
+    "denominator": 269,
+    "unit": "fraction"
+   },
+   "7_9": {
+    "value": 0.5797,
+    "numerator": 80,
+    "denominator": 138,
+    "unit": "fraction"
+   },
+   "10_plus": {
+    "value": 0.5447,
+    "numerator": 67,
+    "denominator": 123,
+    "unit": "fraction"
+   }
+  }
+ },
+ "net_points": {
+  "matches": 6,
+  "net_points_won": {
+   "value": 0.7279,
+   "numerator": 107,
+   "denominator": 147,
+   "unit": "fraction"
+  },
+  "share_of_points_at_net": {
+   "value": 0.125,
+   "numerator": 147,
+   "denominator": 1176,
+   "unit": "fraction"
+  }
+ },
+ "shot_direction": {
+  "matches": 6,
+  "about": "Only shots whose own direction and the previous shot's were charted: returns aren't included, and many third shots aren't either.",
+  "sides": {
+   "forehand": {
+    "shots": 764,
+    "directions": {
+     "crosscourt": {
+      "shots": 266,
+      "share": {
+       "value": 0.3482,
+       "numerator": 266,
+       "denominator": 764,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.1316,
+       "numerator": 35,
+       "denominator": 266,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0865,
+       "numerator": 23,
+       "denominator": 266,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0789,
+       "numerator": 21,
+       "denominator": 266,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.6579,
+       "numerator": 175,
+       "denominator": 266,
+       "unit": "fraction"
+      }
+     },
+     "down_the_middle": {
+      "shots": 187,
+      "share": {
+       "value": 0.2448,
+       "numerator": 187,
+       "denominator": 764,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.0053,
+       "numerator": 1,
+       "denominator": 187,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0214,
+       "numerator": 4,
+       "denominator": 187,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0374,
+       "numerator": 7,
+       "denominator": 187,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.5027,
+       "numerator": 94,
+       "denominator": 187,
+       "unit": "fraction"
+      }
+     },
+     "down_the_line": {
+      "shots": 87,
+      "share": {
+       "value": 0.1139,
+       "numerator": 87,
+       "denominator": 764,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.1379,
+       "numerator": 12,
+       "denominator": 87,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0575,
+       "numerator": 5,
+       "denominator": 87,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.1839,
+       "numerator": 16,
+       "denominator": 87,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.5632,
+       "numerator": 49,
+       "denominator": 87,
+       "unit": "fraction"
+      }
+     },
+     "inside_out": {
+      "shots": 184,
+      "share": {
+       "value": 0.2408,
+       "numerator": 184,
+       "denominator": 764,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.1033,
+       "numerator": 19,
+       "denominator": 184,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0652,
+       "numerator": 12,
+       "denominator": 184,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0761,
+       "numerator": 14,
+       "denominator": 184,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.6902,
+       "numerator": 127,
+       "denominator": 184,
+       "unit": "fraction"
+      }
+     },
+     "inside_in": {
+      "shots": 40,
+      "share": {
+       "value": 0.0524,
+       "numerator": 40,
+       "denominator": 764,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.075,
+       "numerator": 3,
+       "denominator": 40,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.2,
+       "numerator": 8,
+       "denominator": 40,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.075,
+       "numerator": 3,
+       "denominator": 40,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.7,
+       "numerator": 28,
+       "denominator": 40,
+       "unit": "fraction"
+      }
+     }
+    }
+   },
+   "backhand": {
+    "shots": 723,
+    "directions": {
+     "crosscourt": {
+      "shots": 392,
+      "share": {
+       "value": 0.5422,
+       "numerator": 392,
+       "denominator": 723,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.0204,
+       "numerator": 8,
+       "denominator": 392,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.023,
+       "numerator": 9,
+       "denominator": 392,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0587,
+       "numerator": 23,
+       "denominator": 392,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.5689,
+       "numerator": 223,
+       "denominator": 392,
+       "unit": "fraction"
+      }
+     },
+     "down_the_middle": {
+      "shots": 201,
+      "share": {
+       "value": 0.278,
+       "numerator": 201,
+       "denominator": 723,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.005,
+       "numerator": 1,
+       "denominator": 201,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.01,
+       "numerator": 2,
+       "denominator": 201,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0498,
+       "numerator": 10,
+       "denominator": 201,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.4627,
+       "numerator": 93,
+       "denominator": 201,
+       "unit": "fraction"
+      }
+     },
+     "down_the_line": {
+      "shots": 104,
+      "share": {
+       "value": 0.1438,
+       "numerator": 104,
+       "denominator": 723,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.1538,
+       "numerator": 16,
+       "denominator": 104,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.125,
+       "numerator": 13,
+       "denominator": 104,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.1538,
+       "numerator": 16,
+       "denominator": 104,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.6058,
+       "numerator": 63,
+       "denominator": 104,
+       "unit": "fraction"
+      }
+     },
+     "inside_out": {
+      "shots": 26,
+      "share": {
+       "value": 0.036,
+       "numerator": 26,
+       "denominator": 723,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.1538,
+       "numerator": 4,
+       "denominator": 26,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.1538,
+       "numerator": 4,
+       "denominator": 26,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.1154,
+       "numerator": 3,
+       "denominator": 26,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.6923,
+       "numerator": 18,
+       "denominator": 26,
+       "unit": "fraction"
+      }
+     },
+     "inside_in": {
+      "shots": 0,
+      "share": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 723,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      }
+     }
+    }
+   },
+   "backhand_slice": {
+    "shots": 39,
+    "directions": {
+     "crosscourt": {
+      "shots": 17,
+      "share": {
+       "value": 0.4359,
+       "numerator": 17,
+       "denominator": 39,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.0588,
+       "numerator": 1,
+       "denominator": 17,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0588,
+       "numerator": 1,
+       "denominator": 17,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0588,
+       "numerator": 1,
+       "denominator": 17,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.2941,
+       "numerator": 5,
+       "denominator": 17,
+       "unit": "fraction"
+      }
+     },
+     "down_the_middle": {
+      "shots": 7,
+      "share": {
+       "value": 0.1795,
+       "numerator": 7,
+       "denominator": 39,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 7,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 7,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.1429,
+       "numerator": 1,
+       "denominator": 7,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.2857,
+       "numerator": 2,
+       "denominator": 7,
+       "unit": "fraction"
+      }
+     },
+     "down_the_line": {
+      "shots": 13,
+      "share": {
+       "value": 0.3333,
+       "numerator": 13,
+       "denominator": 39,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 13,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 13,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0769,
+       "numerator": 1,
+       "denominator": 13,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.5385,
+       "numerator": 7,
+       "denominator": 13,
+       "unit": "fraction"
+      }
+     },
+     "inside_out": {
+      "shots": 2,
+      "share": {
+       "value": 0.0513,
+       "numerator": 2,
+       "denominator": 39,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 2,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": 0.5,
+       "numerator": 1,
+       "denominator": 2,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 2,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": 0.5,
+       "numerator": 1,
+       "denominator": 2,
+       "unit": "fraction"
+      }
+     },
+     "inside_in": {
+      "shots": 0,
+      "share": {
+       "value": 0.0,
+       "numerator": 0,
+       "denominator": 39,
+       "unit": "fraction"
+      },
+      "winners": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      },
+      "forced_errors_drawn": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      },
+      "unforced_errors": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      },
+      "points_won": {
+       "value": null,
+       "numerator": 0,
+       "denominator": 0,
+       "unit": "fraction"
+      }
+     }
+    }
+   }
+  }
+ }
+}

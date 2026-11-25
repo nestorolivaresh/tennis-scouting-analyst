@@ -1044,3 +1044,87 @@ summary.pathRow:hover {
     grid-row: 2;
   }
 }
+
+/* ---------- shot direction (D-038) ---------- */
+
+.shotDirection {
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+/* Five direction columns instead of three. */
+.drowWide {
+  grid-template-columns: minmax(0, 1.2fr) repeat(5, minmax(0, 1fr));
+}
+
+.sheetTitle {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--bottle);
+}
+
+.orow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(5, minmax(0, 1fr));
+  gap: 0 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mbody .orow:last-child {
+  border-bottom: 0;
+}
+
+.oshot {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+@media (max-width: 760px) {
+  .drowWide,
+  .orow {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    row-gap: 4px;
+  }
+
+  .drowWide > :first-child,
+  .orow > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Five narrow columns: let a figure and its counts wrap rather than run into the next one. */
+  .drowWide > *,
+  .drowWide .num {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .drowWide .oppRank,
+  .drowWide.phead > * {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .drowWide.phead > * {
+    overflow-wrap: normal;
+    hyphens: auto;
+  }
+
+  .orow [data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--muted-2);
+    white-space: normal;
+  }
+
+  .orow.phead {
+    display: none;
+  }
+}

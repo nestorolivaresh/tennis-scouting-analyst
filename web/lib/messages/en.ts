@@ -575,6 +575,30 @@ export const en = {
   calLinkHelp: "It doesn't point to a season or tournament in the data. Choose a season instead.",
   calUnreachable: "The calendar couldn't be reached. Check your connection and try again.",
   calShowSeason: "Show the newest season",
+
+  // ---------- shot direction (D-038) ----------
+  shotDirTitle: "Shot direction",
+  shotDirNote: (n: number) =>
+    `From ${int(n)} charted ${n === 1 ? "match" : "matches"}. A shot counts only when its direction and the previous shot's were both charted, so returns and many third shots aren't included.`,
+  shotDirFor: (name: string) => `${name}: shot direction`,
+  shotDirWhere: "Where each shot goes",
+  shotDirProduced: "What each shot produced",
+  colShot: "Shot",
+  colHit: "Hit",
+  colWinners: "Winners",
+  colForcedDrawn: "Forced errors drawn",
+  colUnforced: "Unforced errors",
+  colPointsWon: "Points won",
+  shotSides: { forehand: "Forehand", backhand: "Backhand", backhand_slice: "Backhand slice" } as Record<string, string>,
+  shotDirections: {
+    crosscourt: "Crosscourt", down_the_middle: "Down the middle", down_the_line: "Down the line", inside_out: "Inside-out", inside_in: "Inside-in",
+  } as Record<string, string>,
+  shotOf: (side: string, direction: string) => `${side} ${direction.toLowerCase()}`,
+  measureShotDirection: (side: string, direction: string, kind: string) =>
+    ({ share: `${side.toLowerCase()}s hit ${direction.toLowerCase()}`, winners: `winners from ${side.toLowerCase()}s hit ${direction.toLowerCase()}`,
+       forced_errors_drawn: `forced errors drawn by ${side.toLowerCase()}s hit ${direction.toLowerCase()}`,
+       unforced_errors: `unforced errors on ${side.toLowerCase()}s hit ${direction.toLowerCase()}`,
+       points_won: `points won when hitting ${side.toLowerCase()}s ${direction.toLowerCase()}` } as Record<string, string>)[kind] ?? `${side} ${direction}`,
 };
 
 export type Messages = typeof en;

@@ -5,7 +5,7 @@
 
 import Link from "next/link";
 import { SourceCard } from "@/components/stats/NumberRow.tsx";
-import { Directions } from "@/components/stats/ShotPatterns.tsx";
+import { Directions, ShotDirectionTables } from "@/components/stats/ShotPatterns.tsx";
 import stats from "@/components/stats/Stats.module.css";
 import { useT } from "@/components/ui/LanguageProvider.tsx";
 import type { PatternRow } from "@/lib/patterns.ts";
@@ -176,6 +176,7 @@ export function SetsSection({ m, open, toggle }: { m: Matchup } & Opening) {
 export function ShotsSection({ m, open, toggle }: { m: Matchup } & Opening) {
   const t = useT();
   const view = shotsView(m, t);
+  const anyDirection = view.sides.some((side) => side.direction !== null);
   return (
     <section className={stats.sec} aria-labelledby="prep-shots">
       <Heading id="prep-shots" title={t.shotsTitle} note={view.note} />
@@ -197,6 +198,15 @@ export function ShotsSection({ m, open, toggle }: { m: Matchup } & Opening) {
           </div>
         ))}
       </div>
+      {anyDirection && (
+        <div className={styles.courts}>
+          {view.sides.map((side) => (
+            <div key={side.who} className={styles.court}>
+              {side.direction && <ShotDirectionTables view={side.direction} id={`prep-shot-${side.who}`} title={side.directionTitle} />}
+            </div>
+          ))}
+        </div>
+      )}
       <h3 className="h3">{t.ralliesTitle}</h3>
       <TwoRows prefix="rally" rows={view.rallies} m={m} open={open} toggle={toggle} />
       <h3 className="h3">{t.netTitle}</h3>

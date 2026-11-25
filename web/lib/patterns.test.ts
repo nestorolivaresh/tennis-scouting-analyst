@@ -6,7 +6,8 @@ import { test } from "node:test";
 import { checkStat, describeFilters, describeStat, describeValue, groupKeyStats } from "./evidence.ts";
 import saved from "./fixtures/player-stats-clay-2025.json" with { type: "json" };
 import { MESSAGES, type T } from "./i18n.ts";
-import { type ShotPatterns, type TourComparison, setNote, setRows, shotView, tourView } from "./patterns.ts";
+import { type ShotPatterns, type TourComparison, setNote, setRows, shotDirectionView, shotView, tourView } from "./patterns.ts";
+import sinnerShots from "./fixtures/shots-sinner-roland-garros-2024.json" with { type: "json" };
 import type { PlayerStats } from "./player-stats.ts";
 import type { Evidence, KeyStat } from "./types.ts";
 
@@ -158,3 +159,65 @@ test("a tour rank is described as a rank among the ranked players", () => {
 test("the opponent-ranking filter is said in words", () => {
   assert.deepEqual(describeFilters({ season: 2023, opponent_rank_max: 10 }), ["2023 season", "Opponents ranked 10 or better"]);
 });
+
+// ---------- shot direction (D-038), from fixtures/shots-sinner-roland-garros-2024.json ----------
+
+const shots = (): ShotPatterns => structuredClone(sinnerShots) as unknown as ShotPatterns;
+
+test("shot direction: each side's shares by direction, and what every shot hit produced", () => {
+  const view = shotDirectionView(shots())!;
+  const data = sinnerShots.shot_direction;
+  assert.equal(view.note.startsWith(`From ${data.matches} charted matches.`), true);
+  assert.deepEqual(view.grid.map((r) => r.court), ["Forehand", "Backhand", "Backhand slice"]);
+  assert.deepEqual(view.grid[0].cells.map((c) => c.side), ["Crosscourt", "Down the middle", "Down the line", "Inside-out", "Inside-in"]);
+  const io = data.sides.forehand.directions.inside_out;
+  const pct = (n: number, d: number) => EN_PCT(n, d);
+  assert.deepEqual([view.grid[0].cells[3].value, view.grid[0].cells[3].counts], [pct(io.shots, data.sides.forehand.shots), `${io.shots} of ${data.sides.forehand.shots}`]);
+  const hit = Object.values(data.sides).reduce((n, side) => n + Object.values(side.directions).filter((c) => c.shots > 0).length, 0);
+  assert.equal(view.outcomes.length, hit); // only the shots actually hit
+  const fio = view.outcomes.find((r) => r.key === "forehand-inside_out")!;
+  assert.deepEqual([fio.shot, fio.hit, fio.winners, fio.unforced, fio.pointsWon, fio.small], [
+    "Forehand inside-out", String(io.shots), pct(io.winners.numerator, io.shots), pct(io.unforced_errors.numerator, io.shots),
+    pct(io.points_won.numerator, io.shots), false,
+  ]);
+  const slice = view.outcomes.find((r) => r.key === "backhand_slice-inside_out")!;
+  assert.equal(slice.small, data.sides.backhand_slice.directions.inside_out.shots < 10);
+  assert.match(view.source.sample, new RegExp(`^${data.matches} charted matches, out of `));
+});
+
+test("a direction never hit reads 0%, and its outcomes are left out rather than shown as 0", () => {
+  const view = shotDirectionView(shots())!;
+  const slice = view.grid[2].cells[4]; // backhand slice inside-in
+  assert.equal(sinnerShots.shot_direction.sides.backhand_slice.directions.inside_in.shots, 0);
+  assert.equal(slice.value, "0.0%");
+  assert.ok(!view.outcomes.some((r) => r.key === "backhand_slice-inside_in"));
+});
+
+test("with no shot direction, or a response cached before it existed, there is no table", () => {
+  const none = shots();
+  none.shot_direction = { ...none.shot_direction!, matches: 0 };
+  assert.equal(shotDirectionView(none), null);
+  const cached = shots();
+  delete cached.shot_direction;
+  assert.equal(shotDirectionView(cached), null);
+  assert.equal(shotDirectionView(clone().shots), null); // the saved Player stats response predates D-038
+});
+
+test("a report citing a shot direction figure names the shot", () => {
+  const ev = evidence("shot_patterns", shots() as unknown as Record<string, unknown>);
+  const field = "shot_direction.sides.forehand.directions.inside_out.winners.value";
+  const stat = keyStat(field, resolveValue(ev, field), sinnerShots.shot_direction.matches);
+  assert.equal(checkStat(stat, ev).status, "matched");
+  assert.equal(describeStat(stat, ev[0]).title, "Jannik Sinner: winners from forehands hit inside-out");
+  assert.equal(checkStat(keyStat(field, resolveValue(ev, field), sinnerShots.sample.matches_counted), ev).status,
+    sinnerShots.sample.matches_counted === sinnerShots.shot_direction.matches ? "matched" : "mismatch");
+});
+
+test("shot direction reads in Spanish and French", () => {
+  assert.equal(shotDirectionView(shots(), MESSAGES.es)!.outcomes[0].shot, "Derecha cruzado");
+  assert.deepEqual(shotDirectionView(shots(), MESSAGES.fr)!.grid.map((r) => r.court), ["Coup droit", "Revers", "Revers slicé"]);
+});
+
+function EN_PCT(n: number, d: number): string {
+  return `${(Math.round((1000 * n) / d) / 10).toFixed(1)}%`;
+}

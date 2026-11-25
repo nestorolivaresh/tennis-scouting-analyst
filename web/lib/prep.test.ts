@@ -210,3 +210,16 @@ test("the page reads in Spanish and French", () => {
   assert.equal(headToHeadView(m, MESSAGES.fr).scoreHeader, "Score, jeux de Sinner d'abord");
   assert.match(setsView(m, MESSAGES.fr).note, /^Lu dans les scores des matchs terminés sur terre battue : /);
 });
+
+test("shot direction shows for each player who has it, with their name on its source (D-038)", async () => {
+  const shots = (await import("./fixtures/shots-sinner-roland-garros-2024.json", { with: { type: "json" } })).default;
+  const before = shotsView(clone());
+  assert.ok(before.sides.every((s) => s.direction === null)); // the saved response predates shot direction
+  const m = clone();
+  m.sides.player.shots = { ...m.sides.player.shots, shot_direction: shots.shot_direction } as never;
+  const view = shotsView(m);
+  const sinner = view.sides[0];
+  assert.equal(sinner.directionTitle, "Sinner: shot direction");
+  assert.equal(sinner.direction?.source.tool, "Charted shot patterns, for Jannik Sinner");
+  assert.equal(view.sides[1].direction, null);
+});

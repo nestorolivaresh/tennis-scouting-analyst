@@ -3,6 +3,8 @@ The rows are made up; they need no database."""
 
 import datetime as dt
 
+import pytest
+
 from ingest import charting
 
 PLAYERS = [(1, "Jannik Sinner"), (2, "Carlos Alcaraz"), (3, "Felix Auger-Aliassime"), (4, "Alex Smith"), (5, "Alex Smith")]
@@ -129,3 +131,42 @@ def test_rally_totals_that_dont_add_up_leave_the_category_empty():
     out = charting.player_stats(link, [], rally, [])
     assert all(row[charting.STATS_COLUMNS.index("points_played")] is None for row in out.stats)
     assert out.empty_categories == {"serve_direction": 2, "rally_length": 2, "net_points": 2}
+
+
+# ---------- shot direction (D-038) ----------
+
+
+def shot_row(row, shots="10", winners="2", forced="1", unforced="1", won="6", lost="4", match="m1", player="A"):
+    return {"match_id": match, "player": player, "row": row, "shots": shots, "pt_ending": "", "winners": winners,
+            "induced_forced": forced, "unforced": unforced, "shots_in_pts_won": won, "shots_in_pts_lost": lost}  # fmt: skip
+
+
+def directions_of(rows):
+    grouped = {}
+    for r in rows:
+        grouped.setdefault((r["match_id"], r["player"]), []).append(r)
+    return charting._shot_directions(grouped, "m1", "A")
+
+
+def test_shot_direction_rows_are_read_by_side_and_direction():
+    assert directions_of([shot_row("F-XC"), shot_row("S-DTL", shots="3", winners="0", forced="0", unforced="1", won="1", lost="2")]) == [
+        ("F", "XC", 10, 2, 1, 1, 6, 4), ("S", "DTL", 3, 0, 0, 1, 1, 2),
+    ]  # fmt: skip
+    assert directions_of([shot_row("F-XC"), shot_row("F-XC")]) == [("F", "XC", 10, 2, 1, 1, 6, 4)]  # an exact repeat counts once
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [shot_row("F-XC", won="5")],  # shots aren't points won plus lost
+        [shot_row("F-XC", winners="6", forced="3", unforced="2")],  # more winners and errors than shots
+        [shot_row("F-XC", shots="x")],  # not a whole number
+        [shot_row("F-XC", winners="-1")],
+        [shot_row("X-XC")],  # an unknown side
+        [shot_row("F-ZZ")],  # an unknown direction
+        [shot_row("F-XC"), shot_row("F-XC", shots="11", lost="5")],  # the same row twice, with different counts
+        [],  # no rows for the player
+    ],
+)
+def test_a_player_whose_rows_dont_hold_up_is_left_out(rows):
+    assert directions_of(rows) is None

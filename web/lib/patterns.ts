@@ -32,6 +32,25 @@ export interface ShotPatterns extends Omit<StatBlock, "stats"> {
   serve_direction: { matches: number; first_serves_in: Record<"deuce" | "ad", Court>; second_serves: Record<"deuce" | "ad", Court> };
   rally_length: { matches: number; points_won: Record<string, Rate> };
   net_points: { matches: number; net_points_won: Rate; share_of_points_at_net: Rate };
+  /** Absent from a response cached before D-038. */
+  shot_direction?: ShotDirection;
+}
+
+export const SHOT_SIDES = ["forehand", "backhand", "backhand_slice"] as const;
+export const SHOT_DIRECTIONS = ["crosscourt", "down_the_middle", "down_the_line", "inside_out", "inside_in"] as const;
+
+export interface ShotCell {
+  shots: number;
+  share: Rate;
+  winners: Rate;
+  forced_errors_drawn: Rate;
+  unforced_errors: Rate;
+  points_won: Rate;
+}
+
+export interface ShotDirection {
+  matches: number;
+  sides: Record<(typeof SHOT_SIDES)[number], { shots: number; directions: Record<(typeof SHOT_DIRECTIONS)[number], ShotCell> }>;
 }
 
 // ---------- shared ----------
@@ -166,4 +185,56 @@ export function shotView(block: ShotPatterns, t: T = EN): ShotView {
     ],
     source: source(charted),
   };
+}
+
+// ---------- shot direction (D-038) ----------
+
+export interface OutcomeRow {
+  key: string;
+  shot: string;
+  hit: string;
+  winners: string;
+  forcedDrawn: string;
+  unforced: string;
+  pointsWon: string;
+  small: boolean;
+}
+
+export interface ShotDirectionView {
+  note: string;
+  /** Each side's shares by direction, in the serve-direction table's shape. */
+  grid: DirectionRow[];
+  /** Every side and direction hit at least once, with what it produced per shot. */
+  outcomes: OutcomeRow[];
+  source: SourceFacts;
+}
+
+/** Where each of a player's shots went and what it produced, from the charted matches. Null for a
+ * response cached before shot direction existed, or with no charted match. */
+export function shotDirectionView(block: ShotPatterns, t: T = EN): ShotDirectionView | null {
+  const data = block.shot_direction;
+  if (!data || !data.matches) return null;
+  const grid = SHOT_SIDES.map((side): DirectionRow => ({
+    court: t.shotSides[side],
+    cells: SHOT_DIRECTIONS.map((direction) => {
+      const cell = data.sides[side].directions[direction];
+      return { side: t.shotDirections[direction], value: percentText(cell.share, t) ?? t.noData, counts: cell.share.denominator ? t.countOf(cell.shots, cell.share.denominator) : "" };
+    }),
+  }));
+  const outcomes = SHOT_SIDES.flatMap((side) =>
+    SHOT_DIRECTIONS.filter((direction) => data.sides[side].directions[direction].shots > 0).map((direction): OutcomeRow => {
+      const cell = data.sides[side].directions[direction];
+      return {
+        key: `${side}-${direction}`,
+        shot: t.shotOf(t.shotSides[side], t.shotDirections[direction]),
+        hit: t.int(cell.shots),
+        winners: percentText(cell.winners, t) ?? t.noData,
+        forcedDrawn: percentText(cell.forced_errors_drawn, t) ?? t.noData,
+        unforced: percentText(cell.unforced_errors, t) ?? t.noData,
+        pointsWon: percentText(cell.points_won, t) ?? t.noData,
+        small: cell.shots < SMALL_SAMPLE,
+      };
+    }),
+  );
+  return { note: t.shotDirNote(data.matches), grid, outcomes, source: sourceFacts(block, t, { n: data.matches, part: "charted" }) };
 }

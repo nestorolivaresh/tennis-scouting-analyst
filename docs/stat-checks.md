@@ -62,6 +62,7 @@ no code with the stats layer (spec rule: "Test values must come from a named sou
 | `set_patterns` | Laaksonen 2015: tiebreaks, including a bare "6-7" set | 2/3 | Hand 28 | match |
 | `tour_comparison` | Grass 2023, service points won, players with 10+ matches with stats: Alcaraz's rank, players, median; Sinner's rank | 5th of 10, median of the 5th and 6th (0.6815); Sinner 1st | Hand 24 | match |
 | `shot_patterns` | Sinner's charted Roland Garros 2024: serve direction, rally length, net points | first serves in deuce 80/29/69, ad 96/21/51; second serves deuce 22/49/39, ad 42/45/11; rallies 350/646, 152/269, 80/138, 67/123; net 107/147; 6 matches, 1,176 points | Hand 26 | match |
+| `shot_patterns` | Sinner's charted Roland Garros 2024: shot direction, shots / winners / unforced errors / points won for each side and direction hit (D-038) | forehand crosscourt 266/35/21/175, down the middle 187/1/7/94, down the line 87/12/16/49, inside-out 184/19/14/127, inside-in 40/3/3/28; backhand crosscourt 392/8/23/223, down the middle 201/1/10/93, down the line 104/16/16/63, inside-out 26/4/3/18; slice crosscourt 17/1/1/5, down the middle 7/0/1/2, down the line 13/0/1/7, inside-out 2/0/0/1; 6 matches | Hand 32 | match |
 
 Also cross-checked on Tennis Abstract on 2026-11-07: Sinner's latest match listed there is the
 Wimbledon 2026 final, the same as in the TML data, so the gap from July to November is real

@@ -135,6 +135,12 @@ function shotMeasure(parts: string[], t: T): string | null {
   }
   if (block === "rally_length" && kind === "points_won" && a && Object.hasOwn(t.rallyBands, a)) return t.measureRally(t.rallyBands[a]);
   if ((block === "net_points" || block === "charting") && kind && Object.hasOwn(t.stats, kind)) return t.stats[kind];
+  // "shot_direction.sides.forehand.directions.inside_out.winners.value" (D-038)
+  const [, side, , direction, measure] = parts.slice(1);
+  if (block === "shot_direction" && kind === "sides" && side && direction && measure
+      && Object.hasOwn(t.shotSides, side) && Object.hasOwn(t.shotDirections, direction)) {
+    return t.measureShotDirection(t.shotSides[side], t.shotDirections[direction], measure);
+  }
   return null;
 }
 

@@ -649,6 +649,37 @@ def test_shot_patterns_sinner_roland_garros_2024(conn):
     assert (net["share_of_points_at_net"]["numerator"], net["share_of_points_at_net"]["denominator"]) == (147, 1176)
 
 
+def test_shot_direction_sinner_roland_garros_2024(conn):
+    result = stats.shot_patterns(conn, SINNER, {"season": 2024, "tourney_level": "G", "surface": "Clay"})["shot_direction"]
+    assert result["matches"] == 6  # the same 6 charted matches as hand 26
+    cells = {}
+    for side, block in result["sides"].items():
+        for direction, cell in block["directions"].items():
+            if cell["shots"]:
+                cells[(side, direction)] = (cell["shots"], cell["winners"]["numerator"], cell["unforced_errors"]["numerator"],
+                                            cell["points_won"]["numerator"])  # fmt: skip
+    assert cells == {  # hand 32: shots, winners, unforced errors, points won
+        ("forehand", "crosscourt"): (266, 35, 21, 175), ("forehand", "down_the_middle"): (187, 1, 7, 94),
+        ("forehand", "down_the_line"): (87, 12, 16, 49), ("forehand", "inside_out"): (184, 19, 14, 127),
+        ("forehand", "inside_in"): (40, 3, 3, 28),
+        ("backhand", "crosscourt"): (392, 8, 23, 223), ("backhand", "down_the_middle"): (201, 1, 10, 93),
+        ("backhand", "down_the_line"): (104, 16, 16, 63), ("backhand", "inside_out"): (26, 4, 3, 18),
+        ("backhand_slice", "crosscourt"): (17, 1, 1, 5), ("backhand_slice", "down_the_middle"): (7, 0, 1, 2),
+        ("backhand_slice", "down_the_line"): (13, 0, 1, 7), ("backhand_slice", "inside_out"): (2, 0, 0, 1),
+    }  # fmt: skip
+    forehand = result["sides"]["forehand"]
+    assert forehand["shots"] == 266 + 187 + 87 + 184 + 40
+    assert forehand["directions"]["inside_out"]["share"] == stats.rate(184, forehand["shots"])
+    never = result["sides"]["backhand_slice"]["directions"]["inside_in"]
+    assert (never["shots"], never["share"]["value"], never["winners"]["value"]) == (0, 0.0, None)  # none hit: 0%, and no rate of nothing
+
+
+def test_shot_direction_with_no_charted_match_is_missing_not_zero(conn):
+    result = stats.shot_patterns(conn, SINNER, {"season": 2015})["shot_direction"]
+    assert result["matches"] == 0
+    assert all(cell["share"]["value"] is None for side in result["sides"].values() for cell in side["directions"].values())
+
+
 def test_shot_patterns_report_the_players_charts_that_dont_count(conn):
     result = stats.shot_patterns(conn, SINNER)
     not_linked = result["charting"]["player_charts_not_linked_all_dates"]

@@ -96,7 +96,8 @@ for scouting patterns ([D-029, D-030](docs/decisions.md)):
 - `set_patterns`: tiebreaks, deciding sets, and results after winning or losing the first set;
 - `tour_comparison`: a player's serve, return and break-point rates ranked against every player
   under the same filters;
-- `shot_patterns`: serve direction, points won by rally length and net points, from matches
+- `shot_patterns`: serve direction, points won by rally length, net points, and where each
+  forehand, backhand and slice goes with what it produces ([D-038](docs/decisions.md)), from matches
   charted shot by shot by the Match Charting Project's volunteers.
 
 Every tool also takes an `opponent_rank_max` filter ("against the top 10"), and match lists give

@@ -61,6 +61,7 @@ CHARTING_FILES = [
     "charting-m-stats-ServeDirection.csv",
     "charting-m-stats-Rally.csv",
     "charting-m-stats-NetPoints.csv",
+    "charting-m-stats-ShotDirOutcomes.csv",  # D-038
     "README.md",  # kept as the record of the license terms
 ]
 

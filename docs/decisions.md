@@ -1714,3 +1714,52 @@ tests, the typecheck and the build pass.
 
 **Not checked.** A live report under the stricter check, the model following the field-name rule,
 and the punctuation in a browser: all need a paid report or chat.
+
+## D-038 Milestone 14: shot direction
+
+*2026-11-25. Approved by Nestor: directions with what each produced, everywhere charted figures
+appear (his choices); the rest was presented and built.*
+
+**Context.** "Where does his forehand go, and what works for him?" is classic scouting, and the
+Match Charting Project's pinned commit has it as per-match totals, like the three files D-030
+loads.
+
+**Chosen.**
+- **File.** `charting-m-stats-ShotDirOutcomes.csv` from the same commit (`1813a13`), pinned like
+  the others. It holds the counts of `ShotDirection.csv` and more: for each player, side and
+  direction, the shots hit, winners, forced errors drawn, unforced errors, and points won and lost
+  in which the shot was hit. What the counts mean is from Tennis Abstract's match pages, which
+  show the same tables (read 2026-11-25; the repository's data dictionary covers only the points
+  files): sides are forehand, backhand and backhand slice; directions are crosscourt, down the
+  middle, down the line, inside-out and inside-in (a run-around shot hit down the line); and a shot
+  counts only when its own direction and the previous shot's were charted, so returns never count
+  and many third shots don't.
+- **Load.** `charting_shot_direction`, one row per linked chart, player, side and direction. A
+  player's chart is left out when a row isn't whole numbers, its shots aren't its points won plus
+  lost (true in every row today), its winners and errors outnumber its shots, or a row is repeated
+  with different counts (13 charts repeat rows; exact repeats count once). The file's
+  `pt_ending` isn't used: in 332 rows (0.2%) it differs by one from winners plus errors. 102,375
+  rows cover 4,402 of the 4,454 linked charts; the quality report counts the 105 player-charts
+  left empty.
+- **Tool.** `shot_patterns` gains `shot_direction`: the matches it rests on, and for each side its
+  shots and, per direction, the share of that side's shots, and winners, forced errors drawn,
+  unforced errors and points won per shot hit. A direction never hit is 0% of the side, and its
+  per-shot rates are missing, not 0. The grounding rule of D-037 makes its `matches` the count a
+  cited figure rests on.
+- **Page.** On Player stats and, for both players, on match prep: "Where each shot goes" (shares
+  with counts) and "What each shot produced" (every side and direction hit), with a source card.
+  A response cached before this change has no block, and the tables are left out.
+
+**How it was checked.** Hand check 32 reads the raw file for Sinner's six charted Roland Garros
+2024 matches (the matches of hand 26), and the tool matches it on all 13 side-and-direction cells.
+Breaking the sum rule, accepting a differing repeat, or reading the wrong column fails the tests.
+Web: tested from a saved response (the same six matches), in three languages, including a report
+card naming the shot. In a browser against the local API: Player stats (Sinner 2024, 68 charted
+matches) and match prep (Sinner and Alcaraz), and 375 px after letting the five narrow columns
+wrap. 490 Python and 251 web tests, the typecheck and the build pass.
+
+**Rollout.** New tables, so Neon is reloaded before the deploy (`docs/deploy.md`), with the
+charting file downloaded (`uv run python -m ingest.download`).
+
+**Not checked.** The model using shot direction in a live report or chat (a paid call), and
+browsers other than Chromium.

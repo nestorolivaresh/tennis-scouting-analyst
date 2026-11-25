@@ -588,4 +588,28 @@ export const fr: Messages = {
   calLinkHelp: "Ce lien ne désigne ni une saison ni un tournoi présents dans les données. Choisissez une saison.",
   calUnreachable: "Le calendrier est injoignable. Vérifiez votre connexion et réessayez.",
   calShowSeason: "Voir la saison la plus récente",
+
+  // ---------- shot direction (D-038) ----------
+  shotDirTitle: "Direction des frappes",
+  shotDirNote: (n) =>
+    `Sur ${int(n)} match${n > 1 ? "s" : ""} relevé${n > 1 ? "s" : ""}. Une frappe compte seulement si sa direction et celle de la frappe précédente ont été relevées : les retours et beaucoup de troisièmes frappes n'y sont donc pas.`,
+  shotDirFor: (name) => `${name} : direction des frappes`,
+  shotDirWhere: "Où va chaque frappe",
+  shotDirProduced: "Ce que chaque frappe a produit",
+  colShot: "Frappe",
+  colHit: "Frappes",
+  colWinners: "Coups gagnants",
+  colForcedDrawn: "Fautes provoquées",
+  colUnforced: "Fautes directes",
+  colPointsWon: "Points gagnés",
+  shotSides: { forehand: "Coup droit", backhand: "Revers", backhand_slice: "Revers slicé" },
+  shotDirections: {
+    crosscourt: "Croisé", down_the_middle: "Au centre", down_the_line: "Le long de la ligne", inside_out: "Décroisé", inside_in: "Long de ligne décalé",
+  },
+  shotOf: (side, direction) => `${side} ${direction.toLowerCase()}`,
+  measureShotDirection: (side, direction, kind) =>
+    ({ share: `${side.toLowerCase()} ${direction.toLowerCase()}`, winners: `coups gagnants en ${side.toLowerCase()} ${direction.toLowerCase()}`,
+       forced_errors_drawn: `fautes provoquées en ${side.toLowerCase()} ${direction.toLowerCase()}`,
+       unforced_errors: `fautes directes en ${side.toLowerCase()} ${direction.toLowerCase()}`,
+       points_won: `points gagnés en jouant ${side.toLowerCase()} ${direction.toLowerCase()}` } as Record<string, string>)[kind] ?? `${side} ${direction}`,
 };
