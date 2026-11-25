@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { type LiveTurn, applyChatEvent, finishedAnnouncement } from "./chat.ts";
 import { MESSAGES } from "./i18n.ts";
 import { checkStat, describeStat, sourcePanel } from "./evidence.ts";
-import { answerBlocks, answerCheckLine, citationsIn, citedStat, fieldCitations, fieldSpans, pieces, spansIn, textCheckLine } from "./numbers.ts";
+import { answerBlocks, answerCheckLine, citationsIn, citedStat, fieldCitations, fieldSpans, glued, pieces, spansIn, textCheckLine } from "./numbers.ts";
 import { placedParts } from "./plan.ts";
 import saved from "./fixtures/player-stats-clay-2025.json" with { type: "json" };
 import type { Evidence, NumberSpan, ReportCitation, ReportNumberCheck } from "./types.ts";
@@ -162,4 +162,34 @@ test("a cited tour median reads on its card as in the text", () => {
   };
   assert.equal(panel("stats.service_points_won.tour_median"), "62.3%");
   assert.equal(panel("stats.aces_per_match.tour_median"), "3.3");
+});
+
+// ---------- keeping punctuation with a cited number ----------
+
+test("a cited number keeps the punctuation that touches it on its line", () => {
+  const list = [
+    { text: "from (", marked: false, cite: null },
+    { text: "75", marked: false, cite: 0 },
+    { text: ") charted matches, and ", marked: false, cite: null },
+    { text: "122", marked: false, cite: 1 },
+    { text: ".", marked: false, cite: null },
+  ];
+  const out = glued(list);
+  assert.deepEqual(out.map((p) => [p.lead, p.text, p.tail]), [
+    ["", "from ", ""],
+    ["(", "75", ")"],
+    ["", " charted matches, and ", ""],
+    ["", "122", "."],
+    ["", "", ""],
+  ]);
+  assert.equal(out.map((p) => p.lead + p.text + p.tail).join(""), list.map((p) => p.text).join("")); // no text lost or added
+});
+
+test("punctuation marked differently, a space, or another citation stays where it is", () => {
+  const marked = glued([{ text: "(", marked: true, cite: null }, { text: "75", marked: false, cite: 0 }]);
+  assert.deepEqual([marked[0].text, marked[1].lead], ["(", ""]);
+  const spaced = glued([{ text: "( ", marked: false, cite: null }, { text: "75", marked: false, cite: 0 }]);
+  assert.equal(spaced[1].lead, "");
+  const record = glued([{ text: "11", marked: false, cite: 0 }, { text: "-", marked: false, cite: null }, { text: "3", marked: false, cite: 1 }]);
+  assert.deepEqual(record.map((p) => [p.lead, p.text, p.tail]), [["", "11", ""], ["", "-", ""], ["", "3", ""]]);
 });

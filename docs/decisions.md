@@ -1678,3 +1678,39 @@ and the API waits for Nestor's decision.
 
 **Not checked.** The model using the new tools (a paid call), the route on Vercel, and browsers
 other than Chromium.
+
+## D-037 Each key number cites the count it rests on
+
+*2026-11-25. Approved by Nestor ("do 1 and 2 in order": this first, then shot direction).*
+
+**Context.** The source cards were fixed after D-032 to give a charted or set-pattern figure its
+own count, but the checks behind them weren't: both the API's grounding check (D-018) and the
+page's key-number check accepted any of a result's counts, plus the `matches` of any object on the
+path. A charted figure from 75 charted matches passed citing the window's 126, a surface's win rate
+passed citing every surface's count, and a serve rate passed citing every match counted when some
+had no stats. A live report also wrote "with a player_score of 7-6(5) 6-3", and a "(" could wrap
+onto a line away from the cited number after it.
+
+**Chosen.**
+- **One count per figure**, in `api/grounding.py` and `web/lib/evidence.ts` alike: the `matches`
+  of the deepest object on the path that has one (a surface's row, a record, a set-pattern rate,
+  a charted block, a season path's tournament); with none, the result's sample, only its matches
+  with stats for a rate read from match stats (`serve_return_stats`, `pressure_stats`,
+  `tour_comparison`). This is what the report prompt already asked for, so a report that follows
+  it is unaffected; one that doesn't is now caught and retried (D-018).
+- **Field names.** The shared system prompt, used by reports and chat, says never to write a
+  field's name and to say what it is instead; a test keeps the rule in the prompt.
+- **Punctuation stays with a cited number.** A cited number is a button, and a line may break on
+  either side of one, so the opening and closing punctuation that touches it ("(", ")", ",", ".")
+  is kept with it on one line. Only punctuation marked the same way moves, so the D-031 marks
+  cover what they did.
+
+**How it was checked.** A grounding test covers a charted block, net points, a set pattern, a
+surface's row and a serve rate (Alcaraz 2022, 68 of 70 matches with stats): each passes with its
+own count and fails with the window's, and the test fails on the previous rule. The page's check has
+the same cases from the saved responses and fails on the previous rule too. The punctuation rule is
+unit-tested, including marks, spaces and a record made of two citations. 479 Python and 245 web
+tests, the typecheck and the build pass.
+
+**Not checked.** A live report under the stricter check, the model following the field-name rule,
+and the punctuation in a browser: all need a paid report or chat.

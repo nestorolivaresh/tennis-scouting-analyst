@@ -6,7 +6,7 @@
 
 import { Fragment, type ReactNode } from "react";
 import { useT } from "@/components/ui/LanguageProvider.tsx";
-import { pieces } from "@/lib/numbers.ts";
+import { glued, pieces } from "@/lib/numbers.ts";
 import type { Citation, NumberSpan } from "@/lib/types.ts";
 
 type Props = {
@@ -24,7 +24,7 @@ export function Marked({ text, at = 0, spans, cites = [], open = null, cardId, o
   if (!spans.length && !cites.length) return <>{text}</>;
   return (
     <>
-      {pieces(text, at, spans, cites).map((piece, i) => {
+      {glued(pieces(text, at, spans, cites)).map((piece, i) => {
         let content: ReactNode = piece.text;
         if (piece.cite !== null && onCite) {
           const index = piece.cite;
@@ -34,6 +34,9 @@ export function Marked({ text, at = 0, spans, cites = [], open = null, cardId, o
               {piece.text}<span className="vh">{t.sourceOf}</span>
             </button>
           );
+          if (piece.lead || piece.tail) content = <span className="nowrap">{piece.lead}{content}{piece.tail}</span>;
+        } else if (piece.lead || piece.tail) {
+          content = `${piece.lead}${piece.text}${piece.tail}`; // no button here, so nothing to keep together
         }
         return piece.marked
           ? <mark key={i} className="not-found">{content}<span className="vh">{t.notFoundMark}</span></mark>

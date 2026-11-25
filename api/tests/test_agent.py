@@ -240,3 +240,10 @@ def test_heartbeats_while_a_quiet_model_call_streams(conn):
     names = [e for e, _ in run_loop(client, conn, SETTINGS, run, "s", Limits(), fmt, clock=clock, heartbeat_s=5)]
     assert names == ["heartbeat"]  # after 8 seconds quiet; the third block comes 4 seconds later
     assert run.outcome == "completed"
+
+
+def test_the_system_prompt_says_not_to_write_field_names():
+    """D-037: a live report wrote "with a player_score of 7-6(5) 6-3". Reports and chat share
+    this prompt, so the rule is written once, here."""
+    prompt = agent.system_prompt({"first_tourney_date": "2015-01-04", "last_match_date": "2026-11-14"})
+    assert "Never write a field's name in your text" in prompt

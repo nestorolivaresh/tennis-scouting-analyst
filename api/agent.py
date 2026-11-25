@@ -552,6 +552,8 @@ When you use a number:
 - A match's `score` is written winner first. To describe a match from one player's side,
   cite that match's `player_score` ([[c3:matches.0.player_score]]); never reorder a score
   yourself.
+- Never write a field's name in your text ("with a player_score of", "matches_with_stats"):
+  the reader doesn't see the data. Say what it is instead ("the score from Sinner's side").
 - tour_comparison ranks a player among the players with enough matches under the same
   filters: say the rank and how many were ranked ("5th of 10"), and give the median as it is.
 - shot_patterns rests on the matches the Match Charting Project's volunteers charted, a

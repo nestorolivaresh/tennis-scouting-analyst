@@ -34,13 +34,26 @@ def resolve_path(result: Any, path: str) -> tuple[bool, Any, list[Any]]:
     return True, node, seen
 
 
-def sample_sizes(result: dict[str, Any], seen: list[Any]) -> set[int]:
-    """Match counts a stat from this result may cite: the sample's counts, and the `matches`
-    count of any object on the stat's path (one surface's row, the overall record)."""
+# Tools whose rates are read from the matches that have stats: a figure from them rests on that
+# count, not on every match counted (the two differ when some matches have no stats).
+FROM_MATCH_STATS = frozenset({"serve_return_stats", "pressure_stats", "tour_comparison"})
+
+
+def _count(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def sample_sizes(tool: str, result: dict[str, Any], seen: list[Any]) -> set[int]:
+    """The match count a stat from this result may cite (D-037): the `matches` of the deepest
+    object on its path that has one (one surface's row, a record, a set-pattern rate, a charted
+    block), since that is what the figure rests on. With none on the path, the result's sample:
+    its matches with stats for a rate read from match stats, either of its counts otherwise."""
+    nearest = [node["matches"] for node in seen if isinstance(node, dict) and _count(node.get("matches"))]
+    if nearest:
+        return {nearest[-1]}
     sample = result.get("sample") or {}
-    counts = [sample.get("matches_counted"), sample.get("matches_with_stats")]
-    counts += [node.get("matches") for node in seen if isinstance(node, dict)]  # head_to_head's is a list
-    return {count for count in counts if isinstance(count, int) and not isinstance(count, bool)}
+    keys = ("matches_with_stats",) if tool in FROM_MATCH_STATS else ("matches_counted", "matches_with_stats")
+    return {sample[key] for key in keys if _count(sample.get(key))}
 
 
 def check_report(report: Any, tool_calls: dict[str, ToolCall]) -> list[str]:
@@ -69,7 +82,7 @@ def check_report(report: Any, tool_calls: dict[str, ToolCall]) -> list[str]:
             continue
         if not _is_number(stat.get("value")) or abs(stat["value"] - value) > TOLERANCE:
             errors.append(f"{where}: value {stat.get('value')!r} does not match {value!r} at {stat['field']}")
-        sizes = sample_sizes(call.result, seen)
+        sizes = sample_sizes(call.name, call.result, seen)
         if stat.get("sample_matches") not in sizes:
             errors.append(
                 f"{where}: sample_matches {stat.get('sample_matches')!r} is not a match count from that result "

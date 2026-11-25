@@ -88,6 +88,11 @@ a:hover {
 }
 
 /* A number the model cited, which opens its source (D-032). */
+/* A cited number with the punctuation that touches it, kept on one line. */
+.nowrap {
+  white-space: nowrap;
+}
+
 button.cited {
   padding: 0;
   border: 0;

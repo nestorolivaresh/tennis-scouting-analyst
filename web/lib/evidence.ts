@@ -41,12 +41,18 @@ function isNumber(x: unknown): x is number {
   return typeof x === "number" && Number.isFinite(x);
 }
 
-/** The match counts a stat from this result may cite (api/grounding.py, sample_sizes). */
-function sampleSizes(result: ToolResult, seen: unknown[]): number[] {
-  const counts = [result.sample?.matches_counted, result.sample?.matches_with_stats];
-  for (const node of seen) {
-    if (node && typeof node === "object" && !Array.isArray(node)) counts.push((node as Record<string, unknown>).matches as number);
-  }
+// Tools whose rates are read from the matches that have stats (api/grounding.py, FROM_MATCH_STATS).
+const FROM_MATCH_STATS = new Set(["serve_return_stats", "pressure_stats", "tour_comparison"]);
+
+/** The match count a stat from this result may cite, as api/grounding.py's sample_sizes decides
+ * (D-037): the `matches` of the deepest object on its path that has one, or else the result's
+ * sample, its matches with stats for a rate read from match stats. */
+function sampleSizes(tool: string, result: ToolResult, seen: unknown[]): number[] {
+  const nearest = [...seen].reverse().find((n) => n && typeof n === "object" && !Array.isArray(n) && Number.isInteger((n as Record<string, unknown>).matches));
+  if (nearest) return [(nearest as { matches: number }).matches];
+  const counts = FROM_MATCH_STATS.has(tool)
+    ? [result.sample?.matches_with_stats]
+    : [result.sample?.matches_counted, result.sample?.matches_with_stats];
   return counts.filter((n): n is number => Number.isInteger(n));
 }
 
@@ -73,7 +79,7 @@ export function checkStat(stat: KeyStat, evidence: Evidence[]): StatCheck {
   const rate = stat.field.endsWith(".value") && isRate(parent)
     ? parent
     : isRate(beside) ? { value, numerator: 0, denominator: 0, unit: beside.unit } : null;
-  const sizes = sampleSizes(source.result, seen);
+  const sizes = sampleSizes(source.tool, source.result, seen);
   const matched = isNumber(stat.value) && Math.abs(stat.value - value) <= TOLERANCE && sizes.includes(stat.sample_matches);
   // The sample shown is the tool's: the stated one when it is one of the result's counts,
   // otherwise the count of the object the value sits in, or the result's sample.

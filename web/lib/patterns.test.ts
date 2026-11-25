@@ -90,6 +90,8 @@ const evidence = (tool: string, result: Record<string, unknown>): Evidence[] => 
   { tool_call_id: "c1", tool, input: {}, result: { tool, player: { player_id: 207989, name: "Carlos Alcaraz" }, ...result } as never, error: null },
 ];
 const keyStat = (field: string, value: number, sample: number): KeyStat => ({ label: "", value, tool_call_id: "c1", field, sample_matches: sample });
+const resolveValue = (ev: Evidence[], field: string): number =>
+  field.split(".").reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], ev[0].result) as number;
 
 test("a charted or set-pattern card gives the matches the figures rest on, out of the window's", () => {
   // Found live on 2026-11-24: the cards gave the whole window ("378 matches") as the sample of
@@ -105,6 +107,33 @@ test("a charted or set-pattern card gives the matches the figures rest on, out o
   assert.match(view.net[0].source.sample, whole(saved.shots.net_points.matches, "charted"));
   assert.match(setRows(data.set_patterns)[3].source.sample, whole(saved.set_patterns.scores_read.completed_matches, "completed"));
   assert.match(setRows(data.set_patterns, MESSAGES.fr)[3].source.sample, new RegExp(`^${saved.set_patterns.scores_read.completed_matches} matchs terminés, sur ${counted} matchs`));
+});
+
+test("a key number must cite the count it rests on, not the whole window (D-037)", () => {
+  // The same rule as api/grounding.py: the deepest object on the path with `matches`, or else the
+  // result's sample (its matches with stats for a rate read from match stats).
+  const data = clone();
+  const shots = evidence("shot_patterns", data.shots as unknown as Record<string, unknown>);
+  const sets = evidence("set_patterns", data.set_patterns as unknown as Record<string, unknown>);
+  const window = saved.shots.sample.matches_counted;
+  const cases: [Evidence[], string, number][] = [
+    [shots, "serve_direction.first_serves_in.deuce.wide.value", saved.shots.serve_direction.matches],
+    [shots, "net_points.net_points_won.value", saved.shots.net_points.matches],
+    [sets, "stats.won_after_losing_first_set.value", saved.set_patterns.stats.won_after_losing_first_set.matches],
+  ];
+  for (const [ev, field, own] of cases) {
+    assert.ok(own < window, field); // exercises the rule
+    const value = resolveValue(ev, field);
+    assert.equal(checkStat(keyStat(field, value, own), ev).status, "matched", field);
+    const wrong = checkStat(keyStat(field, value, window), ev);
+    assert.deepEqual([wrong.status, wrong.sample], ["mismatch", own], field); // the card still shows the true count
+  }
+  const serve = structuredClone(data.serve_return);
+  serve.sample = { ...serve.sample, matches_counted: serve.sample.matches_with_stats + 2 };
+  const ev = evidence("serve_return_stats", serve as unknown as Record<string, unknown>);
+  const value = resolveValue(ev, "stats.first_serve_in.value");
+  assert.equal(checkStat(keyStat("stats.first_serve_in.value", value, serve.sample.matches_with_stats), ev).status, "matched");
+  assert.equal(checkStat(keyStat("stats.first_serve_in.value", value, serve.sample.matches_counted), ev).status, "mismatch");
 });
 
 test("a charted serve direction is described from its path, with its counts", () => {

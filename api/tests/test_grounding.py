@@ -144,3 +144,41 @@ def test_new_tools_samples_can_be_cited():
         stat(calls, "r", "stats.return_points_won.rank", "sample.matches_with_stats"),
     )
     assert check_report(good, calls) == []
+
+
+@needs_db
+def test_a_figure_cites_the_count_it_rests_on_not_the_whole_window():
+    """D-037: the deepest object on the path with a `matches` decides the sample, or else the
+    result's sample, its matches with stats for a rate read from match stats. Found on
+    2026-11-24: a charted figure from 75 charted matches would have passed citing the window's 126."""
+    from api.db import connect
+
+    conn = connect()
+    calls = {
+        "c": ToolCall("c", "shot_patterns", {}, 1, result=stats.shot_patterns(conn, ALCARAZ, {"season": 2024})),
+        "s": ToolCall("s", "set_patterns", {}, 1, result=stats.set_patterns(conn, ALCARAZ, {"season": 2024})),
+        "w": ToolCall("w", "surface_splits", {}, 1, result=stats.surface_splits(conn, ALCARAZ, {"season": 2024})),
+        "r": ToolCall("r", "serve_return_stats", {}, 1, result=stats.serve_return_stats(conn, ALCARAZ, {"season": 2022})),
+    }
+    conn.close()
+    charted = calls["c"].result
+    grass = next(i for i, row in enumerate(calls["w"].result["surfaces"]) if row["surface"] == "Grass")
+    serve_sample = calls["r"].result["sample"]
+    # Each case exercises the rule: the wrong count really differs from the right one.
+    assert charted["serve_direction"]["matches"] < charted["sample"]["matches_counted"]
+    assert calls["s"].result["stats"]["won_after_losing_first_set"]["matches"] < calls["s"].result["sample"]["matches_counted"]
+    assert calls["w"].result["surfaces"][grass]["matches"] < calls["w"].result["sample"]["matches_counted"]
+    assert serve_sample["matches_with_stats"] < serve_sample["matches_counted"]  # 68 of 70 (hand 13)
+    cases = [
+        ("c", "serve_direction.first_serves_in.deuce.wide.value", "serve_direction.matches"),
+        ("c", "net_points.net_points_won.value", "net_points.matches"),
+        ("s", "stats.won_after_losing_first_set.value", "stats.won_after_losing_first_set.matches"),
+        ("w", f"surfaces.{grass}.win_rate.value", f"surfaces.{grass}.matches"),
+        ("r", "stats.first_serve_in.value", "sample.matches_with_stats"),
+    ]
+    for call_id, field, right in cases:
+        good = stat(calls, call_id, field, right)
+        assert check_report(report(*[good] * MIN_KEY_STATS), calls) == [], field
+        wrong = {**good, "sample_matches": calls[call_id].result["sample"]["matches_counted"]}
+        errors = check_report(report(wrong, *[good] * (MIN_KEY_STATS - 1)), calls)
+        assert len(errors) == 1 and "is not a match count from that result" in errors[0], (field, errors)

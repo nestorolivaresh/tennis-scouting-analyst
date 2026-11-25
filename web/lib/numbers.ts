@@ -41,6 +41,37 @@ export function pieces(part: string, at: number, spans: readonly Range[], cites:
   return out.length ? out : [{ text: part, marked: false, cite: null }];
 }
 
+export interface GluedPiece extends Piece {
+  lead: string; // opening punctuation just before a cited number, kept on its line
+  tail: string; // closing punctuation just after it
+}
+
+const OPENING = /[([{“‘"'¿¡«]+$/;
+const CLOSING = /^[)\]}”’"'.,;:!?%»]+/;
+
+/** Each piece, with the punctuation that touches a cited number moved next to it, so a line can't
+ * break between "(" and the number or between the number and ")" (a cited number is a button,
+ * and a line may break on either side of one). Only punctuation marked the same way moves, so a
+ * mark still covers exactly what it did. */
+export function glued(list: readonly Piece[]): GluedPiece[] {
+  const out: GluedPiece[] = list.map((p) => ({ ...p, lead: "", tail: "" }));
+  out.forEach((piece, i) => {
+    if (piece.cite === null) return;
+    const [before, after] = [out[i - 1], out[i + 1]];
+    const lead = before && before.cite === null && before.marked === piece.marked ? before.text.match(OPENING)?.[0] : undefined;
+    if (before && lead) {
+      piece.lead = lead;
+      before.text = before.text.slice(0, -lead.length);
+    }
+    const tail = after && after.cite === null && after.marked === piece.marked ? after.text.match(CLOSING)?.[0] : undefined;
+    if (after && tail) {
+      piece.tail = tail;
+      after.text = after.text.slice(tail.length);
+    }
+  });
+  return out;
+}
+
 /** The citations that really are where they say in `text` (D-032); like a mark, one that
  * doesn't line up is dropped, so a button can never land on the wrong words. */
 export function citationsIn<C extends Citation>(text: string, cites: readonly C[]): C[] {
