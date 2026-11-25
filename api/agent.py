@@ -188,6 +188,28 @@ TOOLS = [
         ["player_id", "filters"],
     ),
     _tool(
+        "tournament_calendar",
+        "Every tournament of one season in date order, with its final: winner, runner-up and score (winner's "
+        "games first). Davis Cup ties are left out, and exhibitions unless include_exhibitions is true. Team "
+        "events (United Cup, ATP Cup) have no single winner. Only tournaments already played, never upcoming "
+        "ones. Each tournament has an event_code for tournament_history.",
+        {
+            "season": {"type": "integer"},
+            "surface": FILTERS_SCHEMA["properties"]["surface"],
+            "tourney_level": FILTERS_SCHEMA["properties"]["tourney_level"],
+            "include_exhibitions": {"type": "boolean"},
+        },
+        ["season"],
+    ),
+    _tool(
+        "tournament_history",
+        "Every edition of one tournament, newest first, with its final, followed by its ATP code (event_code, "
+        "from tournament_calendar) across seasons. A tournament that moved city keeps its code; each edition "
+        "gives its own name.",
+        {"event_code": {"type": "integer"}, "include_exhibitions": {"type": "boolean"}},
+        ["event_code"],
+    ),
+    _tool(
         "set_patterns",
         "From the scores of completed matches: tiebreaks won, deciding sets won, and matches won after "
         "winning or after losing the first set. Retirements are left out and counted.",

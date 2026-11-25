@@ -22,7 +22,7 @@ NAMES = {SINNER: "Sinner", ALCARAZ: "Alcaraz", DJOKOVIC: "Djokovic", NADAL: "Nad
          MEDVEDEV: "Medvedev", ZVEREV: "Zverev", THIEM: "Thiem", TSITSIPAS: "Tsitsipas", RUUD: "Ruud",
          MURRAY: "Murray", ISNER: "Isner", KYRGIOS: "Kyrgios", FRITZ: "Fritz", RUBLEV: "Rublev"}  # fmt: skip
 STATS_TOOLS = ("player_profile", "surface_splits", "serve_return_stats", "pressure_stats", "head_to_head", "recent_form",
-               "season_path", "set_patterns", "tour_comparison", "shot_patterns")
+               "season_path", "tournament_calendar", "tournament_history", "set_patterns", "tour_comparison", "shot_patterns")
 
 COUNTS = {"matches", "wins", "losses"}  # checked exactly; every other stat is a rate or average
 # Milestones 8 and 9 (D-029, D-030): evals/truth.py's pattern_value computes these and says

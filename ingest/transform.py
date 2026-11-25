@@ -11,6 +11,7 @@ import collections
 import datetime as dt
 import re
 from dataclasses import dataclass, field
+from collections.abc import Mapping
 from typing import Callable
 
 # Stat columns in the source files, per side (w_ for winner, l_ for loser) ...
@@ -22,7 +23,7 @@ STAT_COLUMNS = [
 ]  # fmt: skip
 
 MATCH_COLUMNS = [
-    "match_id", "source", "season", "source_row", "tourney_id", "tourney_name",
+    "match_id", "source", "season", "source_row", "tourney_id", "tourney_name", "event_code",
     "tourney_level", "source_level", "is_exhibition", "tourney_date", "match_date",
     "surface", "round", "round_order", "match_num", "best_of", "score", "minutes",
     "winner_id", "loser_id", "result_type", "has_stats",
@@ -38,6 +39,19 @@ SURFACES = {"Hard", "Clay", "Grass", "Carpet"}
 # a tournament with such a name (or coded F or O) must be listed in ingest/special_events.csv,
 # or the load stops (D-010).
 SPECIAL_NAME_RE = re.compile(r"finals|cup|olymp|laver|next", re.IGNORECASE)
+# A tournament ID with its ATP code after the season ("2025-0410", "2026-410"). Older Sackmann IDs
+# ("2016-M006") take theirs from the reviewed ingest/event_codes.csv (D-036).
+CODED_ID_RE = re.compile(r"\d{4}-(\d+)")
+
+
+def event_code(tourney_id: str, level: str, event_codes: Mapping[str, int]) -> int | None:
+    """The tournament's ATP code, which follows an event across seasons and both sources.
+    None for a Davis Cup tie, and for an older ID the reviewed file doesn't list (the load
+    stops before that can happen)."""
+    if level == "D":
+        return None
+    match = CODED_ID_RE.fullmatch(tourney_id)
+    return int(match.group(1)) if match else event_codes.get(tourney_id)
 
 SET_RE = re.compile(r"^(\d{1,2})-(\d{1,2})(?:\(\d+\))?$")
 MATCH_TIEBREAK_RE = re.compile(r"^\[(\d{1,2})-(\d{1,2})\]$")
@@ -197,12 +211,14 @@ def transform_file(
     season: int,
     map_player: Callable[[str], int | None],
     special_events: dict[str, tuple[str, bool]],
+    event_codes: Mapping[str, int] | None = None,
 ) -> FileResult:
     """Build matches and player_matches rows from one season file.
 
     `map_player` turns the file's player ID into the project's player_id, or returns None
     when the player can't be identified (the row is then rejected, never guessed).
     `special_events` maps a tournament name to (level, is_exhibition) for special events.
+    `event_codes` maps an older tournament ID to its ATP code (D-036).
     """
     result = FileResult()
     starts = tournament_start_dates(rows) if source == "tml" else {}
@@ -277,6 +293,7 @@ def transform_file(
                 "source_row": row_num,
                 "tourney_id": row["tourney_id"],
                 "tourney_name": row["tourney_name"],
+                "event_code": event_code(row["tourney_id"], level, event_codes or {}),
                 "tourney_level": level,
                 "source_level": row["tourney_level"],
                 "is_exhibition": is_exhibition,

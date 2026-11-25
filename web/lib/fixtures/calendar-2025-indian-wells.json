@@ -1,0 +1,1690 @@
+{
+ "calendar": {
+  "tool": "tournament_calendar",
+  "filters": {
+   "surface": null,
+   "date_from": null,
+   "date_to": null,
+   "season": 2025,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false,
+   "opponent_rank_max": null
+  },
+  "data_window": {
+   "first_tourney_date": "2015-01-04",
+   "last_tourney_date": "2026-11-08",
+   "last_match_date": "2026-11-14"
+  },
+  "count": 61,
+  "tournaments": [
+   {
+    "event_code": 9900,
+    "season": 2025,
+    "tournament": "United Cup",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2024-12-27",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "team",
+    "final": null
+   },
+   {
+    "event_code": 336,
+    "season": 2025,
+    "tournament": "Hong Kong",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2024-12-30",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 124186,
+      "name": "Alexandre Muller"
+     },
+     "runner_up": {
+      "player_id": 105453,
+      "name": "Kei Nishikori"
+     },
+     "score": "2-6 6-1 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 339,
+    "season": 2025,
+    "tournament": "Brisbane",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2024-12-30",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 208103,
+      "name": "Jiri Lehecka"
+     },
+     "runner_up": {
+      "player_id": 124187,
+      "name": "Reilly Opelka"
+     },
+     "score": "4-1 RET",
+     "result_type": "retired"
+    }
+   },
+   {
+    "event_code": 301,
+    "season": 2025,
+    "tournament": "Auckland",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-01-06",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 104792,
+      "name": "Gael Monfils"
+     },
+     "runner_up": {
+      "player_id": 200267,
+      "name": "Zizou Bergs"
+     },
+     "score": "6-3 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 8998,
+    "season": 2025,
+    "tournament": "Adelaide",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-01-06",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime"
+     },
+     "runner_up": {
+      "player_id": 200624,
+      "name": "Sebastian Korda"
+     },
+     "score": "6-3 3-6 6-1",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 580,
+    "season": 2025,
+    "tournament": "Australian Open",
+    "level": "G",
+    "surface": "Hard",
+    "tourney_date": "2025-01-13",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 100644,
+      "name": "Alexander Zverev"
+     },
+     "score": "6-3 7-6(4) 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 375,
+    "season": 2025,
+    "tournament": "Montpellier",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-01-27",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime"
+     },
+     "runner_up": {
+      "player_id": 206499,
+      "name": "Aleksandar Kovacevic"
+     },
+     "score": "6-2 6-7(7) 7-6(2)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 407,
+    "season": 2025,
+    "tournament": "Rotterdam",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-03",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 200282,
+      "name": "Alex De Minaur"
+     },
+     "score": "6-4 3-6 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 424,
+    "season": 2025,
+    "tournament": "Dallas",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-03",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 133430,
+      "name": "Denis Shapovalov"
+     },
+     "runner_up": {
+      "player_id": 134770,
+      "name": "Casper Ruud"
+     },
+     "score": "7-6(5) 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 496,
+    "season": 2025,
+    "tournament": "Marseille",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-10",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200005,
+      "name": "Ugo Humbert"
+     },
+     "runner_up": {
+      "player_id": 209098,
+      "name": "Hamad Medjedovic"
+     },
+     "score": "7-6(4) 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 499,
+    "season": 2025,
+    "tournament": "Delray Beach",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-10",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200175,
+      "name": "Miomir Kecmanovic"
+     },
+     "runner_up": {
+      "player_id": 200221,
+      "name": "Alejandro Davidovich Fokina"
+     },
+     "score": "3-6 6-1 7-5",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 506,
+    "season": 2025,
+    "tournament": "Buenos Aires",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-02-10",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 211663,
+      "name": "Joao Fonseca"
+     },
+     "runner_up": {
+      "player_id": 202103,
+      "name": "Francisco Cerundolo"
+     },
+     "score": "6-4 7-6(1)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 451,
+    "season": 2025,
+    "tournament": "Doha",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-17",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 126094,
+      "name": "Andrey Rublev"
+     },
+     "runner_up": {
+      "player_id": 207733,
+      "name": "Jack Draper"
+     },
+     "score": "7-5 5-7 6-1",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 6932,
+    "season": 2025,
+    "tournament": "Rio de Janeiro",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-02-17",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 202104,
+      "name": "Sebastian Baez"
+     },
+     "runner_up": {
+      "player_id": 124186,
+      "name": "Alexandre Muller"
+     },
+     "score": "6-2 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 495,
+    "season": 2025,
+    "tournament": "Dubai",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-24",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 126774,
+      "name": "Stefanos Tsitsipas"
+     },
+     "runner_up": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime"
+     },
+     "score": "6-3 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 807,
+    "season": 2025,
+    "tournament": "Acapulco",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-02-24",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207830,
+      "name": "Tomas Machac"
+     },
+     "runner_up": {
+      "player_id": 200221,
+      "name": "Alejandro Davidovich Fokina"
+     },
+     "score": "7-6(6) 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 8996,
+    "season": 2025,
+    "tournament": "Santiago",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-02-24",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 111513,
+      "name": "Laslo Djere"
+     },
+     "runner_up": {
+      "player_id": 202104,
+      "name": "Sebastian Baez"
+     },
+     "score": "6-4 3-6 7-5",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2025,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-03-05",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207733,
+      "name": "Jack Draper"
+     },
+     "runner_up": {
+      "player_id": 208029,
+      "name": "Holger Rune"
+     },
+     "score": "6-2 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 403,
+    "season": 2025,
+    "tournament": "Miami Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-03-19",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 210150,
+      "name": "Jakub Mensik"
+     },
+     "runner_up": {
+      "player_id": 104925,
+      "name": "Novak Djokovic"
+     },
+     "score": "7-6(4) 7-6(4)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 360,
+    "season": 2025,
+    "tournament": "Marrakech",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-03-31",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 209260,
+      "name": "Luciano Darderi"
+     },
+     "runner_up": {
+      "player_id": 134868,
+      "name": "Tallon Griekspoor"
+     },
+     "score": "7-6(3) 7-6(4)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 717,
+    "season": 2025,
+    "tournament": "Houston",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-03-31",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 202385,
+      "name": "Jenson Brooksby"
+     },
+     "runner_up": {
+      "player_id": 126207,
+      "name": "Frances Tiafoe"
+     },
+     "score": "6-4 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 4462,
+    "season": 2025,
+    "tournament": "Bucharest",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-03-31",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207925,
+      "name": "Flavio Cobolli"
+     },
+     "runner_up": {
+      "player_id": 202104,
+      "name": "Sebastian Baez"
+     },
+     "score": "6-4 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 410,
+    "season": 2025,
+    "tournament": "Monte Carlo Masters",
+    "level": "M",
+    "surface": "Clay",
+    "tourney_date": "2025-04-07",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 207518,
+      "name": "Lorenzo Musetti"
+     },
+     "score": "3-6 6-1 6-0",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 308,
+    "season": 2025,
+    "tournament": "Munich",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-04-14",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 100644,
+      "name": "Alexander Zverev"
+     },
+     "runner_up": {
+      "player_id": 210097,
+      "name": "Ben Shelton"
+     },
+     "score": "6-2 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 425,
+    "season": 2025,
+    "tournament": "Barcelona",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-04-14",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 208029,
+      "name": "Holger Rune"
+     },
+     "runner_up": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "score": "7-6(6) 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 1536,
+    "season": 2025,
+    "tournament": "Madrid Masters",
+    "level": "M",
+    "surface": "Clay",
+    "tourney_date": "2025-04-23",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 134770,
+      "name": "Casper Ruud"
+     },
+     "runner_up": {
+      "player_id": 207733,
+      "name": "Jack Draper"
+     },
+     "score": "7-5 3-6 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 416,
+    "season": 2025,
+    "tournament": "Rome Masters",
+    "level": "M",
+    "surface": "Clay",
+    "tourney_date": "2025-05-07",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "score": "7-6(5) 6-1",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 322,
+    "season": 2025,
+    "tournament": "Geneva",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-05-18",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 104925,
+      "name": "Novak Djokovic"
+     },
+     "runner_up": {
+      "player_id": 128034,
+      "name": "Hubert Hurkacz"
+     },
+     "score": "5-7 7-6(2) 7-6(2)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 414,
+    "season": 2025,
+    "tournament": "Hamburg",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-05-18",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207925,
+      "name": "Flavio Cobolli"
+     },
+     "runner_up": {
+      "player_id": 126094,
+      "name": "Andrey Rublev"
+     },
+     "score": "6-2 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 520,
+    "season": 2025,
+    "tournament": "Roland Garros",
+    "level": "G",
+    "surface": "Clay",
+    "tourney_date": "2025-05-26",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "score": "4-6 6-7(4) 6-4 7-6(3) 7-6(2)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 321,
+    "season": 2025,
+    "tournament": "Stuttgart",
+    "level": "A",
+    "surface": "Grass",
+    "tourney_date": "2025-06-09",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 126203,
+      "name": "Taylor Fritz"
+     },
+     "runner_up": {
+      "player_id": 100644,
+      "name": "Alexander Zverev"
+     },
+     "score": "6-3 7-6(0)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 440,
+    "season": 2025,
+    "tournament": "s Hertogenbosch",
+    "level": "A",
+    "surface": "Grass",
+    "tourney_date": "2025-06-09",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 209113,
+      "name": "Gabriel Diallo"
+     },
+     "runner_up": {
+      "player_id": 200267,
+      "name": "Zizou Bergs"
+     },
+     "score": "7-5 7-6(8)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 311,
+    "season": 2025,
+    "tournament": "Queen's Club",
+    "level": "A",
+    "surface": "Grass",
+    "tourney_date": "2025-06-16",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 208103,
+      "name": "Jiri Lehecka"
+     },
+     "score": "7-5 6-7(5) 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 500,
+    "season": 2025,
+    "tournament": "Halle",
+    "level": "A",
+    "surface": "Grass",
+    "tourney_date": "2025-06-16",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 122330,
+      "name": "Alexander Bublik"
+     },
+     "runner_up": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev"
+     },
+     "score": "6-3 7-6(4)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 8994,
+    "season": 2025,
+    "tournament": "Mallorca",
+    "level": "A",
+    "surface": "Grass",
+    "tourney_date": "2025-06-22",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 134868,
+      "name": "Tallon Griekspoor"
+     },
+     "runner_up": {
+      "player_id": 144895,
+      "name": "Corentin Moutet"
+     },
+     "score": "7-5 7-6(3)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 741,
+    "season": 2025,
+    "tournament": "Eastbourne",
+    "level": "A",
+    "surface": "Grass",
+    "tourney_date": "2025-06-23",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 126203,
+      "name": "Taylor Fritz"
+     },
+     "runner_up": {
+      "player_id": 202385,
+      "name": "Jenson Brooksby"
+     },
+     "score": "7-5 6-1",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 540,
+    "season": 2025,
+    "tournament": "Wimbledon",
+    "level": "G",
+    "surface": "Grass",
+    "tourney_date": "2025-06-30",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "score": "4-6 6-4 6-4 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 314,
+    "season": 2025,
+    "tournament": "Gstaad",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-07-14",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 122330,
+      "name": "Alexander Bublik"
+     },
+     "runner_up": {
+      "player_id": 207678,
+      "name": "Juan Manuel Cerundolo"
+     },
+     "score": "6-4 4-6 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 316,
+    "season": 2025,
+    "tournament": "Bastad",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-07-14",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 209260,
+      "name": "Luciano Darderi"
+     },
+     "runner_up": {
+      "player_id": 207411,
+      "name": "Jesper De Jong"
+     },
+     "score": "6-4 3-6 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 7480,
+    "season": 2025,
+    "tournament": "Los Cabos",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-07-14",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 133430,
+      "name": "Denis Shapovalov"
+     },
+     "runner_up": {
+      "player_id": 206499,
+      "name": "Aleksandar Kovacevic"
+     },
+     "score": "6-4 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 439,
+    "season": 2025,
+    "tournament": "Umag",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-07-20",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 209260,
+      "name": "Luciano Darderi"
+     },
+     "runner_up": {
+      "player_id": 126535,
+      "name": "Carlos Taberner"
+     },
+     "score": "6-3 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 319,
+    "season": 2025,
+    "tournament": "Kitzbuhel",
+    "level": "A",
+    "surface": "Clay",
+    "tourney_date": "2025-07-21",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 122330,
+      "name": "Alexander Bublik"
+     },
+     "runner_up": {
+      "player_id": 209070,
+      "name": "Arthur Cazaux"
+     },
+     "score": "6-4 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 418,
+    "season": 2025,
+    "tournament": "Washington",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-07-21",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200282,
+      "name": "Alex De Minaur"
+     },
+     "runner_up": {
+      "player_id": 200221,
+      "name": "Alejandro Davidovich Fokina"
+     },
+     "score": "5-7 6-1 7-6(3)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 421,
+    "season": 2025,
+    "tournament": "Canada Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-07-27",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 210097,
+      "name": "Ben Shelton"
+     },
+     "runner_up": {
+      "player_id": 111575,
+      "name": "Karen Khachanov"
+     },
+     "score": "6-7(5) 6-4 7-6(3)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 422,
+    "season": 2025,
+    "tournament": "Cincinnati Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-08-07",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "score": "5-0 RET",
+     "result_type": "retired"
+    }
+   },
+   {
+    "event_code": 6242,
+    "season": 2025,
+    "tournament": "Winston-Salem",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-08-17",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 105916,
+      "name": "Marton Fucsovics"
+     },
+     "runner_up": {
+      "player_id": 122298,
+      "name": "Botic Van De Zandschulp"
+     },
+     "score": "6-3 7-6(3)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 560,
+    "season": 2025,
+    "tournament": "Us Open",
+    "level": "G",
+    "surface": "Hard",
+    "tourney_date": "2025-08-25",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "score": "6-2 3-6 6-1 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 4713,
+    "season": 2025,
+    "tournament": "Hangzhou",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-09-17",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 122330,
+      "name": "Alexander Bublik"
+     },
+     "runner_up": {
+      "player_id": 208316,
+      "name": "Valentin Royer"
+     },
+     "score": "7-6(4) 7-6(4)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 7581,
+    "season": 2025,
+    "tournament": "Chengdu",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-09-17",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 126214,
+      "name": "Alejandro Tabilo"
+     },
+     "runner_up": {
+      "player_id": 207518,
+      "name": "Lorenzo Musetti"
+     },
+     "score": "6-3 2-6 7-6(5)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 329,
+    "season": 2025,
+    "tournament": "Tokyo",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-09-24",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 126203,
+      "name": "Taylor Fritz"
+     },
+     "score": "6-4 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 747,
+    "season": 2025,
+    "tournament": "Beijing",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-09-25",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 210530,
+      "name": "Learner Tien"
+     },
+     "score": "6-2 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 5014,
+    "season": 2025,
+    "tournament": "Shanghai Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-10-01",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200473,
+      "name": "Valentin Vacherot"
+     },
+     "runner_up": {
+      "player_id": 126239,
+      "name": "Arthur Rinderknech"
+     },
+     "score": "4-6 6-3 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 429,
+    "season": 2025,
+    "tournament": "Stockholm",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-10-13",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 134770,
+      "name": "Casper Ruud"
+     },
+     "runner_up": {
+      "player_id": 200005,
+      "name": "Ugo Humbert"
+     },
+     "score": "6-2 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 7485,
+    "season": 2025,
+    "tournament": "Brussels",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-10-13",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime"
+     },
+     "runner_up": {
+      "player_id": 208103,
+      "name": "Jiri Lehecka"
+     },
+     "score": "7-6(2) 6-7(6) 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 9410,
+    "season": 2025,
+    "tournament": "Almaty",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-10-13",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev"
+     },
+     "runner_up": {
+      "player_id": 144895,
+      "name": "Corentin Moutet"
+     },
+     "score": "7-5 4-6 6-3",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 328,
+    "season": 2025,
+    "tournament": "Basel",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-10-20",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 211663,
+      "name": "Joao Fonseca"
+     },
+     "runner_up": {
+      "player_id": 200221,
+      "name": "Alejandro Davidovich Fokina"
+     },
+     "score": "6-3 6-4",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 337,
+    "season": 2025,
+    "tournament": "Vienna",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-10-20",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 100644,
+      "name": "Alexander Zverev"
+     },
+     "score": "3-6 6-3 7-5",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 352,
+    "season": 2025,
+    "tournament": "Paris Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-10-27",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 200000,
+      "name": "Felix Auger Aliassime"
+     },
+     "score": "6-4 7-6(4)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 341,
+    "season": 2025,
+    "tournament": "Metz",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-11-02",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 210530,
+      "name": "Learner Tien"
+     },
+     "runner_up": {
+      "player_id": 111815,
+      "name": "Cameron Norrie"
+     },
+     "score": "6-3 3-6 7-6(6)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 5100,
+    "season": 2025,
+    "tournament": "Athens",
+    "level": "A",
+    "surface": "Hard",
+    "tourney_date": "2025-11-02",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 104925,
+      "name": "Novak Djokovic"
+     },
+     "runner_up": {
+      "player_id": 207518,
+      "name": "Lorenzo Musetti"
+     },
+     "score": "4-6 6-3 7-5",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 605,
+    "season": 2025,
+    "tournament": "Tour Finals",
+    "level": "F",
+    "surface": "Hard",
+    "tourney_date": "2025-11-09",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "score": "7-6(4) 7-5",
+     "result_type": "completed"
+    }
+   }
+  ]
+ },
+ "history": {
+  "tool": "tournament_history",
+  "event_code": 404,
+  "filters": {
+   "surface": null,
+   "date_from": null,
+   "date_to": null,
+   "season": null,
+   "tourney_level": null,
+   "opponent_hand": null,
+   "include_exhibitions": false,
+   "opponent_rank_max": null
+  },
+  "data_window": {
+   "first_tourney_date": "2015-01-04",
+   "last_tourney_date": "2026-11-08",
+   "last_match_date": "2026-11-14"
+  },
+  "count": 11,
+  "editions": [
+   {
+    "event_code": 404,
+    "season": 2026,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2026-03-04",
+    "last_match_date": "2026-03-15",
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 206173,
+      "name": "Jannik Sinner"
+     },
+     "runner_up": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev"
+     },
+     "score": "7-6(6) 7-6(4)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2025,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2025-03-05",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207733,
+      "name": "Jack Draper"
+     },
+     "runner_up": {
+      "player_id": 208029,
+      "name": "Holger Rune"
+     },
+     "score": "6-2 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2024,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2024-03-04",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev"
+     },
+     "score": "7-6(5) 6-1",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2023,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2023-03-06",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 207989,
+      "name": "Carlos Alcaraz"
+     },
+     "runner_up": {
+      "player_id": 106421,
+      "name": "Daniil Medvedev"
+     },
+     "score": "6-3 6-2",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2022,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2022-03-07",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 126203,
+      "name": "Taylor Fritz"
+     },
+     "runner_up": {
+      "player_id": 104745,
+      "name": "Rafael Nadal"
+     },
+     "score": "6-3 7-6(5)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2021,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2021-10-04",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 111815,
+      "name": "Cameron Norrie"
+     },
+     "runner_up": {
+      "player_id": 105932,
+      "name": "Nikoloz Basilashvili"
+     },
+     "score": "3-6 6-4 6-1",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2019,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2019-03-04",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 106233,
+      "name": "Dominic Thiem"
+     },
+     "runner_up": {
+      "player_id": 103819,
+      "name": "Roger Federer"
+     },
+     "score": "3-6 6-3 7-5",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2018,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2018-03-05",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 105223,
+      "name": "Juan Martin del Potro"
+     },
+     "runner_up": {
+      "player_id": 103819,
+      "name": "Roger Federer"
+     },
+     "score": "6-4 6-7(8) 7-6(2)",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2017,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2017-03-06",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 103819,
+      "name": "Roger Federer"
+     },
+     "runner_up": {
+      "player_id": 104527,
+      "name": "Stan Wawrinka"
+     },
+     "score": "6-4 7-5",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2016,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2016-03-07",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 104925,
+      "name": "Novak Djokovic"
+     },
+     "runner_up": {
+      "player_id": 105683,
+      "name": "Milos Raonic"
+     },
+     "score": "6-2 6-0",
+     "result_type": "completed"
+    }
+   },
+   {
+    "event_code": 404,
+    "season": 2015,
+    "tournament": "Indian Wells Masters",
+    "level": "M",
+    "surface": "Hard",
+    "tourney_date": "2015-03-12",
+    "last_match_date": null,
+    "is_exhibition": false,
+    "status": "final",
+    "final": {
+     "winner": {
+      "player_id": 104925,
+      "name": "Novak Djokovic"
+     },
+     "runner_up": {
+      "player_id": 103819,
+      "name": "Roger Federer"
+     },
+     "score": "6-3 6-7(5) 6-2",
+     "result_type": "completed"
+    }
+   }
+  ]
+ }
+}

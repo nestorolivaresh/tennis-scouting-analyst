@@ -20,7 +20,7 @@ from ingest.transform import games_in_score
 LARGE_CHANGE = 0.25  # flag a season whose match count moves more than 25% from the previous one
 FINGERPRINT_TABLES = [
     "raw.matches", "raw.sackmann_players", "raw.tml_players", "raw.player_merges",
-    "raw.player_crosswalk", "raw.special_events", "players", "matches", "player_matches",
+    "raw.player_crosswalk", "raw.special_events", "raw.event_codes", "players", "matches", "player_matches",
     "raw.charting_matches", "raw.charting_serve_direction", "raw.charting_rally", "raw.charting_net_points",
     "charting_matches", "charting_player_stats",
 ]  # fmt: skip
@@ -29,6 +29,20 @@ TIEBREAKS_SQL = "(SELECT count(*) FROM regexp_matches(m.score, '(^| )(7-6|6-7)',
 
 # Each check counts rows that break an invariant; every one should be 0.
 INVARIANT_CHECKS = [
+    (
+        "Matches outside Davis Cup without an ATP tournament code (D-036)",
+        "SELECT count(*) FROM matches WHERE event_code IS NULL AND tourney_level <> 'D'",
+    ),
+    (
+        "Reviewed tournament codes whose ID is in no file (D-036)",
+        """SELECT count(*) FROM raw.event_codes e
+           WHERE NOT EXISTS (SELECT 1 FROM raw.matches r WHERE r.tourney_id = e.tourney_id)""",
+    ),
+    (
+        "Tournament codes used by two tournaments in one season (D-036)",
+        """SELECT count(*) FROM (SELECT season, event_code FROM matches WHERE event_code IS NOT NULL
+           GROUP BY season, event_code HAVING count(DISTINCT tourney_id) > 1) x""",
+    ),
     (
         "Matches without exactly two player_matches rows",
         """SELECT count(*) FROM matches m

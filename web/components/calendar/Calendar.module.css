@@ -1,0 +1,192 @@
+/* The Calendar page (D-036). Page, heading, notes and the table pieces come from the Player stats
+   stylesheet; this holds what is new here. */
+
+.content {
+  transition: opacity 120ms ease;
+}
+
+.content[aria-busy="true"] {
+  opacity: 0.6;
+}
+
+.loading {
+  margin: 24px 0;
+  font-size: 19px;
+  color: var(--muted-2);
+}
+
+.upcoming {
+  margin: 10px 0 0;
+  font-size: 17px;
+  color: var(--muted-2);
+}
+
+.seasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.season {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 6px 14px;
+  background: var(--chalk);
+  border: 2px solid var(--bottle);
+  border-radius: 2px;
+  font: inherit;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--bottle);
+  cursor: pointer;
+}
+
+.season:hover {
+  background: var(--white);
+}
+
+.season[aria-pressed="true"] {
+  background: var(--bottle);
+  color: var(--white);
+}
+
+.month {
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--bottle);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1.2fr) minmax(0, 1.4fr);
+  gap: 4px 18px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.date {
+  font-size: 16px;
+  color: var(--muted-2);
+}
+
+.event {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.eventButton {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.25;
+  color: var(--bottle);
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.eventButton:hover,
+.eventButton[aria-pressed="true"] {
+  text-decoration-color: var(--bottle);
+}
+
+.meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.finalCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.winner {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.noWinner {
+  font-size: 17px;
+  color: var(--muted-2);
+}
+
+.history {
+  grid-column: 1 / -1;
+  margin: 8px 0 14px;
+}
+
+.historyHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.close {
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 17px;
+  color: var(--bottle);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 2px 16px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.historyRow > span:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 760px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .date {
+    order: 3;
+  }
+
+  .historyRow {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    transition: none;
+  }
+}

@@ -9,9 +9,11 @@ import datetime as dt
 
 import pytest
 
+from ingest.load import load_event_codes, uncoded_ids
 from ingest.transform import (
     STAT_FIELDS,
     classify_event,
+    event_code,
     games_in_score,
     parse_date,
     player_row,
@@ -220,3 +222,46 @@ def test_exhibitions_come_from_the_special_events_table():
     result = transform([raw_row(tourney_name="Laver Cup", round="RR")])
     assert result.matches[0]["is_exhibition"] is True
     assert result.matches[0]["tourney_level"] == "A"
+
+
+# ---------- ATP tournament codes (D-036) ----------
+
+
+@pytest.mark.parametrize(
+    ("tourney_id", "level", "expected"),
+    [
+        ("2025-0410", "M", 410),  # Sackmann pads the code
+        ("2026-410", "M", 410),  # TML doesn't: the same tournament
+        ("2016-M006", "M", 404),  # an older ID, from the reviewed file
+        ("2016-M999", "A", None),  # an older ID the file doesn't list (the load stops first)
+        ("2025-M-DC-2025-FLS-M-ARG-GER-01", "D", None),  # a Davis Cup tie has none
+        ("2025-0580", "D", None),  # level D decides, whatever the ID looks like
+    ],
+)
+def test_event_code(tourney_id, level, expected):
+    assert event_code(tourney_id, level, {"2016-M006": 404}) == expected
+
+
+def test_an_unmapped_older_id_is_reported_before_loading():
+    files = [[
+        {"tourney_id": "2016-M006", "tourney_name": "Indian Wells Masters", "tourney_level": "M"},
+        {"tourney_id": "2016-M007", "tourney_name": "Miami Masters", "tourney_level": "M"},
+        {"tourney_id": "2016-0580", "tourney_name": "Australian Open", "tourney_level": "G"},
+        {"tourney_id": "2016-M-DC-2016-WG-M-ARG-GBR-01", "tourney_name": "Davis Cup", "tourney_level": "D"},
+    ]]  # fmt: skip
+    assert uncoded_ids(files, {"2016-M006": 404}) == [("2016-M007", "Miami Masters")]
+
+
+@pytest.mark.parametrize(
+    "row",
+    [{"tourney_id": "2016-M006", "event_code": "abc"}, {"tourney_id": "2016-M006", "event_code": "0"}, {"tourney_id": "", "event_code": "404"}],
+)
+def test_bad_event_code_rows_are_refused(row):
+    with pytest.raises(ValueError, match="event_codes.csv"):
+        load_event_codes([{**row, "method": "", "note": ""}])
+
+
+def test_a_repeated_event_code_row_is_refused():
+    row = {"tourney_id": "2016-M006", "event_code": "404", "method": "", "note": ""}
+    with pytest.raises(ValueError, match="repeated"):
+        load_event_codes([row, row])

@@ -1615,3 +1615,66 @@ list; which matches count is unchanged (D-014).
 
 **Not checked.** The model using the tool in a live report or chat (a paid call), the route on
 Vercel, and browsers other than Chromium.
+
+## D-036 Milestone 13: the Calendar
+
+*2026-11-24. Approved by Nestor: build the calendar of past seasons now, with each tournament's
+history across years (his choice, knowing it needs a reviewed file and a Neon reload), link to the
+ATP's calendar for upcoming tournaments, and check a free data API for them.*
+
+**Context.** A coach plans by the calendar. The data has every tournament already played; none of
+it has upcoming ones.
+
+**Upcoming tournaments.** The ATP publishes its 2027 calendar (January 2026, 59 tournaments), but
+its site says no part of it may be reproduced without written permission from ATP Tour, Inc., and
+a link is allowed. No openly licensed copy was found (no Wikipedia season page for 2027 yet).
+Apps that show schedules license official data: the ATP's data rights sit with Tennis Data
+Innovations, and Sportradar has held the global ATP data rights since 2024. The free tier of the
+BALLDONTLIE ATP API has tournaments with start and end dates; its terms (20 October 2026) allow
+storing, publishing and displaying its data in free or paid apps with no attribution, but say the
+data is compiled from unnamed third-party sources, and its docs don't say whether future seasons
+are in it, which needs a free account and key to test. So the page links to the ATP's calendar,
+and the API waits for Nestor's decision.
+
+**Chosen.**
+- **A tournament's identity is its ATP code**, the number after the season in its ID: "2025-0410"
+  (Sackmann) and "2026-410" (TML) are both Monte Carlo, whose name differs between the sources.
+  `matches.event_code` holds it, filled at load. 57 older Sackmann IDs (2016-2020, such as
+  "2016-M006" for Indian Wells) carry none; the reviewed `ingest/event_codes.csv` maps them: 51 to
+  the code their tournament's name uses in other seasons, 6 by hand (Sydney 2016-2019 to 338, its
+  2015 code and week, not the one-off 2022 Sydney; Adelaide 2020 to 8998; the Rio Olympics to 96,
+  Tokyo's and Paris's). The load stops on an unmapped ID, as it does for special events (D-010),
+  and the quality report gains three invariants: no code missing outside Davis Cup, no reviewed
+  row without its ID, no code used twice in a season. Davis Cup ties have none.
+- **A code follows the ATP licence, not the city.** Code 496 is Marseille to 2025 and, as TML
+  codes it, Lyon in 2026 (Lyon's own earlier code is 7694); 741 is Nottingham, then Eastbourne.
+  Each edition gives its own name, and the page says how history is followed.
+- **`tournament_calendar(season, surface, tourney_level, include_exhibitions)`** and
+  **`tournament_history(event_code, include_exhibitions)`**: each tournament with its start date,
+  surface, level and final (winner, runner-up, score winner first). Davis Cup ties are left out,
+  exhibitions unless asked (D-006). Statuses: `final`; `team` for the team events of D-035, whose
+  final is a tie between teams; `no_final` while a tournament is under way; `unclear` when the
+  final's score contradicts its winner (D-007). The real data has only the first two today, so the
+  other two are unit-tested. Both are agent tools (13 in all).
+- **`GET /calendar?season=&event=`** (`api/calendar.py`): a season (the newest by default) and,
+  with `event`, that tournament's history, from one snapshot, cached like the other stats pages.
+  The seventh public route.
+- **The Calendar page** at `/calendar`, in the nav: the seasons, the season's tournaments by month,
+  each final with the winner linked to their Player stats, and a tournament's history opening under
+  its row. Upcoming tournaments: a sentence and a link to the ATP's calendar.
+
+**How it was checked.**
+- Hand check 31 reads the raw files: 61 tournaments in 2025, each with a final, the first five,
+  and Indian Wells' finals 2015-2026 across both sources and the mapped IDs. The tools match. Loading
+  with one reviewed row removed stops with that ID named, before anything is written. Breaking the
+  team rule, showing exhibitions by default, or ordering history oldest first fails the tests.
+- Web: tested from a saved response (2025 with Indian Wells' history), in three languages. In a
+  browser against the local API: the newest season, an older one (2019, mapped IDs), a history under
+  its row and one not held that season (Indian Wells 2020) on top, Close and Back, bad links, 375 px.
+  477 Python and 242 web tests, the typecheck and the build pass.
+
+**Rollout.** `ingest/schema.sql` changes, so Neon must be reloaded before the deploy
+(`docs/deploy.md`): the running app ignores the new column; the new code needs it.
+
+**Not checked.** The model using the new tools (a paid call), the route on Vercel, and browsers
+other than Chromium.

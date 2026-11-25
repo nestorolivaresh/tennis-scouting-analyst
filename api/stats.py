@@ -47,6 +47,10 @@ class PlayerNotFound(LookupError):
     """No player with that ID exists in the loaded data."""
 
 
+class TournamentNotFound(LookupError):
+    """No tournament with that ATP code exists in the loaded data (D-036)."""
+
+
 def _whole_number(value: Any, low: int, high: int, message: str) -> int:
     """An int, or a string of ASCII digits, from low to high. Anything else raises ToolInputError."""
     text = "" if isinstance(value, bool) else str(value).strip()
@@ -318,6 +322,32 @@ WHERE excluded_as IS NULL
        AND (%(opponent_hand)s::text IS NULL OR opponent_hand IS NOT NULL)
        AND (%(opponent_rank_max)s::int IS NULL OR opponent_rank IS NOT NULL))
 ORDER BY tourney_date, tourney_id, round_order, match_date NULLS LAST, match_num
+"""
+
+# Tournaments and their finals (D-036): one row per tournament under the filters, Davis Cup ties
+# left out (they have no event code), with its final where the data has one. A team event's final
+# is a tie of several matches, so it is joined here and set aside in Python.
+TOURNAMENTS_SQL = """
+WITH events AS (
+  SELECT event_code, tourney_id, min(tourney_name) AS tourney_name, min(tourney_level) AS tourney_level,
+         min(surface) AS surface, min(tourney_date) AS tourney_date, max(match_date) AS last_match_date,
+         bool_or(is_exhibition) AS is_exhibition, min(season) AS season
+  FROM matches
+  WHERE event_code IS NOT NULL
+    AND (%(season)s::int IS NULL OR season = %(season)s)
+    AND (%(event_code)s::int IS NULL OR event_code = %(event_code)s)
+    AND (%(include_exhibitions)s OR NOT is_exhibition)
+    AND (%(surface)s::text IS NULL OR surface = %(surface)s)
+    AND (%(levels)s::text[] IS NULL OR tourney_level = ANY(%(levels)s))
+  GROUP BY event_code, tourney_id
+)
+SELECT e.*, f.winner_id, w.full_name AS winner_name, f.loser_id, l.full_name AS loser_name,
+       f.score AS final_score, f.result_type AS final_result
+FROM events e
+LEFT JOIN matches f ON f.tourney_id = e.tourney_id AND f.round = 'F'
+LEFT JOIN players w ON w.player_id = f.winner_id
+LEFT JOIN players l ON l.player_id = f.loser_id
+ORDER BY e.tourney_date, e.tourney_id, f.match_num
 """
 
 # The counted matches' scores, for set_patterns (D-029).
@@ -874,6 +904,83 @@ def season_path(conn: psycopg.Connection, player_id: Any, filters: Filters | Map
         "walkovers_shown": len(rows) - len(counted_rows),
     }
     return _envelope("season_path", player, parsed, sample, summary=summary, events=events)
+
+
+def final_status(tourney_name: str, has_final: bool, final_result: str | None) -> str:
+    """How a tournament's final reads (D-036).
+
+    final: the data has it, with the winner, runner-up and score (winner first).
+    team: a team event; its final was a tie between teams, so no one player won it.
+    no_final: no final in the data, as while the tournament is still being played.
+    unclear: the final's score contradicts the listed winner (D-007), so no winner is named.
+    """
+    if tourney_name in TEAM_EVENTS:
+        return "team"
+    if not has_final:
+        return "no_final"
+    return "unclear" if final_result == "unknown" else "final"
+
+
+def _tournaments(conn: psycopg.Connection, parsed: Filters, event_code: int | None) -> list[dict[str, Any]]:
+    """Each tournament under the filters, in date order, with its final (D-036)."""
+    params = {**parsed.params(), "event_code": event_code}
+    with conn.transaction():
+        rows = conn.execute(TOURNAMENTS_SQL, params).fetchall()
+    by_id: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        by_id.setdefault(row["tourney_id"], []).append(row)
+    out = []
+    for event_rows in by_id.values():
+        row = event_rows[0]
+        status = final_status(row["tourney_name"], row["winner_id"] is not None, row["final_result"])
+        final = None
+        if status == "final":
+            final = {
+                "winner": {"player_id": row["winner_id"], "name": row["winner_name"]},
+                "runner_up": {"player_id": row["loser_id"], "name": row["loser_name"]},
+                "score": row["final_score"],  # winner's games first
+                "result_type": row["final_result"],
+            }
+        out.append({
+            "event_code": row["event_code"],
+            "season": row["season"],
+            "tournament": row["tourney_name"],
+            "level": row["tourney_level"],
+            "surface": row["surface"],
+            "tourney_date": _iso(row["tourney_date"]),
+            "last_match_date": _iso(row["last_match_date"]),  # TML only; Sackmann rows have no match dates
+            "is_exhibition": row["is_exhibition"],
+            "status": status,
+            "final": final,
+        })
+    return out
+
+
+def tournament_calendar(
+    conn: psycopg.Connection, season: Any, surface: Any = None, tourney_level: Any = None, include_exhibitions: Any = False
+) -> dict[str, Any]:
+    """Every tournament of one season in date order, with its final (D-036). Davis Cup ties are
+    left out; exhibitions too unless asked for (D-006). The data has only tournaments already
+    played: no upcoming ones."""
+    parsed = Filters.parse({"season": season, "surface": surface, "tourney_level": tourney_level,
+                            "include_exhibitions": include_exhibitions})  # fmt: skip
+    if parsed.season is None:
+        raise ToolInputError("season is required")
+    tournaments = _tournaments(conn, parsed, None)
+    return {"tool": "tournament_calendar", "filters": parsed.describe(), "data_window": data_window(conn),
+            "count": len(tournaments), "tournaments": tournaments}  # fmt: skip
+
+
+def tournament_history(conn: psycopg.Connection, event_code: Any, include_exhibitions: Any = False) -> dict[str, Any]:
+    """Every edition of one tournament, newest first, followed by its ATP code across seasons and
+    sources (D-036). An event that moved city keeps its code, so each edition gives its own name."""
+    code = _whole_number(event_code, 1, 99999, "event_code must be a whole number from 1 to 99999")
+    parsed = Filters.parse({"include_exhibitions": include_exhibitions})
+    editions = list(reversed(_tournaments(conn, parsed, code)))
+    if not editions:
+        raise TournamentNotFound(f"no tournament with event_code {code}")
+    return {"tool": "tournament_history", "event_code": code, "filters": parsed.describe(),
+            "data_window": data_window(conn), "count": len(editions), "editions": editions}  # fmt: skip
 
 
 def set_patterns(conn: psycopg.Connection, player_id: Any, filters: Filters | Mapping | None = None) -> dict[str, Any]:

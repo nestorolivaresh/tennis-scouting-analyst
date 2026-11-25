@@ -20,7 +20,7 @@ from fastapi import Depends, FastAPI, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from api import chat, matchup, player_stats, report, spend, stats
+from api import calendar, chat, matchup, player_stats, report, spend, stats
 from api.agent import Settings
 from api.db import connect, connect_usage
 from api.logs import configure, log_event
@@ -97,6 +97,11 @@ def bad_input(request: Request, e: stats.ToolInputError) -> JSONResponse:
 @app.exception_handler(stats.PlayerNotFound)
 def player_not_found(request: Request, e: stats.PlayerNotFound) -> JSONResponse:
     return error(404, "player_not_found", str(e), request)
+
+
+@app.exception_handler(stats.TournamentNotFound)
+def tournament_not_found(request: Request, e: stats.TournamentNotFound) -> JSONResponse:
+    return error(404, "tournament_not_found", str(e), request)
 
 
 @app.exception_handler(spend.DailyLimitReached)
@@ -217,6 +222,13 @@ def get_matchup(
     """The match prep page (D-033), with no model call. Cached like the player stats page, since
     the body depends only on the URL and the data only changes on a reload."""
     return JSONResponse(matchup.compose(conn, player_id, opponent_id, surface, scope), headers=PLAYER_STATS_HEADERS)
+
+
+@app.get("/calendar")
+def get_calendar(season: str | None = Query(None), event: str | None = Query(None), conn=Depends(get_conn)) -> JSONResponse:
+    """The Calendar page (D-036), with no model call: a season's tournaments and, with `event`,
+    one tournament's history. Cached like the other stats pages."""
+    return JSONResponse(calendar.compose(conn, season, event), headers=PLAYER_STATS_HEADERS)
 
 
 def reserve_budget(endpoint: str, request: Request, settings: Settings, connect_log) -> Callable[[str, dict[str, Any]], None]:

@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 DROP TABLE IF EXISTS charting_player_stats, charting_matches, player_matches, matches, players;
 DROP TABLE IF EXISTS raw.matches, raw.sackmann_players, raw.tml_players,
-                     raw.player_merges, raw.player_crosswalk, raw.special_events,
+                     raw.player_merges, raw.player_crosswalk, raw.special_events, raw.event_codes,
                      raw.charting_matches, raw.charting_serve_direction, raw.charting_rally,
                      raw.charting_net_points;
 
@@ -127,6 +127,15 @@ CREATE TABLE raw.special_events (
   note          TEXT
 );
 
+-- ATP tournament codes for the older Sackmann IDs that don't carry one ("2016-M006"), from the
+-- reviewed ingest/event_codes.csv (D-036).
+CREATE TABLE raw.event_codes (
+  tourney_id  TEXT,
+  event_code  TEXT,
+  method      TEXT,
+  note        TEXT
+);
+
 -- The Match Charting Project's files (D-030), as text. raw.charting_matches keeps the columns
 -- this project uses (not the umpire or the volunteer who charted the match); the stats files
 -- keep every column. Column names are the files' own, in snake case.
@@ -182,6 +191,10 @@ CREATE TABLE matches (
   source_row     INTEGER  NOT NULL,  -- raw.matches.row_num of the same source and season
   tourney_id     TEXT     NOT NULL,
   tourney_name   TEXT     NOT NULL,
+  -- The ATP tournament code: the number after the season in the ID ("2025-0410" and "2026-410"
+  -- are both 410), or from ingest/event_codes.csv for older IDs. It follows an event across
+  -- seasons and sources. Davis Cup ties have none (D-036).
+  event_code     INTEGER  CHECK (event_code > 0),
   tourney_level  TEXT     NOT NULL CHECK (tourney_level IN ('G', 'M', 'A', 'F', 'D', 'O')),
   source_level   TEXT     NOT NULL,  -- tourney_level as written in the file
   is_exhibition  BOOLEAN  NOT NULL,  -- Laver Cup, NextGen Finals (D-006)
@@ -199,6 +212,7 @@ CREATE TABLE matches (
   result_type    TEXT     NOT NULL CHECK (result_type IN ('completed', 'retired', 'walkover', 'defaulted', 'unknown')),
   has_stats      BOOLEAN  NOT NULL,
   CHECK (winner_id <> loser_id),
+  CHECK ((event_code IS NULL) = (tourney_level = 'D')),
   UNIQUE (source, season, source_row)
 );
 

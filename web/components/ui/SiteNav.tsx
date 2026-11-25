@@ -13,6 +13,7 @@ export function SiteNav() {
   const sections = [
     { href: "/", label: t.navScouting, current: pathname === "/" },
     { href: "/players", label: t.navPlayers, current: pathname === "/players" || pathname.startsWith("/players/") },
+    { href: "/calendar", label: t.navCalendar, current: pathname === "/calendar" },
   ];
   // A link to the current route does nothing by itself, but the report and the loader live on
   // "/" too, so the page is told to go back to match setup.

@@ -29,6 +29,7 @@ from ingest import players as player_files
 from ingest import quality
 from ingest.download import LOCK_PATH, RAW_DIR, SACKMANN_SEASONS, TML_SEASON, verify
 from ingest.transform import (
+    CODED_ID_RE,
     LEVELS,
     MATCH_COLUMNS,
     PLAYER_MATCH_COLUMNS,
@@ -47,6 +48,8 @@ REPORT_PATH = ROOT / "docs" / "quality-report.md"
 SEASON_FILES = [("sackmann", year, RAW_DIR / "sackmann" / f"atp_matches_{year}.csv") for year in SACKMANN_SEASONS]
 SEASON_FILES.append(("tml", TML_SEASON, RAW_DIR / "tml" / f"{TML_SEASON}.csv"))
 SPECIAL_EVENT_COLUMNS = ["tourney_name", "level", "is_exhibition", "note"]
+EVENT_CODES_PATH = ROOT / "ingest" / "event_codes.csv"
+EVENT_CODE_COLUMNS = ["tourney_id", "event_code", "method", "note"]
 
 # raw.matches columns after (source, season, row_num), in schema order.
 RAW_MATCH_COLUMNS = [
@@ -85,6 +88,26 @@ def load_special_events(rows: list[dict]) -> dict[str, tuple[str, bool]]:
     return events
 
 
+def load_event_codes(rows: list[dict]) -> dict[str, int]:
+    """Older tournament ID -> ATP code, from the reviewed ingest/event_codes.csv (D-036)."""
+    codes: dict[str, int] = {}
+    for row in rows:
+        code = to_int(row["event_code"])
+        if not row["tourney_id"] or code is None or code <= 0 or row["tourney_id"] in codes:
+            raise ValueError(f"event_codes.csv: bad or repeated row {row}")
+        codes[row["tourney_id"]] = code
+    return codes
+
+
+def uncoded_ids(files, event_codes: dict[str, int]) -> list[tuple[str, str]]:
+    """(tourney_id, name) of every tournament outside Davis Cup whose ID carries no ATP code and
+    that ingest/event_codes.csv doesn't map. Davis Cup ties need none (D-036)."""
+    return sorted(
+        {(row["tourney_id"], row["tourney_name"]) for rows in files for row in rows
+         if row["tourney_level"] != "D" and not CODED_ID_RE.fullmatch(row["tourney_id"]) and row["tourney_id"] not in event_codes}
+    )  # fmt: skip
+
+
 def copy_rows(cur: psycopg.Cursor, table: str, columns: list[str], rows) -> None:
     """Bulk-insert rows with COPY. Table and column names are quoted identifiers, never data."""
     statement = sql.SQL("COPY {} ({}) FROM STDIN").format(
@@ -110,6 +133,8 @@ def main() -> int:
     crosswalk_rows = player_files.read_rows(player_files.CROSSWALK_PATH)
     special_rows = player_files.read_rows(SPECIAL_EVENTS_PATH)
     special_events = load_special_events(special_rows)
+    event_code_rows = player_files.read_rows(EVENT_CODES_PATH)
+    event_codes = load_event_codes(event_code_rows)
     review_rows = player_files.read_rows(player_files.REVIEW_PATH)
     crosswalk = {row["tml_id"]: int(row["player_id"]) for row in crosswalk_rows}
     sackmann_players = player_files.read_rows(RAW_DIR / "sackmann" / "atp_players.csv")
@@ -148,13 +173,21 @@ def main() -> int:
               + "\n  ".join(f"{name!r} (level {level})" for name, level in unmapped), file=sys.stderr)  # fmt: skip
         return 1
 
+    # Likewise, a tournament ID with no ATP code that the reviewed file doesn't map stops the load,
+    # so no event loses its history across seasons (D-036).
+    uncoded = uncoded_ids(raw_rows.values(), event_codes)
+    if uncoded:
+        print("Add these tournament IDs to ingest/event_codes.csv before loading:\n  "
+              + "\n  ".join(f"{tid} ({name})" for tid, name in uncoded), file=sys.stderr)  # fmt: skip
+        return 1
+
     # Transform every season file. Duplicate match IDs across files are rejected, not merged.
     matches, player_matches, rejects = [], [], []
     notes: collections.Counter = collections.Counter()
     seen: set[str] = set()
     for source, season, _ in SEASON_FILES:
         rows = raw_rows[(source, season)]
-        result = transform_file(rows, source, season, map_sackmann if source == "sackmann" else map_tml, special_events)
+        result = transform_file(rows, source, season, map_sackmann if source == "sackmann" else map_tml, special_events, event_codes)
         rejects += result.rejects
         notes += result.notes
         for i, match in enumerate(result.matches):
@@ -217,6 +250,7 @@ def main() -> int:
         copy_rows(cur, "raw.player_merges", player_files.MERGE_FIELDS, ([r[c] for c in player_files.MERGE_FIELDS] for r in merge_rows))
         copy_rows(cur, "raw.player_crosswalk", player_files.CROSSWALK_FIELDS, ([r[c] for c in player_files.CROSSWALK_FIELDS] for r in crosswalk_rows))
         copy_rows(cur, "raw.special_events", SPECIAL_EVENT_COLUMNS, ([r[c] for c in SPECIAL_EVENT_COLUMNS] for r in special_rows))
+        copy_rows(cur, "raw.event_codes", EVENT_CODE_COLUMNS, ([r[c] for c in EVENT_CODE_COLUMNS] for r in event_code_rows))
         copy_rows(cur, "players", PLAYER_COLUMNS, players)
         copy_rows(cur, "matches", MATCH_COLUMNS, ([m[c] for c in MATCH_COLUMNS] for m in matches))
         copy_rows(cur, "player_matches", PLAYER_MATCH_COLUMNS, player_matches)

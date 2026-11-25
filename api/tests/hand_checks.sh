@@ -257,3 +257,15 @@ path "Lorenzo Musetti" "$S/atp_matches_2024.csv" | grep -E "Olympics|ITA vs ARG"
 path "Felix Auger Aliassime" "$S/atp_matches_2024.csv" | grep "Olympics"
 path "Alexander Zverev" "$S/atp_matches_2025.csv" | grep -E "Tour Finals|United Cup"
 path "Taylor Fritz" "$S/atp_matches_2025.csv" | grep -E "Tour Finals|United Cup"
+
+echo "== 31. Tournaments and finals (D-036): 2025 tournaments outside Davis Cup and exhibitions, finals played, and the first five by start date; Indian Wells finals 2015-2026"
+awk -F, -v E="$EXHIBITION" '
+  NR > 1 && $5 != "D" && $2 !~ E { seen[$1] = 1; if ($26 == "F") final[$1] = 1 }
+  END { n = 0; f = 0; for (t in seen) { n++; if (t in final) f++ } printf "tournaments %d, with a final %d\n", n, f }' "$S/atp_matches_2025.csv"
+awk -F, -v E="$EXHIBITION" '
+  NR > 1 && $5 != "D" && $2 !~ E { seen[$1] = $6 " " $2; if ($26 == "F") final[$1] = $11 " d. " $19 " " $24 }
+  END { for (t in seen) print seen[t] " | " (t in final ? final[t] : "no final") }' "$S/atp_matches_2025.csv" | sort | head -5
+for y in $(seq 2015 2025); do
+  awk -F, -v Y="$y" '$2 == "Indian Wells Masters" && $26 == "F" { print Y, $11, "d.", $19, $24 }' "$S/atp_matches_$y.csv"
+done
+awk -F, '$2 == "Indian Wells Masters" && $31 == "F" { print 2026, $12, "d.", $22, $29 }' "$T"

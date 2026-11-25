@@ -87,9 +87,11 @@ spend cap. Never set it in a deployment: there, the API refuses model calls unle
 
 ### Stats tools
 
-`api/stats.py` holds the eleven tools the agent calls: `resolve_player`, `player_profile`,
+`api/stats.py` holds the thirteen tools the agent calls: `resolve_player`, `player_profile`,
 `surface_splits`, `serve_return_stats`, `pressure_stats`, `head_to_head`, `recent_form`,
-`season_path` (each tournament of a season and how it ended, [D-035](docs/decisions.md)), and three
+`season_path` (each tournament of a season and how it ended, [D-035](docs/decisions.md)),
+`tournament_calendar` and `tournament_history` (a season's finals, and one tournament's winners
+across years, [D-036](docs/decisions.md)), and three
 for scouting patterns ([D-029, D-030](docs/decisions.md)):
 - `set_patterns`: tiebreaks, deciding sets, and results after winning or losing the first set;
 - `tour_comparison`: a player's serve, return and break-point rates ranked against every player
@@ -133,6 +135,7 @@ curl -s 'localhost:8000/health'                          # app and database, no 
 curl -s 'localhost:8000/players/search?q=sinner'
 curl -s 'localhost:8000/players/207989/stats?surface=Clay&season=2025'
 curl -s 'localhost:8000/matchup?player_id=206173&opponent_id=207989&surface=Clay'
+curl -s 'localhost:8000/calendar?season=2025&event=404'   # 404 is Indian Wells' ATP code
 curl -s localhost:8000/report -H 'content-type: application/json' \
   -d '{"player_id": 206173, "opponent_id": 207989, "surface": "Clay"}'
 curl -sN localhost:8000/report/stream -H 'content-type: application/json' \
@@ -173,7 +176,9 @@ a surface, watch each lookup as the report is written, then read the report. Any
 to show the tool call, filters and sample behind it, and a streaming chat takes follow-up
 questions. A second page, Player stats, shows any player's record, serve, return and recent form,
 with no model involved. A third, match prep, puts two players side by side over the report's
-window, each serve against the other's return, also with no model (D-033). Numbers on screen are drawn from the tool results, never from the model's
+window, each serve against the other's return, also with no model (D-033). A Calendar page lists
+every tournament of a season with its final, and each tournament's winners through the years
+(D-036). Numbers on screen are drawn from the tool results, never from the model's
 text. The app talks to the API through its own server, so the Anthropic key never reaches the
 browser. It's in English, Spanish and French, chosen from the browser's language and switchable
 in the nav ([D-024, D-026, D-027](docs/decisions.md)).

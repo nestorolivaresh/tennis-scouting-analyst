@@ -28,6 +28,10 @@ DATABASE_URL="op://VAULT/ITEM/owner-url" op run -- uv run python -m ingest.load
 
 The load rewrites `docs/quality-report.md`; only its date should change.
 
+When a release changes `ingest/schema.sql`, reload Neon before deploying it. The running app reads
+only the columns it names, so it keeps working on the new tables, while the new code needs the new
+columns from its first request (D-036).
+
 ## 3. The API's database role
 
 ```bash

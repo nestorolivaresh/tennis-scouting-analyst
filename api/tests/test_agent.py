@@ -59,7 +59,7 @@ def test_tool_results_go_back_to_the_model(conn):
     assert [name for name, _ in events] == ["tool_call", "tool_result", "text"]
     request = client.requests[0]
     assert request["model"] == "claude-sonnet-5-5" and request["output_config"] == {"effort": "low"}
-    assert request["cache_control"] == {"type": "ephemeral"} and len(request["tools"]) == 11  # season_path is the 11th (D-035)
+    assert request["cache_control"] == {"type": "ephemeral"} and len(request["tools"]) == 13  # season_path (D-035), tournament_calendar and tournament_history (D-036)
 
 
 def test_tool_errors_go_back_to_the_model_as_error_results(conn):

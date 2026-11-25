@@ -449,6 +449,87 @@ def test_team_events_are_the_special_events_marked_team():
     assert stats.TEAM_EVENTS == {r["tourney_name"] for r in rows if r["note"].startswith("Team")}
 
 
+# ---------- tournament_calendar and tournament_history (D-036) ----------
+
+
+def finals(result, key="tournaments"):
+    return {t["tournament"]: (t["status"], t["final"] and (t["final"]["winner"]["name"], t["final"]["runner_up"]["name"], t["final"]["score"]))
+            for t in result[key]}
+
+
+def test_tournament_calendar_2025(conn):
+    result = stats.tournament_calendar(conn, 2025)
+    assert result["count"] == 61  # hand 31: 61 tournaments outside Davis Cup and exhibitions, each with a final
+    by_name = finals(result)
+    assert sum(1 for status, _ in by_name.values() if status == "final") == 60
+    assert by_name["United Cup"] == ("team", None)  # its final was a tie between teams (hand 31 lists its first match)
+    assert by_name["Brisbane"] == ("final", ("Jiri Lehecka", "Reilly Opelka", "4-1 RET"))  # hand 31
+    assert by_name["Hong Kong"] == ("final", ("Alexandre Muller", "Kei Nishikori", "2-6 6-1 6-3"))  # hand 31
+    assert by_name["Adelaide"] == ("final", ("Felix Auger Aliassime", "Sebastian Korda", "6-3 3-6 6-1"))  # hand 31
+    assert by_name["Auckland"] == ("final", ("Gael Monfils", "Zizou Bergs", "6-3 6-4"))  # hand 31
+    dates = [t["tourney_date"] for t in result["tournaments"]]
+    assert dates == sorted(dates) and dates[0] == "2024-12-27"  # the United Cup starts in December of the season before (D-010)
+    assert not any(t["tournament"].startswith("Davis Cup") for t in result["tournaments"])
+
+
+def test_tournament_calendar_filters(conn):
+    clay = stats.tournament_calendar(conn, 2025, surface="Clay")
+    assert clay["count"] > 0 and {t["surface"] for t in clay["tournaments"]} == {"Clay"}
+    slams = stats.tournament_calendar(conn, 2025, tourney_level=["G"])
+    assert [t["tournament"] for t in slams["tournaments"]] == ["Australian Open", "Roland Garros", "Wimbledon", "Us Open"]
+    default = finals(stats.tournament_calendar(conn, 2025))
+    with_exhibitions = finals(stats.tournament_calendar(conn, 2025, include_exhibitions=True))
+    assert "Laver Cup" not in default and with_exhibitions["Laver Cup"] == ("team", None)  # D-006
+    with pytest.raises(stats.ToolInputError, match="season"):
+        stats.tournament_calendar(conn, None)
+
+
+def test_tournament_history_follows_the_code_across_seasons_and_sources(conn):
+    result = stats.tournament_history(conn, 404)
+    assert [(e["season"], e["final"]["winner"]["name"], e["final"]["runner_up"]["name"]) for e in result["editions"]] == [  # hand 31
+        (2026, "Jannik Sinner", "Daniil Medvedev"),
+        (2025, "Jack Draper", "Holger Rune"),
+        (2024, "Carlos Alcaraz", "Daniil Medvedev"),
+        (2023, "Carlos Alcaraz", "Daniil Medvedev"),
+        (2022, "Taylor Fritz", "Rafael Nadal"),
+        (2021, "Cameron Norrie", "Nikoloz Basilashvili"),
+        (2019, "Dominic Thiem", "Roger Federer"),  # 2016-2019 from ingest/event_codes.csv (M006)
+        (2018, "Juan Martin del Potro", "Roger Federer"),
+        (2017, "Roger Federer", "Stan Wawrinka"),
+        (2016, "Novak Djokovic", "Milos Raonic"),
+        (2015, "Novak Djokovic", "Roger Federer"),
+    ]
+    assert {e["tournament"] for e in result["editions"]} == {"Indian Wells Masters"}
+
+
+def test_a_code_that_moved_city_gives_each_edition_its_own_name(conn):
+    editions = stats.tournament_history(conn, 496)["editions"]
+    assert (editions[0]["season"], editions[0]["tournament"]) == (2026, "Lyon")  # as TML codes it
+    assert {e["tournament"] for e in editions[1:]} == {"Marseille"}
+
+
+def test_tournament_history_errors(conn):
+    with pytest.raises(stats.TournamentNotFound):
+        stats.tournament_history(conn, 99999)
+    with pytest.raises(stats.ToolInputError):
+        stats.tournament_history(conn, "abc")
+
+
+@pytest.mark.parametrize(
+    ("name", "has_final", "result_type", "status"),
+    [
+        ("Rome Masters", True, "completed", "final"),
+        ("Brisbane", True, "retired", "final"),
+        ("Paris Masters", True, "walkover", "final"),  # a title won by walkover is still a final
+        ("United Cup", True, "completed", "team"),
+        ("Stockholm", False, None, "no_final"),  # still being played
+        ("Kitzbuhel", True, "unknown", "unclear"),  # the score contradicts the listed winner (D-007)
+    ],
+)
+def test_final_status_rules(name, has_final, result_type, status):
+    assert stats.final_status(name, has_final, result_type) == status
+
+
 # ---------- Milestone 8: scouting patterns from the match data (D-029) ----------
 
 DJOKOVIC = 104925  # hand 9

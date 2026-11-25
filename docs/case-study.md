@@ -38,6 +38,9 @@ So the goal was narrower than "an AI analyst":
 - **Player stats.** Any player's record by surface and season, serve and return figures,
   scouting patterns, recent matches and head-to-head, with no model involved. A season path lists
   each tournament of a season and how it ended, with walkovers shown but not counted (D-035).
+- **Calendar.** Every tournament of a season with its final, and each tournament's winners across
+  the years, followed by the ATP's tournament code (D-036). Upcoming tournaments aren't in the
+  data; the page links to the ATP's own calendar.
 - **Match prep.** Two players side by side over the report's window: each serve figure against
   the other player's return of the same serve, sets and tiebreaks, charted patterns and every
   meeting, with no model involved (D-033).
@@ -51,7 +54,7 @@ public CSVs ── download, hash-pinned ──▶ data/ ── load, one transa
                                                                               │
                                     raw tables ◀──────────────────────────────┤
                                         │                                     ▼
-                              evals/truth.py                       api/stats.py: 11 tools,
+                              evals/truth.py                       api/stats.py: 13 tools,
                               (separate SQL)                       the only path to the data
                                         │                                     ▼
                                         │                          api/agent.py: tool loop
