@@ -1823,10 +1823,11 @@ stricter grounding of D-037 and its rule against field names. And no check ran u
   That is the check's known leniency (D-031), left as it is; a cited number (D-032) can't drift.
 
 **Chosen: CI** (`.github/workflows/ci.yml`), on every push and by hand, with two jobs:
-- **Python**: `pytest` with no database: 175 tests run (the loader's transform, charting, player
+- **Python**: `pytest` with no database: 174 tests run (the loader's transform, charting, player
   and download rules on made-up rows, filters, scores, citations, the number check, the eval
-  scorer, and the guard against committed birth dates) and 323 that need the loaded data, the API
-  and agent tests among them, are skipped and listed.
+  scorer) and 324 are skipped and listed: the 323 that need the loaded data, the API and agent
+  tests among them, and the guard against committed birth dates (D-013), which needs the raw
+  player files. That guard still runs locally, where the data is downloaded.
 - **Web**: Node 22, `npm ci`, the tests, the typecheck and the build.
 - No secrets, no model calls (the paid eval runs stay manual), no deploy. Actions are pinned to
   commit hashes of releases at least two weeks old, and uv to the version used locally.
@@ -1839,10 +1840,11 @@ stricter grounding of D-037 and its rule against field names. And no check ran u
   deploy, and red whenever the cache is lost) or a database job skipped until then. The database
   tests stay a local step before each commit, as before.
 
-**How it was checked.** `pytest` with no `DATABASE_URL`: 175 passed, 323 skipped. The full
-suite against the local database and the web commands pass (below). Before the choice, the
-database job's steps were run against a fresh `postgres:16` from a copy of the tracked files: load
-26 s, 497 passed. **Not checked:** the workflow on GitHub itself, which needs a push.
+**How it was checked.** The first run on GitHub (run 45670107460, commit `273fd3e`) passed both
+jobs: 174 Python tests passed and 324 were skipped, and the web tests, typecheck and build passed.
+Locally, with the raw data present, the same command gives 175 and 323: the birth-date guard runs
+there. Before the choice, the database job's steps were run against a fresh `postgres:16` from a
+copy of the tracked files: load 26 s, 497 passed.
 
 **Spec.** The milestone table gains 11 to 14, and three of the open decisions are marked settled:
 the 2026 data (D-001, D-034), the spend limits (D-022, D-025) and hosting (D-025).
