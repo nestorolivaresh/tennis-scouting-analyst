@@ -65,6 +65,10 @@ uv run --env-file .env python -m ingest.load   # a few seconds; also writes docs
 uv run --env-file .env pytest                  # unit tests, plus checks on the loaded data
 ```
 
+On GitHub, CI runs on every push: the tests that need no database, and the web tests, typecheck
+and build. The checks on the loaded data run only locally, since the pinned 2026 snapshot can't be
+downloaded again once TennisMyLife updates its file ([D-039](docs/decisions.md)).
+
 With a 2026 snapshot newer than the pinned one, expect `test_data_window` to fail, since it
 checks the snapshot's own dates, and the two newest-match checks on `player_profile` if those
 players have played since. Every other check on 2026 counts only tournaments that started by

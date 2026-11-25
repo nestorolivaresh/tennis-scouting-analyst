@@ -229,7 +229,7 @@ an answer varies.
 
 From the spec's list for after the first version:
 - retrieval over coaching notes or match reports;
-- evals in CI;
+- the paid eval runs in CI (the tests that need no database run there on every push, D-039);
 - WTA data.
 
 And one from the results above: run each eval question several times, to measure how often an
